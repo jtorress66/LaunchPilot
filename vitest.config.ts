@@ -31,6 +31,7 @@ export default defineConfig({
         "apps/*/src/container.ts",
         "apps/worker/src/main.ts",
         "apps/worker/src/migrate.ts",
+        "apps/worker/src/stripe-setup.ts",
         // Postgres code that only runs against a real database is measured by `pnpm test:int`.
         "packages/adapters/src/postgres/database.ts",
         "packages/adapters/src/postgres/migrate.ts",
@@ -39,6 +40,8 @@ export default defineConfig({
         "packages/adapters/src/postgres/repositories/**",
         "packages/adapters/src/billing/stripe-checkout-provider.ts",
         "packages/adapters/src/billing/stripe-setup.ts",
+        // Only constructs the SDK client; exercised by the Stripe E2E job.
+        "packages/adapters/src/billing/stripe-client.ts",
         "apps/web/src/app/**",
         // Static marketing copy; rendered and asserted by the landing-page E2E suite.
         "apps/web/src/content/**",

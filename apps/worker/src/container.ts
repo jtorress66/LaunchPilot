@@ -1,5 +1,11 @@
-import { createDatabase, migrateToLatest, SystemClock } from "@launchpilot/adapters";
-import type { DatabaseConfig } from "./config";
+import {
+  createDatabase,
+  createStripeClient,
+  ensureStripePrices,
+  migrateToLatest,
+  SystemClock,
+} from "@launchpilot/adapters";
+import type { DatabaseConfig, StripeSetupConfig } from "./config";
 import type { HeartbeatDeps } from "./heartbeat";
 
 /** Composition root: the only place in the worker where concrete adapters are created. */
@@ -20,3 +26,6 @@ export const runMigrations = async ({ connectionString }: DatabaseConfig) => {
     await db.destroy();
   }
 };
+
+export const runStripeSetup = ({ secretKey }: StripeSetupConfig) =>
+  ensureStripePrices(createStripeClient(secretKey));

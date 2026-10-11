@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseDatabaseConfig } from "./config";
+import { parseDatabaseConfig, parseStripeSetupConfig } from "./config";
 
 describe("parseDatabaseConfig", () => {
   it.each([
@@ -23,6 +23,30 @@ describe("parseDatabaseConfig", () => {
     expect(parseDatabaseConfig({ DATABASE_URL: url })).toEqual({
       ok: false,
       error: "DATABASE_URL must be a postgres:// or postgresql:// URL",
+    });
+  });
+});
+
+describe("parseStripeSetupConfig", () => {
+  it("accepts a test-mode secret key", () => {
+    expect(parseStripeSetupConfig({ STRIPE_SECRET_KEY: "sk_test_abc" }, [])).toEqual({
+      ok: true,
+      value: { secretKey: "sk_test_abc" },
+    });
+  });
+
+  it("refuses a live key unless --live is passed", () => {
+    expect(parseStripeSetupConfig({ STRIPE_SECRET_KEY: "sk_live_abc" }, [])).toEqual({
+      ok: false,
+      error: "Refusing to use a live Stripe key. Pass --live if you really mean it.",
+    });
+    expect(parseStripeSetupConfig({ STRIPE_SECRET_KEY: "sk_live_abc" }, ["--live"]).ok).toBe(true);
+  });
+
+  it("explains a missing key", () => {
+    expect(parseStripeSetupConfig({}, [])).toEqual({
+      ok: false,
+      error: "STRIPE_SECRET_KEY is required",
     });
   });
 });

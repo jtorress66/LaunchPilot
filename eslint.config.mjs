@@ -36,6 +36,7 @@ const noFrameworksOrIo = [
       "react-dom",
       "pg",
       "kysely",
+      "stripe",
       "@anthropic-ai/*",
       "node:*",
       "fs",

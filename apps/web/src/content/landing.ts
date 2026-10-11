@@ -1,7 +1,5 @@
 /** Landing-page copy lives here so sections render data and new items need no component changes. */
 
-export const EARLY_ACCESS_EMAIL = "hello@launchpilot.app";
-
 export interface Step {
   readonly title: string;
   readonly body: string;

@@ -36,6 +36,6 @@ export class FakeWebhookVerifier implements BillingWebhookVerifier {
       );
     }
     const event = JSON.parse(payload, reviveDates) as BillingEvent | { type: typeof IGNORED };
-    return Promise.resolve(ok(event.type === IGNORED ? null : (event)));
+    return Promise.resolve(ok(event.type === IGNORED ? null : event));
   }
 }

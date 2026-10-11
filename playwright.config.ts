@@ -5,6 +5,8 @@ const baseURL = `http://localhost:${port}`;
 
 export default defineConfig({
   testDir: "apps/web/e2e",
+  // Real-Stripe journeys run separately: pnpm test:e2e:stripe (playwright.stripe.config.ts).
+  testIgnore: "stripe/**",
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,

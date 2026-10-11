@@ -5,7 +5,7 @@ test.describe("landing page", () => {
     await page.goto("/");
     await expect(page).toHaveTitle(/LaunchPilot/);
     await expect(page.getByRole("heading", { level: 1 })).toContainText("marketing team");
-    await expect(page.getByRole("link", { name: "Get early access" }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: "Start free" }).first()).toBeVisible();
   });
 
   test("promises founder approval before anything is published", async ({ page }) => {
