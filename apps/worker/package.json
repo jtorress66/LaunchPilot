@@ -6,14 +6,16 @@
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "start": "tsx src/main.ts",
-    "typecheck": "tsc --noEmit -p ."
+    "typecheck": "tsc --noEmit -p .",
+    "migrate": "tsx src/migrate.ts"
   },
   "dependencies": {
     "@launchpilot/adapters": "workspace:*",
     "@launchpilot/application": "workspace:*",
     "@launchpilot/domain": "workspace:*",
     "@launchpilot/ports": "workspace:*",
-    "tsx": "4.20.6"
+    "tsx": "4.20.6",
+    "zod": "3.25.76"
   },
   "devDependencies": {
     "@launchpilot/testing": "workspace:*",

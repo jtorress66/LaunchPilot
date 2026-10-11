@@ -37,7 +37,7 @@ Dependency rule: `domain` ← `ports` ← `application` ← `agents` / `adapters
 - **O — Open/closed:** add behaviour by adding a class that implements a port and registering it (e.g. a new `Publisher` in `PublisherRegistry`), not by adding `if/switch` branches on channel type.
 - **L — Liskov substitution:** every implementation of a port must pass that port's shared contract suite in `packages/testing/contracts/`. Add the contract test before the implementation.
 - **I — Interface segregation:** keep ports small (`ContentDrafter`, `ContentReviewer`, `KeywordProvider`, `MetricsSource`, `LlmClient`, `Clock`, repositories). Split an interface when a consumer uses only part of it.
-- **D — Dependency inversion:** depend on ports, inject via constructors. No `new SomeAdapter()` or SDK import outside `adapters/` and composition roots. Time, randomness, and IDs come through injected ports so tests are deterministic.
+- **D — Dependency inversion:** depend on ports, inject via constructors. No `new SomeAdapter()` or SDK/database-driver import (e.g. `kysely`, `pg`) outside `adapters/` and composition roots. Time, randomness, and IDs come through injected ports so tests are deterministic.
 
 ## Testing
 

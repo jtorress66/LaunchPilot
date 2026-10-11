@@ -35,6 +35,7 @@ const noFrameworksOrIo = [
       "react",
       "react-dom",
       "pg",
+      "kysely",
       "@anthropic-ai/*",
       "node:*",
       "fs",
@@ -128,6 +129,7 @@ export default tseslint.config(
   },
   {
     files: ["packages/adapters/src/**/*.ts"],
+    ignores: ["**/*.test.ts"],
     rules: forbid(["application", "agents", "testing", "web", "worker"]),
   },
   {
