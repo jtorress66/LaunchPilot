@@ -1,0 +1,22 @@
+{
+  "name": "@launchpilot/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "start": "tsx src/main.ts",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@launchpilot/adapters": "workspace:*",
+    "@launchpilot/domain": "workspace:*",
+    "@launchpilot/ports": "workspace:*",
+    "tsx": "4.20.6"
+  },
+  "devDependencies": {
+    "@launchpilot/testing": "workspace:*",
+    "@types/node": "22.20.5",
+    "vitest": "3.2.7"
+  }
+}
