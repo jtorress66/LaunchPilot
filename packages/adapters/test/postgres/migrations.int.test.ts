@@ -33,14 +33,20 @@ afterAll(async () => {
 });
 
 describe("migrations", () => {
-  it("creates all six tables when migrating to the latest version", async () => {
-    expect(await migrateToLatest(db)).toEqual({ ok: true, value: { applied: ["0001_initial"] } });
+  it("creates every table when migrating to the latest version", async () => {
+    expect(await migrateToLatest(db)).toEqual({
+      ok: true,
+      value: { applied: ["0001_initial", "0002_accounts_billing"] },
+    });
     expect(await tables()).toEqual([
       "briefs",
       "campaigns",
       "content_items",
       "products",
+      "sessions",
+      "subscriptions",
       "tasks",
+      "users",
       "workspaces",
     ]);
   });
@@ -50,7 +56,10 @@ describe("migrations", () => {
   });
 
   it("removes every table when migrated back down", async () => {
-    expect(await migrateDown(db)).toEqual({ ok: true, value: { applied: ["0001_initial"] } });
+    expect(await migrateDown(db)).toEqual({
+      ok: true,
+      value: { applied: ["0002_accounts_billing", "0001_initial"] },
+    });
     expect(await tables()).toEqual([]);
   });
 

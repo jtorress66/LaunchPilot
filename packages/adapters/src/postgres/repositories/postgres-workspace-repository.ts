@@ -1,4 +1,4 @@
-import type { Workspace, WorkspaceId } from "@launchpilot/domain";
+import type { UserId, Workspace, WorkspaceId } from "@launchpilot/domain";
 import type { WorkspaceRepository } from "@launchpilot/ports";
 import type { Kysely } from "kysely";
 import { workspaceMapper } from "../mappers/workspace-mapper";
@@ -19,5 +19,16 @@ export class PostgresWorkspaceRepository implements WorkspaceRepository {
 
   save(workspace: Workspace): Promise<void> {
     return upsert(this.db, "workspaces", workspaceMapper.toRow(workspace));
+  }
+
+  async findByOwner(ownerId: UserId): Promise<Workspace | undefined> {
+    const row = await this.db
+      .selectFrom("workspaces")
+      .selectAll()
+      .where("owner_id", "=", ownerId)
+      .orderBy("created_at")
+      .limit(1)
+      .executeTakeFirst();
+    return row && workspaceMapper.fromRow(row);
   }
 }

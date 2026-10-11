@@ -1,4 +1,9 @@
 import type {
+  Email,
+  Session,
+  Subscription,
+  User,
+  UserId,
   Brief,
   BriefId,
   Campaign,
@@ -24,7 +29,28 @@ export interface Repository<Id, T> {
   save(entity: T): Promise<void>;
 }
 
-export type WorkspaceRepository = Repository<WorkspaceId, Workspace>;
+export interface WorkspaceRepository extends Repository<WorkspaceId, Workspace> {
+  /** One founder owns one workspace for now. */
+  findByOwner(ownerId: UserId): Promise<Workspace | undefined>;
+}
+
+export interface UserRepository extends Repository<UserId, User> {
+  findByEmail(email: Email): Promise<User | undefined>;
+}
+
+/** Implementations must store only a hash of the token, never the token itself. */
+export interface SessionRepository {
+  findByToken(token: string): Promise<Session | undefined>;
+  save(session: Session): Promise<void>;
+  delete(token: string): Promise<void>;
+}
+
+export interface SubscriptionRepository {
+  findByWorkspace(workspaceId: WorkspaceId): Promise<Subscription | undefined>;
+  findByProviderSubscriptionId(providerSubscriptionId: string): Promise<Subscription | undefined>;
+  /** Inserts or replaces the subscription of the same workspace. */
+  save(subscription: Subscription): Promise<void>;
+}
 
 export interface ProductRepository extends Repository<ProductId, Product> {
   listByWorkspace(workspaceId: WorkspaceId): Promise<readonly Product[]>;

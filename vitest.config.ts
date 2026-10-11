@@ -11,7 +11,11 @@ export default defineConfig({
         test: {
           ...shared,
           name: "unit",
-          include: ["{packages,apps}/*/src/**/*.test.ts", "tests/**/*.test.ts"],
+          include: [
+            "{packages,apps}/*/src/**/*.test.ts",
+            "packages/application/test/**/*.test.ts",
+            "tests/**/*.test.ts",
+          ],
         },
       },
       { test: { ...shared, name: "contract", include: ["packages/*/test/**/*.contract.test.ts"] } },
@@ -33,6 +37,8 @@ export default defineConfig({
         "packages/adapters/src/postgres/upsert.ts",
         "packages/adapters/src/postgres/migrations/**",
         "packages/adapters/src/postgres/repositories/**",
+        "packages/adapters/src/billing/stripe-checkout-provider.ts",
+        "packages/adapters/src/billing/stripe-setup.ts",
         "apps/web/src/app/**",
         // Static marketing copy; rendered and asserted by the landing-page E2E suite.
         "apps/web/src/content/**",

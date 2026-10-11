@@ -3,6 +3,9 @@ import { PostgresBriefRepository } from "./repositories/postgres-brief-repositor
 import { PostgresCampaignRepository } from "./repositories/postgres-campaign-repository";
 import { PostgresContentItemRepository } from "./repositories/postgres-content-item-repository";
 import { PostgresProductRepository } from "./repositories/postgres-product-repository";
+import { PostgresSessionRepository } from "./repositories/postgres-session-repository";
+import { PostgresSubscriptionRepository } from "./repositories/postgres-subscription-repository";
+import { PostgresUserRepository } from "./repositories/postgres-user-repository";
 import { PostgresTaskRepository } from "./repositories/postgres-task-repository";
 import { PostgresWorkspaceRepository } from "./repositories/postgres-workspace-repository";
 import type { Database } from "./schema";
@@ -15,12 +18,18 @@ export {
   PostgresCampaignRepository,
   PostgresContentItemRepository,
   PostgresProductRepository,
+  PostgresSessionRepository,
+  PostgresSubscriptionRepository,
   PostgresTaskRepository,
+  PostgresUserRepository,
   PostgresWorkspaceRepository,
 };
 
 /** Every repository over one connection pool, for composition roots. */
 export const createPostgresRepositories = (db: Kysely<Database>) => ({
+  users: new PostgresUserRepository(db),
+  sessions: new PostgresSessionRepository(db),
+  subscriptions: new PostgresSubscriptionRepository(db),
   workspaces: new PostgresWorkspaceRepository(db),
   products: new PostgresProductRepository(db),
   briefs: new PostgresBriefRepository(db),

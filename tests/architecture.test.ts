@@ -11,7 +11,7 @@ const root = join(import.meta.dirname, "..");
 const allowedInternalDeps: Record<string, readonly string[]> = {
   domain: [],
   ports: ["domain"],
-  application: ["domain", "ports"],
+  application: ["domain", "ports", "testing"],
   agents: ["domain", "ports"],
   testing: ["domain", "ports"],
   adapters: ["domain", "ports", "testing"],

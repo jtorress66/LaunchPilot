@@ -1,4 +1,9 @@
 import type {
+  Email,
+  Session,
+  Subscription,
+  User,
+  UserId,
   Brief,
   BriefId,
   Campaign,
@@ -19,6 +24,9 @@ import type {
   ContentItemRepository,
   ProductRepository,
   Repository,
+  SessionRepository,
+  SubscriptionRepository,
+  UserRepository,
   TaskRepository,
   WorkspaceRepository,
 } from "@launchpilot/ports";
@@ -26,7 +34,7 @@ import { InMemoryStore } from "./in-memory-store";
 
 /** findById/save shared by every in-memory repository, composed around one store. */
 class StoreRepository<Id, T extends { readonly id: Id }> implements Repository<Id, T> {
-  readonly store = new InMemoryStore<Id, T>();
+  readonly store = new InMemoryStore<Id, T>((entity) => entity.id);
 
   findById(id: Id): Promise<T | undefined> {
     return Promise.resolve(this.store.get(id));
@@ -42,6 +50,57 @@ export class InMemoryWorkspaceRepository implements WorkspaceRepository {
   private readonly base = new StoreRepository<WorkspaceId, Workspace>();
   readonly findById = this.base.findById.bind(this.base);
   readonly save = this.base.save.bind(this.base);
+
+  findByOwner(ownerId: UserId): Promise<Workspace | undefined> {
+    return Promise.resolve(this.base.store.filter((w) => w.ownerId === ownerId)[0]);
+  }
+}
+
+export class InMemoryUserRepository implements UserRepository {
+  private readonly base = new StoreRepository<UserId, User>();
+  readonly findById = this.base.findById.bind(this.base);
+  readonly save = this.base.save.bind(this.base);
+
+  findByEmail(email: Email): Promise<User | undefined> {
+    return Promise.resolve(this.base.store.filter((u) => u.email === email)[0]);
+  }
+}
+
+export class InMemorySessionRepository implements SessionRepository {
+  private readonly store = new InMemoryStore<string, Session>((session) => session.token);
+
+  findByToken(token: string): Promise<Session | undefined> {
+    return Promise.resolve(this.store.get(token));
+  }
+
+  save(session: Session): Promise<void> {
+    this.store.put(session);
+    return Promise.resolve();
+  }
+
+  delete(token: string): Promise<void> {
+    this.store.delete(token);
+    return Promise.resolve();
+  }
+}
+
+export class InMemorySubscriptionRepository implements SubscriptionRepository {
+  private readonly store = new InMemoryStore<WorkspaceId, Subscription>((s) => s.workspaceId);
+
+  findByWorkspace(workspaceId: WorkspaceId): Promise<Subscription | undefined> {
+    return Promise.resolve(this.store.get(workspaceId));
+  }
+
+  findByProviderSubscriptionId(providerSubscriptionId: string): Promise<Subscription | undefined> {
+    return Promise.resolve(
+      this.store.filter((s) => s.providerSubscriptionId === providerSubscriptionId)[0],
+    );
+  }
+
+  save(subscription: Subscription): Promise<void> {
+    this.store.put(subscription);
+    return Promise.resolve();
+  }
 }
 
 export class InMemoryProductRepository implements ProductRepository {

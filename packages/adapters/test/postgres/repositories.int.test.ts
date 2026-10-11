@@ -3,6 +3,9 @@ import {
   describeCampaignRepositoryContract,
   describeContentItemRepositoryContract,
   describeProductRepositoryContract,
+  describeSessionRepositoryContract,
+  describeSubscriptionRepositoryContract,
+  describeUserRepositoryContract,
   describeTaskRepositoryContract,
   describeWorkspaceRepositoryContract,
 } from "@launchpilot/testing/contracts";
@@ -15,6 +18,9 @@ import {
   PostgresCampaignRepository,
   PostgresContentItemRepository,
   PostgresProductRepository,
+  PostgresSessionRepository,
+  PostgresSubscriptionRepository,
+  PostgresUserRepository,
   PostgresTaskRepository,
   PostgresWorkspaceRepository,
 } from "../../src/postgres";
@@ -27,8 +33,23 @@ afterAll(async () => {
 });
 
 describeWorkspaceRepositoryContract("PostgresWorkspaceRepository", async () => {
-  await resetWith(db, "none");
+  await resetWith(db, "users");
   return new PostgresWorkspaceRepository(db);
+});
+
+describeUserRepositoryContract("PostgresUserRepository", async () => {
+  await resetWith(db, "none");
+  return new PostgresUserRepository(db);
+});
+
+describeSessionRepositoryContract("PostgresSessionRepository", async () => {
+  await resetWith(db, "users");
+  return new PostgresSessionRepository(db);
+});
+
+describeSubscriptionRepositoryContract("PostgresSubscriptionRepository", async () => {
+  await resetWith(db, "workspaces");
+  return new PostgresSubscriptionRepository(db);
 });
 
 describeProductRepositoryContract("PostgresProductRepository", async () => {
@@ -69,7 +90,10 @@ describe("createPostgresRepositories", () => {
       "campaigns",
       "contentItems",
       "products",
+      "sessions",
+      "subscriptions",
       "tasks",
+      "users",
       "workspaces",
     ]);
   });

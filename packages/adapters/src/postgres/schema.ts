@@ -65,7 +65,34 @@ export interface ContentItemRow {
   failure: string | null;
 }
 
+export interface UserRow {
+  id: string;
+  email: string;
+  password_hash: string;
+  created_at: Date;
+}
+
+export interface SessionRow {
+  token_hash: string;
+  user_id: string;
+  created_at: Date;
+  expires_at: Date;
+}
+
+export interface SubscriptionRow {
+  workspace_id: string;
+  plan: string;
+  status: string;
+  provider_customer_id: string | null;
+  provider_subscription_id: string | null;
+  current_period_end: Date | null;
+  updated_at: Date;
+}
+
 export interface Database {
+  users: UserRow;
+  sessions: SessionRow;
+  subscriptions: SubscriptionRow;
   workspaces: WorkspaceRow;
   products: ProductRow;
   briefs: BriefRow;

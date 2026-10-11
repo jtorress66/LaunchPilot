@@ -6,7 +6,11 @@ export type DomainErrorCode =
   | "channel_is_draft_only"
   | "publish_time_in_past"
   | "brief_has_no_facts"
-  | "not_publishable";
+  | "not_publishable"
+  | "invalid_email"
+  | "weak_password"
+  | "plan_limit_reached"
+  | "plan_not_purchasable";
 
 export interface DomainError {
   readonly code: DomainErrorCode;
