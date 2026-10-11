@@ -17,6 +17,9 @@ importers:
       '@playwright/test':
         specifier: 1.56.1
         version: 1.56.1
+      '@testcontainers/postgresql':
+        specifier: 11.14.0
+        version: 11.14.0
       '@types/node':
         specifier: 22.20.5
         version: 22.20.5
@@ -111,6 +114,9 @@ importers:
       tsx:
         specifier: 4.20.6
         version: 4.20.6
+      zod:
+        specifier: 3.25.76
+        version: 3.25.76
     devDependencies:
       '@launchpilot/testing':
         specifier: workspace:*
@@ -130,6 +136,12 @@ importers:
       '@launchpilot/ports':
         specifier: workspace:*
         version: link:../ports
+      kysely:
+        specifier: 0.28.17
+        version: 0.28.17
+      pg:
+        specifier: 8.16.3
+        version: 8.16.3
     devDependencies:
       '@launchpilot/testing':
         specifier: workspace:*
@@ -143,9 +155,6 @@ importers:
       '@types/pg':
         specifier: 8.15.6
         version: 8.15.6
-      pg:
-        specifier: 8.16.3
-        version: 8.16.3
       testcontainers:
         specifier: 11.14.0
         version: 11.14.0
@@ -1835,6 +1844,10 @@ packages:
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
 
+  kysely@0.28.17:
+    resolution: {integrity: sha512-nbD8lB9EB3wNdMhOCdx5Li8DxnLbvKByylRLcJ1h+4SkrowVeECAyZlyiKMThF7xFdRz0jSQ2MoJr+wXux2y0Q==}
+    engines: {node: '>=20.0.0'}
+
   lazystream@1.0.1:
     resolution: {integrity: sha512-b94GiNHQNy6JNTrt5w6zNyffMrNkXZb3KTkCZJb2V1xaEGCk093vkZ2jk3tpaeP33/OiXC+WvK9AxUebnf5nbw==}
     engines: {node: '>= 0.6.3'}
@@ -2586,6 +2599,9 @@ packages:
   zip-stream@6.0.1:
     resolution: {integrity: sha512-zK7YHHz4ZXpW89AHXUPbQVGKI7uvkd3hzusTdotCg1UxyaVtg0zFJSTfW/Dq5f7OBBVnq6cZIaC8Ti4hb6dtCA==}
     engines: {node: '>= 14'}
+
+  zod@3.25.76:
+    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
 snapshots:
 
@@ -4044,6 +4060,8 @@ snapshots:
     dependencies:
       json-buffer: 3.0.1
 
+  kysely@0.28.17: {}
+
   lazystream@1.0.1:
     dependencies:
       readable-stream: 2.3.8
@@ -4843,3 +4861,5 @@ snapshots:
       archiver-utils: 5.0.2
       compress-commons: 6.0.2
       readable-stream: 4.8.0
+
+  zod@3.25.76: {}

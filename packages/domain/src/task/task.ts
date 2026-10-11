@@ -4,8 +4,15 @@ import type { CampaignId, TaskId } from "../shared/ids";
 import { applyTransition, defineTransitions } from "../shared/state-machine";
 import { nonEmptyText } from "../shared/text";
 
-export type TaskKind = "seo_article" | "social_post" | "launch_submission" | "weekly_report";
-export type TaskStatus = "todo" | "in_progress" | "blocked" | "done";
+export const taskKinds = [
+  "seo_article",
+  "social_post",
+  "launch_submission",
+  "weekly_report",
+] as const;
+export type TaskKind = (typeof taskKinds)[number];
+export const taskStatuses = ["todo", "in_progress", "blocked", "done"] as const;
+export type TaskStatus = (typeof taskStatuses)[number];
 export type TaskEvent = "start" | "pause" | "complete" | "block" | "unblock";
 
 export interface Task {

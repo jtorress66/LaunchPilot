@@ -4,7 +4,8 @@ import type { CampaignId, ProductId } from "../shared/ids";
 import { applyTransition, defineTransitions } from "../shared/state-machine";
 import { nonEmptyText } from "../shared/text";
 
-export type CampaignStatus = "planned" | "active" | "completed";
+export const campaignStatuses = ["planned", "active", "completed"] as const;
+export type CampaignStatus = (typeof campaignStatuses)[number];
 export type CampaignEvent = "start" | "complete";
 
 export interface Campaign {

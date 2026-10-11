@@ -2,7 +2,7 @@
 
 Place this file at `docs/BUILD_STEPS.md`. Work on one step at a time. Tick a step only when its gate passes and the Definition of Done in `CLAUDE.md` is met.
 
-**Current step:** 2
+**Current step:** 3
 
 | # | Step | Scope | Gate (must pass before next step) | Done |
 | --- | --- | --- | --- | --- |

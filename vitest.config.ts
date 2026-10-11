@@ -26,6 +26,13 @@ export default defineConfig({
         // Composition roots and framework entrypoints are exercised by E2E, not unit tests.
         "apps/*/src/container.ts",
         "apps/worker/src/main.ts",
+        "apps/worker/src/migrate.ts",
+        // Postgres code that only runs against a real database is measured by `pnpm test:int`.
+        "packages/adapters/src/postgres/database.ts",
+        "packages/adapters/src/postgres/migrate.ts",
+        "packages/adapters/src/postgres/upsert.ts",
+        "packages/adapters/src/postgres/migrations/**",
+        "packages/adapters/src/postgres/repositories/**",
         "apps/web/src/app/**",
         // Static marketing copy; rendered and asserted by the landing-page E2E suite.
         "apps/web/src/content/**",

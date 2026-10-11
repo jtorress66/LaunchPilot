@@ -15,7 +15,8 @@ export interface BriefContent {
   readonly facts: readonly string[];
 }
 
-export type BriefStatus = "draft" | "approved";
+export const briefStatuses = ["draft", "approved"] as const;
+export type BriefStatus = (typeof briefStatuses)[number];
 
 export interface Brief {
   readonly id: BriefId;

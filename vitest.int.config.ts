@@ -4,7 +4,18 @@ export default defineConfig({
   test: {
     name: "integration",
     include: ["{packages,apps}/*/test/**/*.int.test.ts"],
+    globalSetup: ["packages/adapters/test/postgres/global-setup.ts"],
+    // Files share one database and truncate it between tests, so they run one at a time.
+    fileParallelism: false,
     testTimeout: 120_000,
     hookTimeout: 120_000,
+    coverage: {
+      provider: "v8",
+      reporter: ["text-summary", "text", "lcov"],
+      reportsDirectory: "coverage/integration",
+      include: ["packages/adapters/src/postgres/**/*.ts"],
+      exclude: ["**/*.test.ts"],
+      thresholds: { lines: 90, functions: 90, branches: 90, statements: 90 },
+    },
   },
 });
