@@ -89,6 +89,16 @@ const payWithTestCard = async (page: Page) => {
     if (field.required && !input) throw new Error(`Stripe Checkout ${field.name} field not found`);
     await input?.pressSequentially(field.value, { delay: 30 });
   }
+
+  // US billing addresses need a ZIP; find it by its visible label wherever Checkout renders it.
+  const postalCode = page.getByRole("textbox", { name: /ZIP|postal/i }).first();
+  if ((await postalCode.isVisible().catch(() => false)) && (await postalCode.inputValue()) === "") {
+    await postalCode.fill("10001");
+  }
+  // "Save my info with Link" requires a phone number when ticked; this test pays without Link.
+  const saveWithLink = page.locator("#enableStripePass");
+  if (await saveWithLink.isChecked().catch(() => false)) await saveWithLink.dispatchEvent("click");
+
   await page.getByTestId("hosted-payment-submit-button").click();
 };
 
@@ -121,7 +131,18 @@ test.afterEach(async ({ page }, testInfo) => {
     .locator("body")
     .ariaSnapshot()
     .catch(() => "(no outline)");
-  lines.push("Page outline:", ...outline.split("\n").slice(0, 150));
+  const alerts = await page
+    .getByRole("alert")
+    .allInnerTexts()
+    .catch(() => []);
+  lines.push(
+    `Alerts: ${alerts.filter(Boolean).join(" | ") || "(none)"}`,
+    "Page outline (country options omitted):",
+    ...outline
+      .split("\n")
+      .filter((line) => !line.trim().startsWith("- option "))
+      .slice(0, 200),
+  );
   console.log(lines.join("\n"));
 });
 
