@@ -66,24 +66,27 @@ const findInFrames = async (
   return undefined;
 };
 
+const waitForField = async (page: Page, selectors: readonly string[], timeout: number) => {
+  let input: Locator | undefined;
+  await expect
+    .poll(async () => (input = await findInFrames(page, selectors)) !== undefined, { timeout })
+    .toBe(true)
+    .catch(() => undefined);
+  return input;
+};
+
 /** Pays on Stripe's hosted Checkout with its documented test card. */
 const payWithTestCard = async (page: Page) => {
-  // With several payment methods, Checkout shows an accordion; open Card unless it already is.
-  const cardOption = page.getByTestId("card-accordion-item-button");
-  if (await cardOption.isVisible().catch(() => false)) await cardOption.click();
+  const [cardNumber] = cardFields;
+  // Checkout may list payment methods as an accordion whose Card entry starts collapsed (and its
+  // button visually hidden), so trigger it directly if the card form has not appeared.
+  if (!(await waitForField(page, cardNumber.selectors, 5_000))) {
+    await page.getByTestId("card-accordion-item-button").dispatchEvent("click");
+  }
 
   for (const field of cardFields) {
-    let input: Locator | undefined;
-    if (field.required) {
-      await expect
-        .poll(async () => (input = await findInFrames(page, field.selectors)) !== undefined, {
-          message: `Stripe Checkout ${field.name} field`,
-          timeout: 30_000,
-        })
-        .toBe(true);
-    } else {
-      input = await findInFrames(page, field.selectors);
-    }
+    const input = await waitForField(page, field.selectors, field.required ? 30_000 : 1_000);
+    if (field.required && !input) throw new Error(`Stripe Checkout ${field.name} field not found`);
     await input?.pressSequentially(field.value, { delay: 30 });
   }
   await page.getByTestId("hosted-payment-submit-button").click();
@@ -114,6 +117,11 @@ test.afterEach(async ({ page }, testInfo) => {
       ...controls.map((c) => `  ${c}`),
     );
   }
+  const outline = await page
+    .locator("body")
+    .ariaSnapshot()
+    .catch(() => "(no outline)");
+  lines.push("Page outline:", ...outline.split("\n").slice(0, 150));
   console.log(lines.join("\n"));
 });
 
