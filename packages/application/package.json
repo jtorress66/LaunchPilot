@@ -13,5 +13,8 @@
     "@launchpilot/domain": "workspace:*",
     "@launchpilot/ports": "workspace:*"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@launchpilot/testing": "workspace:*",
+    "vitest": "3.2.7"
+  }
 }

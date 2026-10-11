@@ -12,3 +12,8 @@ export { FakePublisher } from "./fakes/fake-publisher";
 export { InMemoryStore } from "./fakes/in-memory-store";
 export * from "./fakes/in-memory-repositories";
 export * from "./fixtures/entities";
+export { FakePasswordHasher } from "./fakes/fake-password-hasher";
+export { SequentialTokenGenerator } from "./fakes/sequential-token-generator";
+export { FakeCheckoutProvider } from "./fakes/fake-checkout-provider";
+export { FakeWebhookVerifier } from "./fakes/fake-webhook-verifier";
+export * from "./fixtures/accounts";

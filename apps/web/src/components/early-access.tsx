@@ -1,4 +1,4 @@
-import { EARLY_ACCESS_EMAIL } from "../content/landing";
+import Link from "next/link";
 
 export function EarlyAccess() {
   return (
@@ -11,12 +11,12 @@ export function EarlyAccess() {
           We&apos;re onboarding a small group of SaaS founders. Tell us about your product and
           we&apos;ll reach out when your seat is ready.
         </p>
-        <a
-          href={`mailto:${EARLY_ACCESS_EMAIL}?subject=LaunchPilot%20early%20access`}
+        <Link
+          href="/signup"
           className="mt-8 inline-block rounded-lg bg-white px-6 py-3 font-semibold text-brand-700 shadow-sm hover:bg-brand-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
-          Request an invite
-        </a>
+          Create your free account
+        </Link>
       </div>
     </section>
   );

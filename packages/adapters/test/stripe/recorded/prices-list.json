@@ -1,0 +1,17 @@
+{
+  "object": "list",
+  "url": "/v1/prices",
+  "has_more": false,
+  "data": [
+    {
+      "id": "price_1QStarterMonthly",
+      "object": "price",
+      "active": true,
+      "currency": "usd",
+      "lookup_key": "launchpilot_starter_monthly",
+      "recurring": { "interval": "month", "interval_count": 1 },
+      "type": "recurring",
+      "unit_amount": 2900
+    }
+  ]
+}

@@ -11,3 +11,6 @@ export type * from "./keyword-provider";
 export type * from "./metrics-source";
 export type * from "./publisher";
 export type * from "./repositories";
+export type { PasswordHasher } from "./password-hasher";
+export type { TokenGenerator } from "./token-generator";
+export type * from "./billing";

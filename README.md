@@ -17,25 +17,60 @@ The founder approves everything before it is published.
 
 ```bash
 pnpm install
-pnpm dev            # web on http://localhost:3000 + worker heartbeat
+cp .env.example .env               # local defaults: Postgres in Docker, local test billing
+pnpm db:up                         # Postgres 16 via docker compose
+set -a && . ./.env && set +a       # load .env into this shell
+pnpm db:migrate                    # apply pending migrations (safe to re-run)
+pnpm dev                           # web on http://localhost:3000 + worker heartbeat
 ```
 
-- Landing page: <http://localhost:3000>
-- Health check: <http://localhost:3000/api/health>
+Then open <http://localhost:3000>, click **Start free**, create an account, add a product and try
+**Upgrade** (the local billing provider shows a clearly marked test checkout; no payment is taken).
+Health check: <http://localhost:3000/api/health>.
 
 ### Database
-
-```bash
-cp .env.example .env             # DATABASE_URL for the local container
-pnpm db:up                       # Postgres 16 via docker compose
-export $(grep -v '^#' .env | xargs)
-pnpm db:migrate                  # apply pending migrations (safe to re-run)
-```
 
 The schema lives in `packages/adapters/src/postgres/migrations/` as ordered, immutable TypeScript
 migrations (Kysely). Besides foreign keys and value checks, the database itself refuses rows that
 break the product safety rules: approved/scheduled/published content without a founder approval, a
 scheduled item without a publish time, and any scheduled or published item on a draft-only channel.
+
+### Accounts
+
+Email + password sign-up. Passwords are hashed with scrypt (salted, constant-time comparison);
+sessions are random 256-bit tokens kept in an httpOnly, SameSite=Lax cookie (Secure on https) and
+stored in Postgres only as a SHA-256 hash. Sessions last 30 days. Failed logins never reveal whether
+an email is registered. One founder owns one workspace.
+
+### Plans and billing
+
+| Plan    | Price  | Products | Content items / month |
+| ------- | ------ | -------- | --------------------- |
+| Free    | $0     | 1        | 10                    |
+| Starter | $29/mo | 1        | 60                    |
+| Growth  | $79/mo | 3        | 200                   |
+
+Plans live in one catalog (`packages/domain/src/billing/plans.ts`). Billing providers plug in
+through two ports, `CheckoutProvider` and `BillingWebhookVerifier`:
+
+- `BILLING_PROVIDER=local` (development and tests only; refused unless `APP_ENV` is `development`
+  or `test`): an in-app test checkout that sends an HMAC-signed webhook through the same endpoint.
+- `BILLING_PROVIDER=stripe`: Stripe Checkout (subscription mode) plus signed webhooks at
+  `POST /api/billing/webhook`. Prices are found by lookup key, so no price ids are configured.
+
+**Using Stripe**
+
+1. In the Stripe dashboard (test mode) copy your secret key (`sk_test_…`).
+2. `STRIPE_SECRET_KEY=sk_test_… pnpm stripe:setup` creates the Starter and Growth prices (idempotent;
+   refuses live keys unless you pass `--live`).
+3. Locally: `stripe listen --forward-to localhost:3000/api/billing/webhook` prints the
+   `whsec_…` webhook secret; set `BILLING_PROVIDER=stripe`, `STRIPE_SECRET_KEY` and
+   `STRIPE_WEBHOOK_SECRET`. In production, add a webhook endpoint for
+   `checkout.session.completed`, `customer.subscription.updated` and `customer.subscription.deleted`.
+
+**CI secret:** the `e2e-stripe` job buys a plan on real Stripe test-mode Checkout. Add your test key
+under GitHub → repository **Settings → Secrets and variables → Actions → New repository secret**,
+name `STRIPE_SECRET_KEY`. Until then that job fails with a message saying the secret is missing.
 
 ## Commands
 
@@ -101,8 +136,17 @@ The rule is enforced twice: by ESLint `no-restricted-imports` per layer, and by
 
 ### Environment variables
 
-| Variable                | Default | Used by                                                        |
-| ----------------------- | ------- | -------------------------------------------------------------- |
-| `DATABASE_URL`          | none    | `pnpm db:migrate` (validated with Zod: must be `postgres://…`) |
-| `APP_VERSION`           | `0.1.0` | web, worker health reports                                     |
-| `HEARTBEAT_INTERVAL_MS` | `60000` | worker                                                         |
+| Variable                | Default      | Used by                                                              |
+| ----------------------- | ------------ | -------------------------------------------------------------------- |
+| `DATABASE_URL`          | none         | web, `pnpm db:migrate` (must be `postgres://…`)                      |
+| `APP_URL`               | none         | web: absolute base URL for redirects and cookies (Secure when https) |
+| `APP_ENV`               | `production` | web: `development`, `test` or `production`                           |
+| `BILLING_PROVIDER`      | none         | web: `local` or `stripe`                                             |
+| `LOCAL_BILLING_SECRET`  | none         | web with local billing: at least 16 characters                       |
+| `STRIPE_SECRET_KEY`     | none         | web with Stripe billing, `pnpm stripe:setup`                         |
+| `STRIPE_WEBHOOK_SECRET` | none         | web with Stripe billing (`whsec_…`)                                  |
+| `APP_VERSION`           | `0.1.0`      | web, worker health reports                                           |
+| `HEARTBEAT_INTERVAL_MS` | `60000`      | worker                                                               |
+
+All configuration is validated with Zod when the app first handles a request; an invalid value
+fails fast with a message naming the variable.

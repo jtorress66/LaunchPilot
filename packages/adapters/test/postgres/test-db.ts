@@ -1,28 +1,39 @@
 import { campaignId, productId, taskId, workspaceId } from "@launchpilot/domain";
-import { aCampaign, aProduct, aTask, aWorkspace } from "@launchpilot/testing";
+import { aCampaign, aProduct, aTask, aUser, aWorkspace } from "@launchpilot/testing";
 import { sql, type Kysely } from "kysely";
 import { inject } from "vitest";
 import { createDatabase, type Database } from "../../src/postgres";
 import { campaignMapper } from "../../src/postgres/mappers/campaign-mapper";
 import { productMapper } from "../../src/postgres/mappers/product-mapper";
 import { taskMapper } from "../../src/postgres/mappers/task-mapper";
+import { userMapper } from "../../src/postgres/mappers/user-mapper";
 import { workspaceMapper } from "../../src/postgres/mappers/workspace-mapper";
 
 export const connect = (): Kysely<Database> => createDatabase(inject("databaseUrl"));
 
 export const truncateAll = async (db: Kysely<Database>): Promise<void> => {
-  await sql`TRUNCATE workspaces, products, briefs, campaigns, tasks, content_items CASCADE`.execute(
+  await sql`TRUNCATE users, sessions, subscriptions, workspaces, products, briefs, campaigns, tasks, content_items CASCADE`.execute(
     db,
   );
 };
 
 /** How far up the ownership chain to create parent rows, so foreign keys stay enforced. */
-export type ParentLevel = "none" | "workspaces" | "products" | "campaigns" | "tasks";
-const order: readonly ParentLevel[] = ["none", "workspaces", "products", "campaigns", "tasks"];
+export type ParentLevel = "none" | "users" | "workspaces" | "products" | "campaigns" | "tasks";
+const order: readonly ParentLevel[] = [
+  "none",
+  "users",
+  "workspaces",
+  "products",
+  "campaigns",
+  "tasks",
+];
 
-/** Inserts the parents that the shared contract fixtures reference (ws_1/2, prod_1/2, camp_1/2, task_1). */
+/** Inserts the parents the shared contract fixtures reference (user_founder, ws_1/2, prod_1/2, camp_1/2, task_1). */
 export const seedParents = async (db: Kysely<Database>, level: ParentLevel): Promise<void> => {
   const reaches = (target: ParentLevel) => order.indexOf(level) >= order.indexOf(target);
+  if (reaches("users")) {
+    await db.insertInto("users").values(userMapper.toRow(aUser())).execute();
+  }
   if (reaches("workspaces")) {
     await db
       .insertInto("workspaces")

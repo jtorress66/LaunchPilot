@@ -13,6 +13,7 @@ import {
   contentItemId,
   productId,
   taskId,
+  userId,
   workspaceId,
 } from "@launchpilot/domain";
 import { describe, expect, it } from "vitest";
@@ -91,6 +92,16 @@ export function describeWorkspaceRepositoryContract(
     sample: (n) => aWorkspace({ id: ws(n), name: `Workspace ${n}` }),
     modify: (w) => ({ ...w, name: `${w.name} (renamed)` }),
     unknownId: workspaceId("ws_missing"),
+  });
+
+  describe(`WorkspaceRepository contract: ${name}`, () => {
+    it("finds the workspace a founder owns", async () => {
+      const repo = await make();
+      const mine = aWorkspace({ id: ws(1), ownerId: userId("user_founder") });
+      await repo.save(mine);
+      expect(await repo.findByOwner(userId("user_founder"))).toEqual(mine);
+      expect(await repo.findByOwner(userId("user_nobody"))).toBeUndefined();
+    });
   });
 }
 

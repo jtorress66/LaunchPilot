@@ -11,7 +11,7 @@ const root = join(import.meta.dirname, "..");
 const allowedInternalDeps: Record<string, readonly string[]> = {
   domain: [],
   ports: ["domain"],
-  application: ["domain", "ports"],
+  application: ["domain", "ports", "testing"],
   agents: ["domain", "ports"],
   testing: ["domain", "ports"],
   adapters: ["domain", "ports", "testing"],
@@ -62,7 +62,7 @@ describe("architecture", () => {
     "%s production code imports no adapters, SDKs, frameworks or I/O modules",
     (name) => {
       const forbidden =
-        /^(@launchpilot\/(application|adapters|testing|web|worker)|next|react|react-dom|pg|kysely|node:|fs$|http$|https$|@anthropic-ai\/)/;
+        /^(@launchpilot\/(application|adapters|testing|web|worker)|next|react|react-dom|pg|kysely|stripe|node:|fs$|http$|https$|@anthropic-ai\/)/;
       const violations = sourceFiles(join(root, "packages", name, "src"))
         .filter((file) => !file.endsWith(".test.ts"))
         .flatMap((file) =>

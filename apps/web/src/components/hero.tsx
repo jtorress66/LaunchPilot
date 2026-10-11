@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function Hero() {
   return (
     <section id="top" className="relative overflow-hidden">
@@ -18,12 +20,12 @@ export function Hero() {
           social posts, and analytics, with you approving every piece before it ships.
         </p>
         <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <a
-            href="#early-access"
+          <Link
+            href="/signup"
             className="w-full rounded-lg bg-brand-600 px-5 py-3 font-semibold text-white shadow-sm hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 sm:w-auto"
           >
-            Get early access
-          </a>
+            Start free
+          </Link>
           <a
             href="#how-it-works"
             className="w-full rounded-lg border border-slate-300 px-5 py-3 font-semibold text-slate-700 hover:bg-slate-50 sm:w-auto dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-900"

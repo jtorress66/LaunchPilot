@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Logo } from "./logo";
 
 export function Header() {
@@ -21,12 +22,18 @@ export function Header() {
           >
             Features
           </a>
-          <a
-            href="#early-access"
+          <Link
+            href="/login"
+            className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+          >
+            Log in
+          </Link>
+          <Link
+            href="/signup"
             className="rounded-lg bg-brand-600 px-3.5 py-2 font-medium text-white shadow-sm hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
           >
-            Get early access
-          </a>
+            Start free
+          </Link>
         </nav>
       </div>
     </header>

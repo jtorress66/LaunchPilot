@@ -22,3 +22,20 @@ export const parseDatabaseConfig = (
     return err(parsed.error.issues[0]?.message ?? "Invalid database configuration");
   return ok({ connectionString: parsed.data.DATABASE_URL });
 };
+
+export interface StripeSetupConfig {
+  readonly secretKey: string;
+}
+
+/** `pnpm stripe:setup` works in test mode unless the operator explicitly passes --live. */
+export const parseStripeSetupConfig = (
+  env: Readonly<Record<string, string | undefined>>,
+  argv: readonly string[],
+): Result<StripeSetupConfig, string> => {
+  const key = env.STRIPE_SECRET_KEY;
+  if (!key) return err("STRIPE_SECRET_KEY is required");
+  if (key.includes("_live_") && !argv.includes("--live")) {
+    return err("Refusing to use a live Stripe key. Pass --live if you really mean it.");
+  }
+  return ok({ secretKey: key });
+};

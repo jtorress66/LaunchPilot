@@ -43,7 +43,7 @@ export const fixtureNow = new Date("2026-01-05T09:00:00.000Z");
 const later = new Date("2026-01-06T09:00:00.000Z");
 
 /** Fixtures must always be valid; an invalid one is a bug in the test, so throw. */
-const unwrap = <T>(result: Result<T, { message: string }>): T => {
+export const unwrap = <T>(result: Result<T, { message: string }>): T => {
   if (!result.ok) throw new Error(`Invalid fixture: ${result.error.message}`);
   return result.value;
 };

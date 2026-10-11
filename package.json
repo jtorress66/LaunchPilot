@@ -12,14 +12,16 @@
     "test": "vitest run --coverage",
     "test:watch": "vitest",
     "test:int": "vitest run --config vitest.int.config.ts --coverage",
-    "test:e2e": "playwright test",
+    "test:e2e": "node scripts/e2e.mjs",
     "eval": "node scripts/eval.mjs",
     "typecheck": "pnpm -r --parallel typecheck && tsc -p tsconfig.json --noEmit",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:up": "docker compose up -d postgres",
-    "db:migrate": "pnpm --filter @launchpilot/worker migrate"
+    "db:migrate": "pnpm --filter @launchpilot/worker migrate",
+    "stripe:setup": "pnpm --filter @launchpilot/worker stripe:setup",
+    "test:e2e:stripe": "playwright test --config playwright.stripe.config.ts"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",
