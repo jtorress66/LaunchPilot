@@ -78,7 +78,7 @@ jobs:
     name: E2E against Stripe test mode
     runs-on: ubuntu-latest
     env:
-      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+      RAW_STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
       DATABASE_URL: postgres://launchpilot:launchpilot@localhost:5432/launchpilot
       APP_URL: http://localhost:3000
       BILLING_PROVIDER: stripe
@@ -95,15 +95,24 @@ jobs:
           --health-cmd "pg_isready -U launchpilot" --health-interval 5s --health-retries 10
     steps:
       - name: Require a Stripe test-mode key
+        # Strips whitespace pasted along with the secret, then exports the cleaned key. On a wrong
+        # kind of key it names only the non-secret prefix (e.g. pk_test_ or sk_live_).
         run: |
-          if [ -z "$STRIPE_SECRET_KEY" ]; then
+          key="$(printf '%s' "$RAW_STRIPE_SECRET_KEY" | tr -d '[:space:]')"
+          if [ -z "$key" ]; then
             echo "::error::Add the STRIPE_SECRET_KEY repository secret (a sk_test_… key). See README → Billing."
             exit 1
           fi
-          case "$STRIPE_SECRET_KEY" in
-            sk_test_*|rk_test_*) ;;
-            *) echo "::error::STRIPE_SECRET_KEY must be a test-mode key (sk_test_…)."; exit 1 ;;
+          case "$key" in
+            sk_test_*|rk_test_*)
+              echo "::add-mask::$key"
+              echo "STRIPE_SECRET_KEY=$key" >> "$GITHUB_ENV"
+              exit 0
+              ;;
           esac
+          kind="$(printf '%s' "$key" | grep -oE '^(sk|pk|rk)_(test|live)_' || true)"
+          echo "::error::STRIPE_SECRET_KEY must be a test-mode secret key starting with sk_test_. The secret holds ${kind:-a value in an unrecognised format}${kind:+… key}."
+          exit 1
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
