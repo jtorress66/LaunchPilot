@@ -3,7 +3,7 @@ import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
- * Enforces the CLAUDE.md dependency rule: domain ← ports ← agents ← adapters ← apps.
+ * Enforces the CLAUDE.md dependency rule: domain ← ports ← application ← agents / adapters ← apps.
  * Inner packages never depend on outer ones; only apps' composition roots wire adapters.
  */
 const root = join(import.meta.dirname, "..");
@@ -11,11 +11,12 @@ const root = join(import.meta.dirname, "..");
 const allowedInternalDeps: Record<string, readonly string[]> = {
   domain: [],
   ports: ["domain"],
+  application: ["domain", "ports"],
   agents: ["domain", "ports"],
   testing: ["domain", "ports"],
   adapters: ["domain", "ports", "testing"],
-  web: ["domain", "ports", "adapters", "testing"],
-  worker: ["domain", "ports", "adapters", "testing"],
+  web: ["domain", "ports", "application", "adapters", "testing"],
+  worker: ["domain", "ports", "application", "adapters", "testing"],
 };
 
 const packageDirs = ["packages", "apps"].flatMap((group) =>
@@ -57,11 +58,11 @@ describe("architecture", () => {
     );
   });
 
-  it.each(["domain", "ports", "agents"])(
+  it.each(["domain", "ports", "application", "agents"])(
     "%s production code imports no adapters, SDKs, frameworks or I/O modules",
     (name) => {
       const forbidden =
-        /^(@launchpilot\/(adapters|testing|web|worker)|next|react|react-dom|pg|node:|fs$|http$|https$|@anthropic-ai\/)/;
+        /^(@launchpilot\/(application|adapters|testing|web|worker)|next|react|react-dom|pg|node:|fs$|http$|https$|@anthropic-ai\/)/;
       const violations = sourceFiles(join(root, "packages", name, "src"))
         .filter((file) => !file.endsWith(".test.ts"))
         .flatMap((file) =>

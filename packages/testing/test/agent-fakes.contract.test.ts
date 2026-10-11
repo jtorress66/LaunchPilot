@@ -1,0 +1,57 @@
+import {
+  describeCampaignPlannerContract,
+  describeContentDrafterContract,
+  describeContentReviewerContract,
+  describeLlmClientContract,
+} from "../contracts";
+import {
+  FakeCampaignPlanner,
+  FakeContentDrafter,
+  FakeContentReviewer,
+  FakeLlmClient,
+} from "../src";
+
+const outage = { message: "Simulated outage", retryable: true } as const;
+
+describeLlmClientContract("FakeLlmClient", () => {
+  const client = new FakeLlmClient();
+  return {
+    client,
+    givenReply: (text) => {
+      client.reply(text);
+    },
+    givenOutage: () => {
+      client.fail({ code: "unavailable", ...outage });
+    },
+  };
+});
+
+describeContentDrafterContract("FakeContentDrafter", () => {
+  const drafter = new FakeContentDrafter();
+  return {
+    drafter,
+    givenFailure: () => {
+      drafter.failNext({ code: "unavailable", ...outage });
+    },
+  };
+});
+
+describeContentReviewerContract("FakeContentReviewer", () => {
+  const reviewer = new FakeContentReviewer();
+  return {
+    reviewer,
+    givenFailure: () => {
+      reviewer.failNext({ code: "unavailable", ...outage });
+    },
+  };
+});
+
+describeCampaignPlannerContract("FakeCampaignPlanner", () => {
+  const planner = new FakeCampaignPlanner();
+  return {
+    planner,
+    givenFailure: () => {
+      planner.failNext({ code: "unavailable", ...outage });
+    },
+  };
+});

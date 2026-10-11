@@ -7,7 +7,7 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 /**
- * Dependency rule: domain ← ports ← agents ← adapters ← apps.
+ * Dependency rule: domain ← ports ← application ← agents / adapters ← apps.
  * Each layer lists the internal packages it must never import.
  * Concrete adapters are wired only in apps' composition roots (src/container.ts).
  */
@@ -99,23 +99,36 @@ export default tseslint.config(
   },
   {
     files: ["packages/domain/**/*.ts"],
-    rules: forbid(["ports", "agents", "adapters", "testing", "web", "worker"], noFrameworksOrIo),
+    rules: forbid(
+      ["ports", "application", "agents", "adapters", "testing", "web", "worker"],
+      noFrameworksOrIo,
+    ),
   },
   {
     files: ["packages/ports/**/*.ts"],
+    rules: forbid(
+      ["application", "agents", "adapters", "testing", "web", "worker"],
+      noFrameworksOrIo,
+    ),
+  },
+  {
+    // Tests in application and agents may use fakes from @launchpilot/testing.
+    files: ["packages/application/src/**/*.ts"],
+    ignores: ["**/*.test.ts"],
     rules: forbid(["agents", "adapters", "testing", "web", "worker"], noFrameworksOrIo),
   },
   {
-    files: ["packages/agents/**/*.ts"],
-    rules: forbid(["adapters", "testing", "web", "worker"], noFrameworksOrIo),
+    files: ["packages/agents/src/**/*.ts"],
+    ignores: ["**/*.test.ts"],
+    rules: forbid(["application", "adapters", "testing", "web", "worker"], noFrameworksOrIo),
   },
   {
     files: ["packages/testing/**/*.ts"],
-    rules: forbid(["agents", "adapters", "web", "worker"], noFrameworksOrIo),
+    rules: forbid(["application", "agents", "adapters", "web", "worker"], noFrameworksOrIo),
   },
   {
     files: ["packages/adapters/src/**/*.ts"],
-    rules: forbid(["agents", "testing", "web", "worker"]),
+    rules: forbid(["application", "agents", "testing", "web", "worker"]),
   },
   {
     // Production app code may only reach concrete adapters through the composition root.
