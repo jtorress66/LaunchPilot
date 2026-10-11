@@ -44,18 +44,34 @@ The pre-merge gate is `pnpm test && pnpm typecheck && pnpm lint`. CI
 Ports and adapters. Dependencies point inward only:
 
 ```
-domain  ←  ports  ←  agents  ←  adapters  ←  apps (web, worker)
+domain  ←  ports  ←  application  ←  agents / adapters  ←  apps (web, worker)
 ```
 
-| Path                | Responsibility                                                 |
-| ------------------- | -------------------------------------------------------------- |
-| `packages/domain`   | Entities, value objects, `Result<T, E>`; no I/O, no frameworks |
-| `packages/ports`    | Interfaces only (e.g. `Clock`)                                 |
-| `packages/agents`   | AI agents; depend on ports only                                |
-| `packages/adapters` | Port implementations (e.g. `SystemClock`)                      |
-| `packages/testing`  | Fakes (e.g. `FixedClock`) and shared contract suites           |
-| `apps/web`          | Next.js UI + thin API routes; wiring in `src/container.ts`     |
-| `apps/worker`       | Background jobs; wiring in `src/container.ts`                  |
+| Path                   | Responsibility                                                                                                                                                                                            |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/domain`      | Entities (Workspace, Product, Brief, Campaign, Task, ContentItem), value objects, the `ContentItem` state machine, `Result<T, E>`; no I/O, no frameworks                                                  |
+| `packages/ports`       | Interfaces only: `Clock`, `IdGenerator`, `TokenCipher`, `LlmClient`, `ContentDrafter`, `ContentReviewer`, `CampaignPlanner`, `SiteCrawler`, `KeywordProvider`, `MetricsSource`, `Publisher`, repositories |
+| `packages/application` | Use cases that orchestrate domain rules and ports                                                                                                                                                         |
+| `packages/agents`      | AI agents; implement agent ports, depend on domain and ports only                                                                                                                                         |
+| `packages/adapters`    | Port implementations (e.g. `SystemClock`)                                                                                                                                                                 |
+| `packages/testing`     | A fake for every port, entity fixtures (`aContentItem({ status })`…), shared contract suites                                                                                                              |
+| `apps/web`             | Next.js UI + thin API routes; wiring in `src/container.ts`                                                                                                                                                |
+| `apps/worker`          | Background jobs; wiring in `src/container.ts`                                                                                                                                                             |
+
+### Content approval lifecycle
+
+```
+draft → in_review → approved → scheduled → published
+          │  └→ rejected        │  ↑ unschedule   └→ failed → retry → scheduled
+          └→ draft (changes requested)
+edit (from approved / scheduled / rejected / failed) → draft, clearing approval
+```
+
+- Only a founder can approve; agents can draft, review and request changes.
+- Reddit, Hacker News, Indie Hackers, Product Hunt and directory content can be approved but is never
+  scheduled or published automatically.
+- `Publisher.publish` accepts only a `PublishableContentItem`, which `toPublishable()` returns solely
+  for approved or scheduled items on auto-publish channels.
 
 The rule is enforced twice: by ESLint `no-restricted-imports` per layer, and by
 `tests/architecture.test.ts`, which checks package manifests and source imports.

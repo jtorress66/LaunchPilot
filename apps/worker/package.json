@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@launchpilot/adapters": "workspace:*",
+    "@launchpilot/application": "workspace:*",
     "@launchpilot/domain": "workspace:*",
     "@launchpilot/ports": "workspace:*",
     "tsx": "4.20.6"

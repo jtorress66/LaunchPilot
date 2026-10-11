@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@launchpilot/adapters": "workspace:*",
+    "@launchpilot/application": "workspace:*",
     "@launchpilot/domain": "workspace:*",
     "@launchpilot/ports": "workspace:*",
     "next": "15.5.27",

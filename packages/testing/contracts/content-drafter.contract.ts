@@ -1,0 +1,45 @@
+import type { ContentDrafter, DraftRequest } from "@launchpilot/ports";
+import { describe, expect, it } from "vitest";
+import { aBriefContent } from "../src/fixtures/entities";
+
+export interface ContentDrafterHarness {
+  readonly drafter: ContentDrafter;
+  givenFailure(): void | Promise<void>;
+}
+
+const request: DraftRequest = {
+  brief: aBriefContent(),
+  channel: "blog",
+  task: { kind: "seo_article", title: "How solo founders can market a SaaS" },
+  keywords: ["saas marketing"],
+};
+
+export function describeContentDrafterContract(
+  name: string,
+  make: () => ContentDrafterHarness | Promise<ContentDrafterHarness>,
+): void {
+  describe(`ContentDrafter contract: ${name}`, () => {
+    it("returns a draft with a title and body", async () => {
+      const { drafter } = await make();
+      const result = await drafter.draft(request);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.title.trim()).not.toBe("");
+      expect(result.value.body.trim()).not.toBe("");
+    });
+
+    it("cites only facts from the brief", async () => {
+      const { drafter } = await make();
+      const result = await drafter.draft(request);
+      if (!result.ok) throw new Error(result.error.message);
+      for (const fact of result.value.citedFacts) expect(request.brief.facts).toContain(fact);
+    });
+
+    it("reports a failure as a DraftError result instead of throwing", async () => {
+      const harness = await make();
+      await harness.givenFailure();
+      const result = await harness.drafter.draft(request);
+      expect(result.ok).toBe(false);
+    });
+  });
+}

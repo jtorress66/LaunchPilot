@@ -29,3 +29,13 @@ export const andThen = <T, U, E, F>(
 
 export const unwrapOr = <T, E>(result: Result<T, E>, fallback: T): T =>
   result.ok ? result.value : fallback;
+
+/** Collects ok values in order, or returns the first error. */
+export const all = <T, E>(results: readonly Result<T, E>[]): Result<T[], E> => {
+  const values: T[] = [];
+  for (const result of results) {
+    if (!result.ok) return result;
+    values.push(result.value);
+  }
+  return ok(values);
+};

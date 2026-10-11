@@ -19,16 +19,17 @@ These rules apply to every session. If a request conflicts with them, stop and a
 ## Architecture (ports and adapters)
 
 ```
-apps/web        Next.js UI + thin API routes (validate → call use case → return)
-apps/worker     background jobs and schedules
-packages/domain     entities, value objects, ContentItem state machine, use cases — NO I/O, NO framework imports
-packages/ports      interfaces only
-packages/agents     strategist, seo, launch, social, analyst, reviewer — depend on ports only
-packages/adapters   claude, dataforseo, ayrshare, cms, search-console, postgres — implement ports
-packages/testing    fakes, fixtures, shared contract test suites
+apps/web              Next.js UI + thin API routes (validate → call use case → return)
+apps/worker           background jobs and schedules
+packages/domain       entities, value objects, ContentItem state machine — NO I/O, NO framework imports
+packages/ports        interfaces only
+packages/application  use cases: orchestrate domain + ports, return Result — NO I/O, NO framework imports
+packages/agents       strategist, seo, launch, social, analyst, reviewer — depend on ports only
+packages/adapters     claude, dataforseo, ayrshare, cms, search-console, postgres — implement ports
+packages/testing      fakes, fixtures, shared contract test suites
 ```
 
-Dependency rule: `domain` ← `ports` ← `agents` ← `adapters` ← `apps`. Inner packages never import outer ones. Concrete adapters are wired only in each app's composition root (`src/container.ts`).
+Dependency rule: `domain` ← `ports` ← `application` ← `agents` / `adapters` ← `apps`. Inner packages never import outer ones. `application`, `agents` and `adapters` may import only `domain` and `ports` (tests may also use `testing`). Concrete adapters are wired only in each app's composition root (`src/container.ts`). Enforced by ESLint `no-restricted-imports` and `tests/architecture.test.ts`.
 
 ## SOLID checklist
 

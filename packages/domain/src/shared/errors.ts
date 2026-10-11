@@ -1,0 +1,19 @@
+export type DomainErrorCode =
+  | "invalid_text"
+  | "invalid_url"
+  | "invalid_transition"
+  | "approval_requires_founder"
+  | "channel_is_draft_only"
+  | "publish_time_in_past"
+  | "brief_has_no_facts"
+  | "not_publishable";
+
+export interface DomainError {
+  readonly code: DomainErrorCode;
+  readonly message: string;
+}
+
+export const domainError = (code: DomainErrorCode, message: string): DomainError => ({
+  code,
+  message,
+});

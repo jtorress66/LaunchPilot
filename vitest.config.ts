@@ -36,7 +36,15 @@ export default defineConfig({
         branches: 80,
         statements: 80,
         "packages/domain/src/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
+        "packages/application/src/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         "packages/agents/src/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
+        // Build step 2 gate: the ContentItem state machine is fully covered.
+        "packages/domain/src/content-item/**": {
+          lines: 100,
+          functions: 100,
+          branches: 100,
+          statements: 100,
+        },
       },
     },
   },

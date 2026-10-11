@@ -1,1 +1,14 @@
 export { FixedClock } from "./fakes/fixed-clock";
+export { SequentialIdGenerator } from "./fakes/sequential-id-generator";
+export { FakeTokenCipher } from "./fakes/fake-token-cipher";
+export { FakeLlmClient } from "./fakes/fake-llm-client";
+export { FakeContentDrafter } from "./fakes/fake-content-drafter";
+export { FakeContentReviewer } from "./fakes/fake-content-reviewer";
+export { FakeCampaignPlanner } from "./fakes/fake-campaign-planner";
+export { FakeSiteCrawler } from "./fakes/fake-site-crawler";
+export { FakeKeywordProvider } from "./fakes/fake-keyword-provider";
+export { FakeMetricsSource } from "./fakes/fake-metrics-source";
+export { FakePublisher } from "./fakes/fake-publisher";
+export { InMemoryStore } from "./fakes/in-memory-store";
+export * from "./fakes/in-memory-repositories";
+export * from "./fixtures/entities";
