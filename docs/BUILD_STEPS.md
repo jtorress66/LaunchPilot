@@ -6,7 +6,7 @@ Place this file at `docs/BUILD_STEPS.md`. Work on one step at a time. Tick a ste
 
 | # | Step | Scope | Gate (must pass before next step) | Done |
 | --- | --- | --- | --- | --- |
-| 1 | Foundation | pnpm monorepo, TypeScript strict, Vitest, Playwright, ESLint, GitHub Actions CI, package skeletons | CI green on a sample unit test and a sample E2E test | [ ] |
+| 1 | Foundation | pnpm monorepo, TypeScript strict, Vitest, Playwright, ESLint, GitHub Actions CI, package skeletons | CI green on a sample unit test and a sample E2E test | [x] |
 | 2 | Domain and ports | Entities (Workspace, Product, Brief, Campaign, Task, ContentItem), `ContentItem` state machine, all port interfaces, fakes | 100% unit coverage on the state machine; ports have fakes in `packages/testing` | [ ] |
 | 3 | Persistence | Postgres schema + migrations, repository adapters | Repository contract suites pass against a real test DB (Testcontainers) | [ ] |
 | 4 | Auth, workspaces, billing | Sign-up/login, workspaces, products, Stripe subscriptions and plan limits | E2E: sign up → create product → buy plan (Stripe test mode) | [ ] |

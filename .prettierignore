@@ -1,0 +1,7 @@
+pnpm-lock.yaml
+coverage
+.next
+playwright-report
+test-results
+CLAUDE.md
+docs
