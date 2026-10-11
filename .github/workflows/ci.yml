@@ -130,7 +130,9 @@ jobs:
       - run: pnpm db:migrate
       - name: Forward Stripe webhooks to the app
         run: |
-          echo "STRIPE_WEBHOOK_SECRET=$(stripe listen --api-key "$STRIPE_SECRET_KEY" --print-secret)" >> "$GITHUB_ENV"
+          webhook_secret="$(stripe listen --api-key "$STRIPE_SECRET_KEY" --print-secret)"
+          echo "::add-mask::$webhook_secret"
+          echo "STRIPE_WEBHOOK_SECRET=$webhook_secret" >> "$GITHUB_ENV"
           nohup stripe listen --api-key "$STRIPE_SECRET_KEY" \
             --events checkout.session.completed,customer.subscription.updated,customer.subscription.deleted \
             --forward-to localhost:3000/api/billing/webhook > stripe-listen.log 2>&1 &
