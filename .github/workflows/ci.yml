@@ -119,6 +119,33 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm smoke:keywords
 
+  ayrshare-smoke:
+    name: Ayrshare smoke check (real API)
+    runs-on: ubuntu-latest
+    env:
+      AYRSHARE_API_KEY: ${{ secrets.AYRSHARE_API_KEY }}
+      AYRSHARE_TEST_PROFILE_KEY: ${{ secrets.AYRSHARE_TEST_PROFILE_KEY }}
+      # Since March 2026 Ayrshare needs your own X developer app's keys to post to X.
+      AYRSHARE_X_API_KEY: ${{ secrets.AYRSHARE_X_API_KEY }}
+      AYRSHARE_X_API_SECRET: ${{ secrets.AYRSHARE_X_API_SECRET }}
+    steps:
+      - name: Require the Ayrshare secrets
+        run: |
+          for name in AYRSHARE_API_KEY AYRSHARE_TEST_PROFILE_KEY AYRSHARE_X_API_KEY AYRSHARE_X_API_SECRET; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Add the $name repository secret (Settings → Secrets and variables → Actions). See README → Social module."
+              exit 1
+            fi
+          done
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm smoke:social
+
   e2e-stripe:
     name: E2E against Stripe test mode
     runs-on: ubuntu-latest
@@ -129,6 +156,10 @@ jobs:
       # This journey never researches keywords; the production config only needs them present.
       DATAFORSEO_LOGIN: unused-in-the-stripe-journey
       DATAFORSEO_PASSWORD: unused-in-the-stripe-journey
+      # Nor does it post to social accounts.
+      AYRSHARE_API_KEY: unused-in-the-stripe-journey
+      AYRSHARE_DOMAIN: unused-in-the-stripe-journey
+      AYRSHARE_PRIVATE_KEY: unused-in-the-stripe-journey
       DATABASE_URL: postgres://launchpilot:launchpilot@localhost:5432/launchpilot
       APP_URL: http://localhost:3000
       BILLING_PROVIDER: stripe

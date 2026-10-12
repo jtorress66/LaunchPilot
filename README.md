@@ -4,7 +4,7 @@ LaunchPilot is an AI marketing app for SaaS founders. It reads a founder's SaaS,
 Brief, and runs SEO content, launches/directories, social posting and analytics on a weekly loop.
 The founder approves everything before it is published.
 
-> **Status:** build step 1 (Foundation) of 11. See [`docs/BUILD_STEPS.md`](docs/BUILD_STEPS.md).
+> **Status:** build step 7 (Social module) of 11. See [`docs/BUILD_STEPS.md`](docs/BUILD_STEPS.md).
 > Contributor and agent rules live in [`CLAUDE.md`](CLAUDE.md).
 
 ## Prerequisites
@@ -138,6 +138,57 @@ data, no charge), also add the repository **variable** `DATAFORSEO_BASE_URL` =
 and creates an Application Password, so the gate test publishes to an actual blog and opens the
 live post.
 
+### Social module
+
+The product's **Social** page (it needs an approved brief) and the **Inbox** run the loop:
+
+1. **Connect X and LinkedIn.** LaunchPilot creates an [Ayrshare](https://www.ayrshare.com) profile
+   for the product and sends the founder to Ayrshare's hosted linking page. LaunchPilot never sees
+   their passwords. The profile key is stored encrypted (AES-256-GCM, `TOKEN_ENCRYPTION_KEY`) and
+   never logged. When the founder comes back, LaunchPilot reads which accounts they linked.
+2. **Draft the week.** The social writer (Claude, or the offline template writer in dev and test)
+   drafts 3 X posts and 2 LinkedIn posts. Angles come from the brief's differentiators and facts;
+   when a blog article was published, the first post on each channel promotes it, with its link.
+   Posts may state only the brief's facts. X posts are at most 280 characters and LinkedIn posts at
+   most 3,000; the writer asks Claude for one shorter rewrite before giving up. Each post counts
+   against the plan's monthly allowance, and drafting stops cleanly when it runs out.
+3. **Approve.** The **Inbox** (header link, with a count) lists everything waiting for review,
+   across products and channels, with a full preview and a character count.
+4. **Publish now or schedule.** On the post page the founder edits (with a live character
+   counter), approves, then publishes now or schedules a date and time (entered in their own
+   timezone, stored in UTC). The calendar shows the next 14 days (UTC) and the approved posts that
+   are not scheduled yet.
+5. **Worker.** Every minute (`PUBLISH_INTERVAL_MS`), the worker publishes scheduled posts whose
+   time has come, up to 20 per run, earliest first. A temporary failure keeps the post scheduled
+   and it is retried on the next run, up to 3 attempts. A permanent failure (rejected by the
+   platform, account not linked) marks it **Failed** with the reason, and the founder can edit or
+   retry. Run one worker instance for now; concurrent workers need a lock (step 11).
+
+Only founder-approved posts reach X or LinkedIn: publishing goes through `toPublishable` and the
+`PublisherRegistry`, where X and LinkedIn are two more registered providers. Posting uses Ayrshare's
+official API only: no likes, follows or DMs.
+
+**Ayrshare setup:**
+
+- **Plan:** a **Business** plan, which allows one profile per product and the hosted linking page.
+- **API key:** in the dashboard, copy the API key into `AYRSHARE_API_KEY`.
+- **Linking page:** under Business → Integration, copy the domain into `AYRSHARE_DOMAIN` and the
+  RSA private key into `AYRSHARE_PRIVATE_KEY`. Keep the key on one line with `\n` for line breaks.
+- **X developer app:** since March 2026, Ayrshare needs your own X developer app to post to X. Create
+  one at developer.x.com, then set its consumer key and secret as `AYRSHARE_X_API_KEY` and
+  `AYRSHARE_X_API_SECRET`.
+
+**CI secrets:** the `ayrshare-smoke` job posts `LaunchPilot CI smoke test <run id>` to a test X
+account through the real API, then deletes it. It needs these repository secrets:
+
+- `AYRSHARE_API_KEY`
+- `AYRSHARE_TEST_PROFILE_KEY`: the profile key of a test profile with a test X account linked
+- `AYRSHARE_X_API_KEY`
+- `AYRSHARE_X_API_SECRET`
+
+Until they are added, that job fails with a message naming the missing secret. All other tests use
+recorded responses, or, in E2E, a local Ayrshare-compatible stub (`scripts/e2e-ayrshare.mjs`).
+
 ### LLM evals
 
 `pnpm eval` drafts a brief with real Claude for each recorded site in `evals/brief/sites/*.json`.
@@ -151,6 +202,11 @@ Each brief is scored on four checks:
 It then runs the **seo-article** suite: the SEO writer drafts one article per recorded brief in
 `evals/seo/cases/*.json`, scored on: cites only brief facts, no "forbidden" claims, the keyword in
 the title or first heading, at least 900 words, and at least 3 sections.
+
+Last comes the **social-post** suite: the social writer drafts the X and LinkedIn angles in
+`evals/social/cases/*.json`. Each post must stay within its channel's limit, cite only brief facts,
+avoid the "forbidden" claims, use at most 2 hashtags on X (3 on LinkedIn), and include the link when
+the angle has one.
 
 The thresholds are 100% for every suite. Below them, the command exits non-zero. It also prints
 token usage and an estimated cost: a few cents per run. Run it whenever a prompt in
@@ -175,6 +231,7 @@ repository **Settings → Secrets and variables → Actions → New repository s
 | `pnpm format`         | Prettier write (`pnpm format:check` in CI)                                                     |
 | `pnpm eval`           | LLM evals against real Claude (needs `ANTHROPIC_API_KEY`); fails below thresholds              |
 | `pnpm smoke:keywords` | One real DataForSEO call (needs `DATAFORSEO_LOGIN` and `DATAFORSEO_PASSWORD`)                  |
+| `pnpm smoke:social`   | One real X post through Ayrshare, then deleted (needs the Ayrshare CI secrets)                 |
 | `pnpm build`          | Production build of the web app                                                                |
 
 The pre-merge gate is `pnpm test && pnpm typecheck && pnpm lint`. CI
@@ -195,8 +252,8 @@ domain  ←  ports  ←  application  ←  agents / adapters  ←  apps (web, wo
 | `packages/domain`      | Entities (Workspace, Product, Brief, Campaign, Task, ContentItem), value objects, the `ContentItem` state machine, `Result<T, E>`; no I/O, no frameworks                                                                  |
 | `packages/ports`       | Interfaces only: `Clock`, `IdGenerator`, `TokenCipher`, `LlmClient`, `BriefDrafter`, `ContentDrafter`, `ContentReviewer`, `CampaignPlanner`, `SiteCrawler`, `KeywordProvider`, `MetricsSource`, `Publisher`, repositories |
 | `packages/application` | Use cases that orchestrate domain rules and ports                                                                                                                                                                         |
-| `packages/agents`      | AI agents (`BriefAgent`, `ExtractiveBriefDrafter`); implement agent ports, depend on domain and ports only                                                                                                                |
-| `packages/adapters`    | Port implementations: Postgres, Stripe, `ClaudeLlmClient`, `HttpSiteCrawler`, WordPress, DataForSEO, crypto, clock                                                                                                        |
+| `packages/agents`      | AI agents (`BriefAgent`, `SeoArticleWriter`, `SocialPostWriter` and offline stand-ins); implement agent ports, depend on domain and ports only                                                                            |
+| `packages/adapters`    | Port implementations: Postgres, Stripe, `ClaudeLlmClient`, `HttpSiteCrawler`, WordPress, DataForSEO, Ayrshare, crypto, clock                                                                                              |
 | `packages/testing`     | A fake for every port, entity fixtures (`aContentItem({ status })`…), shared contract suites                                                                                                                              |
 | `apps/web`             | Next.js UI + thin API routes; wiring in `src/container.ts`                                                                                                                                                                |
 | `apps/worker`          | Background jobs; wiring in `src/container.ts`                                                                                                                                                                             |
@@ -230,7 +287,7 @@ The rule is enforced twice: by ESLint `no-restricted-imports` per layer, and by
 
 | Variable                | Default           | Used by                                                                             |
 | ----------------------- | ----------------- | ----------------------------------------------------------------------------------- |
-| `DATABASE_URL`          | none              | web, `pnpm db:migrate` (must be `postgres://…`)                                     |
+| `DATABASE_URL`          | none              | web, worker, `pnpm db:migrate` (must be `postgres://…`)                             |
 | `APP_URL`               | none              | web: absolute base URL for redirects and cookies (Secure when https)                |
 | `APP_ENV`               | `production`      | web: `development`, `test` or `production`                                          |
 | `BILLING_PROVIDER`      | none              | web: `local` or `stripe`                                                            |
@@ -241,7 +298,7 @@ The rule is enforced twice: by ESLint `no-restricted-imports` per layer, and by
 | `ARTICLE_WRITER`        | `claude`          | web: `claude` or `template` (development and test only)                             |
 | `ANTHROPIC_API_KEY`     | none              | web when Claude drafts, `pnpm eval`. Never logged                                   |
 | `ANTHROPIC_MODEL`       | `claude-opus-5-5` | web, `pnpm eval`: the Claude model for briefs and articles                          |
-| `TOKEN_ENCRYPTION_KEY`  | none              | web: 32 random bytes, base64 (`openssl rand -base64 32`)                            |
+| `TOKEN_ENCRYPTION_KEY`  | none              | web, worker: 32 random bytes, base64 (`openssl rand -base64 32`)                    |
 | `KEYWORD_PROVIDER`      | `dataforseo`      | web: `dataforseo` or `offline` (development and test only)                          |
 | `DATAFORSEO_LOGIN`      | none              | web with DataForSEO, `pnpm smoke:keywords`                                          |
 | `DATAFORSEO_PASSWORD`   | none              | web with DataForSEO, `pnpm smoke:keywords`. Never logged                            |
@@ -249,6 +306,14 @@ The rule is enforced twice: by ESLint `no-restricted-imports` per layer, and by
 | `ALLOW_PRIVATE_NETWORK` | `false`           | web: `true` lets the crawler and publishers reach localhost/LAN (dev and test only) |
 | `APP_VERSION`           | `0.1.0`           | web, worker health reports                                                          |
 | `HEARTBEAT_INTERVAL_MS` | `60000`           | worker                                                                              |
+| `SOCIAL_WRITER`         | `claude`          | web: `claude` or `template` (development and test only)                             |
+| `AYRSHARE_API_KEY`      | none              | web, worker. Never logged                                                           |
+| `AYRSHARE_DOMAIN`       | none              | web, worker: the linking page's domain                                              |
+| `AYRSHARE_PRIVATE_KEY`  | none              | web, worker: RSA key for the linking page, `\n` for line breaks. Never logged       |
+| `AYRSHARE_X_API_KEY`    | none              | web, worker: your X developer app's consumer key (set with the secret)              |
+| `AYRSHARE_X_API_SECRET` | none              | web, worker: your X developer app's consumer secret. Never logged                   |
+| `AYRSHARE_BASE_URL`     | Ayrshare API      | web, worker: another base URL, for tests                                            |
+| `PUBLISH_INTERVAL_MS`   | `60000`           | worker: how often scheduled posts are published (at least 5000)                     |
 
 All configuration is validated with Zod when the app first handles a request; an invalid value
 fails fast with a message naming the variable.
