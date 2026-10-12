@@ -3,6 +3,7 @@ export { SequentialIdGenerator } from "./fakes/sequential-id-generator";
 export { FakeTokenCipher } from "./fakes/fake-token-cipher";
 export { FakeLlmClient } from "./fakes/fake-llm-client";
 export { FakeContentDrafter } from "./fakes/fake-content-drafter";
+export { FakeBriefDrafter } from "./fakes/fake-brief-drafter";
 export { FakeContentReviewer } from "./fakes/fake-content-reviewer";
 export { FakeCampaignPlanner } from "./fakes/fake-campaign-planner";
 export { FakeSiteCrawler } from "./fakes/fake-site-crawler";

@@ -1,10 +1,12 @@
 import {
+  describeBriefDrafterContract,
   describeCampaignPlannerContract,
   describeContentDrafterContract,
   describeContentReviewerContract,
   describeLlmClientContract,
 } from "../contracts";
 import {
+  FakeBriefDrafter,
   FakeCampaignPlanner,
   FakeContentDrafter,
   FakeContentReviewer,
@@ -52,6 +54,17 @@ describeCampaignPlannerContract("FakeCampaignPlanner", () => {
     planner,
     givenFailure: () => {
       planner.failNext({ code: "unavailable", ...outage });
+    },
+  };
+});
+
+describeBriefDrafterContract("FakeBriefDrafter", () => {
+  const drafter = new FakeBriefDrafter();
+  return {
+    drafter,
+    givenFailure: () => {
+      drafter.failNext({ code: "unavailable", ...outage });
+      return undefined;
     },
   };
 });

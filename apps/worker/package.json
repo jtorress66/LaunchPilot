@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@launchpilot/adapters": "workspace:*",
+    "@launchpilot/agents": "workspace:*",
     "@launchpilot/application": "workspace:*",
     "@launchpilot/domain": "workspace:*",
     "@launchpilot/ports": "workspace:*",

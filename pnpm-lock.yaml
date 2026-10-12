@@ -56,6 +56,9 @@ importers:
       '@launchpilot/adapters':
         specifier: workspace:*
         version: link:../../packages/adapters
+      '@launchpilot/agents':
+        specifier: workspace:*
+        version: link:../../packages/agents
       '@launchpilot/application':
         specifier: workspace:*
         version: link:../../packages/application
@@ -108,6 +111,9 @@ importers:
       '@launchpilot/adapters':
         specifier: workspace:*
         version: link:../../packages/adapters
+      '@launchpilot/agents':
+        specifier: workspace:*
+        version: link:../../packages/agents
       '@launchpilot/application':
         specifier: workspace:*
         version: link:../../packages/application

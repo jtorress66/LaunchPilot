@@ -8,7 +8,10 @@ export type ApplicationErrorCode =
   | "workspace_not_found"
   | "subscription_not_found"
   | "billing_failed"
-  | "invalid_signature";
+  | "invalid_signature"
+  | "product_not_found"
+  | "brief_not_found"
+  | "crawl_failed";
 
 /** What a use case can report: a broken domain rule or an application-level refusal. */
 export type UseCaseError =

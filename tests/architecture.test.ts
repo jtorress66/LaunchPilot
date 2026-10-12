@@ -15,8 +15,8 @@ const allowedInternalDeps: Record<string, readonly string[]> = {
   agents: ["domain", "ports", "testing"],
   testing: ["domain", "ports"],
   adapters: ["domain", "ports", "testing"],
-  web: ["domain", "ports", "application", "adapters", "testing"],
-  worker: ["domain", "ports", "application", "adapters", "testing"],
+  web: ["domain", "ports", "application", "agents", "adapters", "testing"],
+  worker: ["domain", "ports", "application", "agents", "adapters", "testing"],
 };
 
 const packageDirs = ["packages", "apps"].flatMap((group) =>
@@ -74,11 +74,18 @@ describe("architecture", () => {
     },
   );
 
-  it.each(["web", "worker"])("%s instantiates adapters only in its composition root", (name) => {
-    const violations = sourceFiles(join(root, "apps", name, "src"))
-      .filter((file) => !file.endsWith("container.ts") && !file.endsWith(".test.ts"))
-      .filter((file) => importsOf(file).includes("@launchpilot/adapters"))
-      .map((file) => relative(root, file));
-    expect(violations).toEqual([]);
-  });
+  it.each(["web", "worker"])(
+    "%s instantiates adapters and agents only in its composition root",
+    (name) => {
+      const violations = sourceFiles(join(root, "apps", name, "src"))
+        .filter((file) => !file.endsWith("container.ts") && !file.endsWith(".test.ts"))
+        .filter((file) =>
+          importsOf(file).some(
+            (spec) => spec === "@launchpilot/adapters" || spec === "@launchpilot/agents",
+          ),
+        )
+        .map((file) => relative(root, file));
+      expect(violations).toEqual([]);
+    },
+  );
 });

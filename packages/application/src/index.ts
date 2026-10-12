@@ -7,3 +7,7 @@ export * from "./create-product";
 export * from "./get-dashboard";
 export * from "./start-checkout";
 export * from "./handle-billing-webhook";
+export * from "./generate-brief";
+export * from "./get-brief";
+export * from "./update-brief";
+export * from "./approve-brief";
