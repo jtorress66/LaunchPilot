@@ -8,6 +8,12 @@ import { requireUser } from "../_lib/auth";
 
 export const metadata: Metadata = { title: "Dashboard — LaunchPilot" };
 
+const briefLinkLabel = {
+  none: "Draft brief",
+  draft: "Brief draft · review",
+  approved: "Brief approved",
+} as const;
+
 export default async function DashboardPage() {
   const { workspace } = await requireUser();
   const dashboard = await getAppContainer().getDashboard.execute(workspace);
@@ -67,15 +73,23 @@ export default async function DashboardPage() {
                   key={product.id}
                   className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900"
                 >
-                  <span className="font-medium">{product.name}</span>
-                  <a
-                    href={product.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="truncate text-sm text-slate-500 hover:underline"
+                  <div className="min-w-0">
+                    <p className="font-medium">{product.name}</p>
+                    <a
+                      href={product.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block truncate text-sm text-slate-500 hover:underline"
+                    >
+                      {product.url}
+                    </a>
+                  </div>
+                  <Link
+                    href={`/app/products/${product.id}/brief`}
+                    className="text-sm font-semibold text-brand-600 hover:underline dark:text-brand-400"
                   >
-                    {product.url}
-                  </a>
+                    {briefLinkLabel[dashboard.briefStatus[product.id] ?? "none"]}
+                  </Link>
                 </li>
               ))}
             </ul>

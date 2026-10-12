@@ -1,20 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState } from "react";
 import { createProductAction, type FormState } from "../../app/_lib/actions";
 import { Field } from "./field";
 import { SubmitButton } from "./submit-button";
 
 export function ProductForm() {
   const [state, action] = useActionState(createProductAction, {} as FormState);
-  const formRef = useRef<HTMLFormElement>(null);
-  useEffect(() => {
-    if (state.saved) formRef.current?.reset();
-  }, [state]);
 
   return (
-    <form ref={formRef} action={action} className="space-y-4" noValidate>
+    <form action={action} className="space-y-4" noValidate>
       {state.errors?.form ? (
         <div
           role="alert"

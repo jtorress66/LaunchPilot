@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseForm, productForm, signUpForm, upgradeForm } from "./forms";
+import { briefForm, parseForm, productForm, signUpForm, upgradeForm } from "./forms";
 
 const form = (entries: Record<string, string>) => {
   const data = new FormData();
@@ -41,6 +41,56 @@ describe("form parsing", () => {
     expect(parseForm(productForm, form({ url: "https://acme.dev" }))).toEqual({
       ok: false,
       error: { name: "Enter a product name" },
+    });
+  });
+
+  it("reads a brief, one list item per line, dropping blank lines", () => {
+    const result = parseForm(
+      briefForm,
+      form({
+        audience: " Solo founders ",
+        problem: "No time for marketing",
+        solution: "An AI marketing team",
+        tone: "Direct",
+        differentiators: "Approval first\r\n\n  Weekly loop  \n",
+        facts: "Free 14-day trial\n",
+      }),
+    );
+    expect(result).toEqual({
+      ok: true,
+      value: {
+        audience: " Solo founders ",
+        problem: "No time for marketing",
+        solution: "An AI marketing team",
+        tone: "Direct",
+        differentiators: ["Approval first", "Weekly loop"],
+        facts: ["Free 14-day trial"],
+      },
+    });
+  });
+
+  it("accepts a brief with no facts so the founder can save work in progress", () => {
+    const result = parseForm(
+      briefForm,
+      form({ audience: "a", problem: "b", solution: "c", tone: "d" }),
+    );
+    expect(result.ok && result.value.facts).toEqual([]);
+  });
+
+  it("caps brief fields, list items and list length", () => {
+    const base = { audience: "a", problem: "b", solution: "c", tone: "d" };
+    expect(parseForm(briefForm, form({ ...base, audience: "x".repeat(2001) }))).toEqual({
+      ok: false,
+      error: { audience: "Use at most 2000 characters" },
+    });
+    expect(parseForm(briefForm, form({ ...base, facts: "x".repeat(501) }))).toEqual({
+      ok: false,
+      error: { facts: "Keep each line under 500 characters" },
+    });
+    const many = Array.from({ length: 21 }, (_, i) => `Fact ${i}`).join("\n");
+    expect(parseForm(briefForm, form({ ...base, facts: many }))).toEqual({
+      ok: false,
+      error: { facts: "Use at most 20 lines" },
     });
   });
 });
