@@ -101,6 +101,8 @@ jobs:
     env:
       DATAFORSEO_LOGIN: ${{ secrets.DATAFORSEO_LOGIN }}
       DATAFORSEO_PASSWORD: ${{ secrets.DATAFORSEO_PASSWORD }}
+      # Optional repository variable, e.g. https://sandbox.dataforseo.com for the free Sandbox.
+      DATAFORSEO_BASE_URL: ${{ vars.DATAFORSEO_BASE_URL }}
     steps:
       - name: Require the DataForSEO API credentials
         run: |

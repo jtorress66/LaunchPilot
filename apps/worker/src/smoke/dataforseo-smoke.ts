@@ -1,5 +1,6 @@
-// `pnpm smoke:keywords`: one real DataForSEO call (limit 5, about $0.01) to prove the account,
-// the credentials and the response format still match the recorded fixtures.
+// `pnpm smoke:keywords`: one real DataForSEO call (limit 5) to prove the account, the credentials
+// and the response format still match the recorded fixtures. DATAFORSEO_BASE_URL can point it at
+// DataForSEO's free Sandbox (https://sandbox.dataforseo.com); otherwise it calls the live API.
 import { createKeywordProvider } from "../container";
 
 function fail(message: string): never {
@@ -15,7 +16,11 @@ if (!login || !password) {
   );
 }
 
-const result = await createKeywordProvider({ login, password }).suggest({
+// An unset repository variable reaches the job as an empty string.
+const configured = process.env.DATAFORSEO_BASE_URL?.trim();
+const baseUrl = configured === undefined || configured === "" ? undefined : configured;
+console.log(`Calling DataForSEO at ${baseUrl ?? "https://api.dataforseo.com"}`);
+const result = await createKeywordProvider({ login, password, baseUrl }).suggest({
   seeds: ["website analytics"],
   locale: "en-US",
   limit: 5,

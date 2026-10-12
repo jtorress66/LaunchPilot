@@ -130,7 +130,9 @@ Once the brief is approved, the product's **SEO** page runs the loop:
 dashboard (API Access). Set `DATAFORSEO_LOGIN` and `DATAFORSEO_PASSWORD`. Each plan costs about one
 cent. **CI secrets:** the `dataforseo-smoke` job makes one real call; add `DATAFORSEO_LOGIN` and
 `DATAFORSEO_PASSWORD` under **Settings → Secrets and variables → Actions**. Until then that job
-fails with a message saying the secrets are missing. All other tests use recorded responses.
+fails with a message saying the secrets are missing. To use DataForSEO's free Sandbox (made-up
+data, no charge), also add the repository **variable** `DATAFORSEO_BASE_URL` =
+`https://sandbox.dataforseo.com`. All other tests use recorded responses.
 
 **E2E:** `pnpm test:e2e` starts a real WordPress (with MariaDB) in Docker, installs it with wp-cli
 and creates an Application Password, so the gate test publishes to an actual blog and opens the

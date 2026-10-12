@@ -47,5 +47,12 @@ export const createSeoEvalWriter = ({ apiKey, model }: EvalConfig) => {
   return { writer: new SeoArticleWriter(meter), meter };
 };
 
-export const createKeywordProvider = (credentials: { login: string; password: string }) =>
-  new DataForSeoKeywordProvider(credentials);
+export const createKeywordProvider = ({
+  login,
+  password,
+  baseUrl,
+}: {
+  login: string;
+  password: string;
+  baseUrl: string | undefined;
+}) => new DataForSeoKeywordProvider({ login, password, ...(baseUrl ? { baseUrl } : {}) });
