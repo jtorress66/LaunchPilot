@@ -23,6 +23,32 @@ export const productForm = z.object({
   url: text("Enter your product's website", 2048),
 });
 
+/** A textarea holding one item per line; blank lines are ignored. */
+const lines = (maxItems: number, maxLength: number) =>
+  z
+    .string()
+    .default("")
+    .transform((value) =>
+      value
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line !== ""),
+    )
+    .refine(
+      (items) => items.every((item) => item.length <= maxLength),
+      `Keep each line under ${maxLength} characters`,
+    )
+    .refine((items) => items.length <= maxItems, `Use at most ${maxItems} lines`);
+
+export const briefForm = z.object({
+  audience: text("Describe who the product is for", 2000),
+  problem: text("Describe the problem it solves", 2000),
+  solution: text("Describe how it solves it", 2000),
+  tone: text("Describe the tone of voice", 2000),
+  differentiators: lines(20, 500),
+  facts: lines(20, 500),
+});
+
 export const upgradeForm = z.object({ plan: z.enum(["starter", "growth"]) });
 
 export type FieldErrors = Partial<Record<string, string>>;

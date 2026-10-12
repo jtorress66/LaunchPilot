@@ -1,4 +1,5 @@
 import {
+  type BriefStatus,
   effectivePlan,
   plans,
   type Plan,
@@ -6,7 +7,12 @@ import {
   type SubscriptionStatus,
   type Workspace,
 } from "@launchpilot/domain";
-import type { Clock, ProductRepository, SubscriptionRepository } from "@launchpilot/ports";
+import type {
+  BriefRepository,
+  Clock,
+  ProductRepository,
+  SubscriptionRepository,
+} from "@launchpilot/ports";
 import { loadSubscription } from "./current-plan";
 
 export interface Dashboard {
@@ -16,12 +22,15 @@ export interface Dashboard {
   readonly subscriptionStatus: SubscriptionStatus;
   readonly usage: { readonly products: number };
   readonly canAddProduct: boolean;
+  /** Brief status per product id; "none" until a brief is drafted. */
+  readonly briefStatus: Readonly<Record<string, BriefStatus | "none">>;
 }
 
 export class GetDashboard {
   constructor(
     private readonly deps: {
       readonly products: ProductRepository;
+      readonly briefs: BriefRepository;
       readonly subscriptions: SubscriptionRepository;
       readonly clock: Clock;
     },
@@ -31,6 +40,12 @@ export class GetDashboard {
     const products = await this.deps.products.listByWorkspace(workspace.id);
     const subscription = await loadSubscription(this.deps, workspace);
     const plan = plans[effectivePlan(subscription, this.deps.clock.now())];
+    const statuses = await Promise.all(
+      products.map(async (product) => {
+        const brief = await this.deps.briefs.findLatestForProduct(product.id);
+        return [product.id, brief?.status ?? "none"] as const;
+      }),
+    );
     return {
       workspace,
       products,
@@ -38,6 +53,7 @@ export class GetDashboard {
       subscriptionStatus: subscription.status,
       usage: { products: products.length },
       canAddProduct: products.length < plan.limits.products,
+      briefStatus: Object.fromEntries(statuses),
     };
   }
 }

@@ -9,6 +9,9 @@ test("a founder signs up, adds a product, hits the Free limit and upgrades to St
   await expect(page.getByTestId("plan-badge")).toHaveText("Free plan");
 
   await addProduct(page, "Acme Analytics", "https://acme.dev");
+  // A new product opens its brief page so the founder can draft the brief straight away.
+  await expect(page).toHaveURL(/\/app\/products\/[^/]+\/brief$/);
+  await page.getByRole("link", { name: "Dashboard" }).click();
   await expect(page.getByRole("listitem").filter({ hasText: "Acme Analytics" })).toBeVisible();
   await expect(page.getByRole("meter", { name: "Products" })).toHaveAttribute("aria-valuenow", "1");
 

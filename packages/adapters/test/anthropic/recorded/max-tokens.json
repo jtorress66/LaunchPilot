@@ -1,0 +1,10 @@
+{
+  "id": "msg_01RecordedTruncated",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-opus-5-5",
+  "content": [{ "type": "text", "text": "{\"audience\": \"SaaS" }],
+  "stop_reason": "max_tokens",
+  "stop_sequence": null,
+  "usage": { "input_tokens": 400, "output_tokens": 64 }
+}

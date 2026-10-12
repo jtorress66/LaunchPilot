@@ -54,7 +54,8 @@ export async function createProductAction(_state: FormState, data: FormData): Pr
   const result = await getAppContainer().createProduct.execute({ workspace, ...form.value });
   if (!result.ok) return failed(result.error);
   revalidatePath("/app");
-  return { saved: true };
+  // Onboarding continues with the Product Brief, which every later agent relies on.
+  redirect(`/app/products/${result.value.id}/brief`);
 }
 
 export async function upgradeAction(data: FormData): Promise<void> {

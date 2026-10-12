@@ -8,10 +8,12 @@
     "start": "tsx src/main.ts",
     "typecheck": "tsc --noEmit -p .",
     "migrate": "tsx src/migrate.ts",
-    "stripe:setup": "tsx src/stripe-setup.ts"
+    "stripe:setup": "tsx src/stripe-setup.ts",
+    "eval": "tsx src/eval/run-brief-eval.ts"
   },
   "dependencies": {
     "@launchpilot/adapters": "workspace:*",
+    "@launchpilot/agents": "workspace:*",
     "@launchpilot/application": "workspace:*",
     "@launchpilot/domain": "workspace:*",
     "@launchpilot/ports": "workspace:*",

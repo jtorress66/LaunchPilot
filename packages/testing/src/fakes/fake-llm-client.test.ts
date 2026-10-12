@@ -15,6 +15,14 @@ describe("FakeLlmClient", () => {
     expect(client.requests.map((r) => r.messages[0]?.content)).toEqual(["one", "two"]);
   });
 
+  it("can script a reply that stopped at the token limit", async () => {
+    const client = new FakeLlmClient().replyTruncated('{"partial":');
+    expect(await client.complete(ask("x"))).toMatchObject({
+      ok: true,
+      value: { text: '{"partial":', stopReason: "max_tokens" },
+    });
+  });
+
   it("returns a scripted error", async () => {
     const error = { code: "rate_limited", message: "Slow down", retryable: true } as const;
     const client = new FakeLlmClient().fail(error);

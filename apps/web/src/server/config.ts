@@ -5,10 +5,21 @@ export type BillingConfig =
   | { readonly provider: "local"; readonly secret: string }
   | { readonly provider: "stripe"; readonly secretKey: string; readonly webhookSecret: string };
 
+export type BriefDrafterConfig =
+  | { readonly kind: "claude"; readonly apiKey: string; readonly model: string }
+  | { readonly kind: "extractive" };
+
+export interface BriefConfig {
+  readonly drafter: BriefDrafterConfig;
+  /** Lets the crawler reach localhost and LAN sites; development and test only. */
+  readonly allowPrivateNetwork: boolean;
+}
+
 export interface WebConfig {
   readonly databaseUrl: string;
   readonly appUrl: string;
   readonly billing: BillingConfig;
+  readonly brief: BriefConfig;
 }
 
 const shared = {
@@ -19,7 +30,17 @@ const shared = {
     .string({ required_error: "APP_URL is required" })
     .url("APP_URL must be an absolute URL"),
   APP_ENV: z.enum(["development", "test", "production"]).default("production"),
+  BRIEF_DRAFTER: z.enum(["claude", "extractive"]).default("claude"),
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  ANTHROPIC_MODEL: z
+    .string()
+    .regex(/^claude-[a-z0-9.-]+$/, "ANTHROPIC_MODEL must be a Claude model id")
+    .default("claude-opus-5-5"),
+  CRAWLER_ALLOW_PRIVATE_NETWORK: z.enum(["true", "false"]).default("false"),
 };
+
+const devOnly = (setting: string) =>
+  `${setting} is only allowed when APP_ENV is development or test`;
 
 const schema = z.discriminatedUnion("BILLING_PROVIDER", [
   z.object({
@@ -46,8 +67,16 @@ export const parseWebConfig = (
   const parsed = schema.safeParse(env);
   if (!parsed.success) return err(parsed.error.issues[0]?.message ?? "Invalid configuration");
   const c = parsed.data;
-  if (c.BILLING_PROVIDER === "local" && c.APP_ENV === "production") {
-    return err("BILLING_PROVIDER=local is only allowed when APP_ENV is development or test");
+  const production = c.APP_ENV === "production";
+  if (c.BILLING_PROVIDER === "local" && production) return err(devOnly("BILLING_PROVIDER=local"));
+  if (c.BRIEF_DRAFTER === "extractive" && production) {
+    return err(devOnly("BRIEF_DRAFTER=extractive"));
+  }
+  if (c.CRAWLER_ALLOW_PRIVATE_NETWORK === "true" && production) {
+    return err(devOnly("CRAWLER_ALLOW_PRIVATE_NETWORK"));
+  }
+  if (c.BRIEF_DRAFTER === "claude" && c.ANTHROPIC_API_KEY === undefined) {
+    return err("ANTHROPIC_API_KEY is required when BRIEF_DRAFTER is claude");
   }
   return ok({
     databaseUrl: c.DATABASE_URL,
@@ -60,5 +89,12 @@ export const parseWebConfig = (
             secretKey: c.STRIPE_SECRET_KEY,
             webhookSecret: c.STRIPE_WEBHOOK_SECRET,
           },
+    brief: {
+      drafter:
+        c.BRIEF_DRAFTER === "claude" && c.ANTHROPIC_API_KEY !== undefined
+          ? { kind: "claude", apiKey: c.ANTHROPIC_API_KEY, model: c.ANTHROPIC_MODEL }
+          : { kind: "extractive" },
+      allowPrivateNetwork: c.CRAWLER_ALLOW_PRIVATE_NETWORK === "true",
+    },
   });
 };

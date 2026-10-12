@@ -150,7 +150,7 @@ test.afterEach(async ({ page }, testInfo) => {
 test("a founder buys the Starter plan on Stripe Checkout", async ({ page }) => {
   await signUp(page);
   await addProduct(page, "Acme Analytics", "https://acme.dev");
-  await expect(page.getByRole("listitem").filter({ hasText: "Acme Analytics" })).toBeVisible();
+  await expect(page).toHaveURL(/\/app\/products\/[^/]+\/brief$/);
 
   await page.goto("/app/billing");
   await page.getByRole("button", { name: "Upgrade to Starter" }).click();

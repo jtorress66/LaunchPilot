@@ -38,6 +38,7 @@ const noFrameworksOrIo = [
       "kysely",
       "stripe",
       "@anthropic-ai/*",
+      "node-html-parser",
       "node:*",
       "fs",
       "http",
@@ -134,10 +135,10 @@ export default tseslint.config(
     rules: forbid(["application", "agents", "testing", "web", "worker"]),
   },
   {
-    // Production app code may only reach concrete adapters through the composition root.
+    // Production app code may only reach concrete adapters and agents through the composition root.
     files: ["apps/*/src/**/*.{ts,tsx}"],
     ignores: ["apps/*/src/container.ts", "apps/*/src/**/*.test.ts"],
-    rules: forbid(["adapters", "testing"]),
+    rules: forbid(["agents", "adapters", "testing"]),
   },
   {
     files: ["apps/web/e2e/**/*.ts", "playwright.config.ts"],

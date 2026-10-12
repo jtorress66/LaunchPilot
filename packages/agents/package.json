@@ -11,7 +11,11 @@
   },
   "dependencies": {
     "@launchpilot/domain": "workspace:*",
-    "@launchpilot/ports": "workspace:*"
+    "@launchpilot/ports": "workspace:*",
+    "zod": "3.25.76"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@launchpilot/testing": "workspace:*",
+    "vitest": "3.2.7"
+  }
 }

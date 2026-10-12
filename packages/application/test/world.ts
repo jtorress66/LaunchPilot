@@ -1,5 +1,8 @@
 import {
+  FakeBriefDrafter,
   FakeCheckoutProvider,
+  FakeSiteCrawler,
+  InMemoryBriefRepository,
   FakePasswordHasher,
   FakeWebhookVerifier,
   FixedClock,
@@ -24,6 +27,9 @@ export const makeWorld = () => ({
   workspaces: new InMemoryWorkspaceRepository(),
   subscriptions: new InMemorySubscriptionRepository(),
   products: new InMemoryProductRepository(),
+  briefs: new InMemoryBriefRepository(),
+  crawler: new FakeSiteCrawler(),
+  drafter: new FakeBriefDrafter(),
   checkout: new FakeCheckoutProvider(),
   verifier: new FakeWebhookVerifier(),
   appUrl: "https://app.launchpilot.test",
