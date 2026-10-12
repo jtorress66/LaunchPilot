@@ -42,7 +42,10 @@ export const briefDrafterContractSite: CrawledSite = {
   ],
 };
 
-const request: BriefDraftRequest = { productName: "Acme Analytics", site: briefDrafterContractSite };
+const request: BriefDraftRequest = {
+  productName: "Acme Analytics",
+  site: briefDrafterContractSite,
+};
 
 /** What a drafter may quote from: the title and text of every crawled page. */
 const corpus = briefDrafterContractSite.pages.map((p) => `${p.title}\n${p.text}`).join("\n\n");

@@ -38,6 +38,7 @@ const noFrameworksOrIo = [
       "kysely",
       "stripe",
       "@anthropic-ai/*",
+      "node-html-parser",
       "node:*",
       "fs",
       "http",

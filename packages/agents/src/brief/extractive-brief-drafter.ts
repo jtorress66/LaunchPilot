@@ -11,7 +11,8 @@ const MAX_FACTS = 8;
 const MAX_DIFFERENTIATORS = 3;
 const MAX_SENTENCE = 500;
 
-const PAIN = /\b(waste|wastes|struggle|struggles|tired|hard|pain|painful|frustrat\w*|problem|stuck|manual|slow)\b/i;
+const PAIN =
+  /\b(waste|wastes|struggle|struggles|tired|hard|pain|painful|frustrat\w*|problem|stuck|manual|slow)\b/i;
 const CONCRETE = /\d|[$€£]|\b(free|trial|pricing|price|compliant|gdpr|soc|integrat\w*|api)\b/i;
 const DISTINCT = /\b(no|never|only|without|minutes|one|simple|instant)\b/i;
 const AUDIENCE = /\bfor ([^.!?,;:]+)/i;

@@ -16,9 +16,7 @@ export interface BriefDraft {
   readonly droppedClaims: readonly string[];
 }
 
-export type BriefDraftError =
-  | LlmError
-  | PortError<"generation_failed" | "ungrounded">;
+export type BriefDraftError = LlmError | PortError<"generation_failed" | "ungrounded">;
 
 /** Drafts a Product Brief from the founder's crawled site. Drafting only. */
 export interface BriefDrafter {
