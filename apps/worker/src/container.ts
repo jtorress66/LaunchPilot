@@ -1,4 +1,6 @@
+import { BriefAgent } from "@launchpilot/agents";
 import {
+  ClaudeLlmClient,
   createDatabase,
   createStripeClient,
   ensureStripePrices,
@@ -6,6 +8,8 @@ import {
   SystemClock,
 } from "@launchpilot/adapters";
 import type { DatabaseConfig, StripeSetupConfig } from "./config";
+import type { EvalConfig } from "./eval/brief-eval";
+import { MeteredLlmClient } from "./eval/metered-llm-client";
 import type { HeartbeatDeps } from "./heartbeat";
 
 /** Composition root: the only place in the worker where concrete adapters are created. */
@@ -29,3 +33,9 @@ export const runMigrations = async ({ connectionString }: DatabaseConfig) => {
 
 export const runStripeSetup = ({ secretKey }: StripeSetupConfig) =>
   ensureStripePrices(createStripeClient(secretKey));
+
+/** The brief agent on real Claude, metered so `pnpm eval` can report usage and cost. */
+export const createBriefEvalAgent = ({ apiKey, model }: EvalConfig) => {
+  const meter = new MeteredLlmClient(new ClaudeLlmClient({ apiKey, model }));
+  return { agent: new BriefAgent(meter), meter };
+};

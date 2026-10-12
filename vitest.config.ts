@@ -32,6 +32,8 @@ export default defineConfig({
         "apps/worker/src/main.ts",
         "apps/worker/src/migrate.ts",
         "apps/worker/src/stripe-setup.ts",
+        // Calls real Claude; run by `pnpm eval` and its CI job. Its scoring logic is unit tested.
+        "apps/worker/src/eval/run-brief-eval.ts",
         // Postgres code that only runs against a real database is measured by `pnpm test:int`.
         "packages/adapters/src/postgres/database.ts",
         "packages/adapters/src/postgres/migrate.ts",

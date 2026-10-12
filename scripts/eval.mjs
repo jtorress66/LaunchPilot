@@ -1,2 +1,9 @@
-// LLM evals arrive with the agents (build step 10). Until then there is nothing to score.
-console.log("pnpm eval: no evals defined yet (0 suites).");
+// `pnpm eval`: LLM evals against the real model. Needs ANTHROPIC_API_KEY.
+// Run it whenever a prompt changes; it exits non-zero when scores fall below the thresholds.
+import { spawnSync } from "node:child_process";
+
+const suites = [["--filter", "@launchpilot/worker", "eval"]];
+for (const suite of suites) {
+  const { status } = spawnSync("pnpm", ["--silent", ...suite], { stdio: "inherit" });
+  if (status !== 0) process.exit(status ?? 1);
+}

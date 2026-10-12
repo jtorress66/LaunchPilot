@@ -1,0 +1,26 @@
+{
+  "name": "ledgerly",
+  "productName": "Ledgerly",
+  "minFacts": 3,
+  "forbidden": ["CPA-certified", "IRS approved", "100,000", "bank-grade", "tax advice"],
+  "site": {
+    "url": "https://ledgerly.example/",
+    "pages": [
+      {
+        "url": "https://ledgerly.example/",
+        "title": "Ledgerly — bookkeeping for freelancers who hate bookkeeping",
+        "text": "Bookkeeping for freelancers who hate bookkeeping.\nLedgerly sorts your bank transactions into income and expenses automatically.\nFreelancers lose evenings every quarter matching receipts to bank lines.\nSnap a receipt with your phone and Ledgerly matches it to the right transaction.\nSee what to set aside for taxes every time you get paid."
+      },
+      {
+        "url": "https://ledgerly.example/pricing",
+        "title": "Pricing — Ledgerly",
+        "text": "Pricing\nTry Ledgerly free for 30 days.\nAfter that it is $12 per month, billed monthly.\nExport everything to CSV or send it to your accountant in one click.\nAvailable in the US, UK and Canada."
+      },
+      {
+        "url": "https://ledgerly.example/security",
+        "title": "Security — Ledgerly",
+        "text": "Security\nLedgerly connects to your bank with read-only access through Plaid.\nWe never store your bank login.\nData is encrypted in transit and at rest."
+      }
+    ]
+  }
+}

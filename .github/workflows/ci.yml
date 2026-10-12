@@ -74,11 +74,34 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
+  eval:
+    name: LLM evals (brief agent on Claude)
+    runs-on: ubuntu-latest
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - name: Require the Anthropic API key
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::error::Add the ANTHROPIC_API_KEY repository secret (Settings → Secrets and variables → Actions). See README → LLM evals."
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm eval
+
   e2e-stripe:
     name: E2E against Stripe test mode
     runs-on: ubuntu-latest
     env:
       RAW_STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+      # The production configuration drafts briefs with Claude, so it needs the key to start.
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       DATABASE_URL: postgres://launchpilot:launchpilot@localhost:5432/launchpilot
       APP_URL: http://localhost:3000
       BILLING_PROVIDER: stripe

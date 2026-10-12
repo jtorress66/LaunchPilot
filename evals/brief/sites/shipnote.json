@@ -1,0 +1,26 @@
+{
+  "name": "shipnote",
+  "productName": "Shipnote",
+  "minFacts": 3,
+  "forbidden": ["SOC 2", "Fortune 500", "free forever", "AI-written", "Jira"],
+  "site": {
+    "url": "https://shipnote.example/",
+    "pages": [
+      {
+        "url": "https://shipnote.example/",
+        "title": "Shipnote — changelogs your users actually read",
+        "text": "Changelogs your users actually read.\nShipnote turns merged pull requests into a public changelog and an in-app \"What's new\" widget.\nSmall SaaS teams ship every week, but customers never hear about it.\nWriting release notes by hand is the chore everyone skips.\nConnect GitHub once and Shipnote drafts the notes for you to edit and publish."
+      },
+      {
+        "url": "https://shipnote.example/pricing",
+        "title": "Pricing — Shipnote",
+        "text": "Pricing\nHobby is free for one project.\nTeam is $19 per month for unlimited projects and a custom domain.\nAll plans include the in-app widget and email digests.\nCancel anytime."
+      },
+      {
+        "url": "https://shipnote.example/integrations",
+        "title": "Integrations — Shipnote",
+        "text": "Integrations\nGitHub and GitLab for pull requests.\nSlack and Discord notifications when a release is published.\nThe widget is a 4 KB script that works with React, Vue and plain HTML."
+      }
+    ]
+  }
+}
