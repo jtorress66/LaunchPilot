@@ -1,7 +1,6 @@
 import {
   toPublishable,
   transition,
-  transitionTask,
   type ContentItem,
   type ContentItemId,
   type Result,
@@ -15,6 +14,7 @@ import type {
   TaskRepository,
 } from "@launchpilot/ports";
 import type { UseCaseError } from "./errors";
+import { completeTaskOf } from "./complete-task";
 import { loadOwnedItem } from "./owned-content";
 import type { PublisherRegistry } from "./publisher-registry";
 
@@ -55,14 +55,7 @@ export class PublishContentItem {
     );
     if (!published.ok) return published;
     await this.deps.contentItems.save(published.value);
-    await this.completeTask(item);
+    await completeTaskOf(this.deps.tasks, item);
     return published;
-  }
-
-  private async completeTask(item: ContentItem): Promise<void> {
-    const task = await this.deps.tasks.findById(item.taskId);
-    if (task?.status !== "in_progress") return;
-    const done = transitionTask(task, "complete");
-    if (done.ok) await this.deps.tasks.save(done.value);
   }
 }

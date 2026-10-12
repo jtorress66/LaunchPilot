@@ -3,7 +3,9 @@ import {
   FakeContentDrafter,
   FakeKeywordProvider,
   FakePublisherProvider,
+  FakeSocialAccountLinker,
   FakeTokenCipher,
+  InMemorySocialProfileRepository,
   InMemoryCampaignRepository,
   InMemoryChannelConnectionRepository,
   InMemoryContentItemRepository,
@@ -29,6 +31,8 @@ import { PublisherRegistry, SignUp } from "../src";
 export const makeWorld = () => {
   const clock = new FixedClock(new Date("2026-05-01T09:00:00.000Z"));
   const blogPublisher = new FakePublisherProvider("blog", clock);
+  const xPublisher = new FakePublisherProvider("x", clock);
+  const linkedinPublisher = new FakePublisherProvider("linkedin", clock);
   return {
     clock,
     ids: new SequentialIdGenerator(),
@@ -53,8 +57,13 @@ export const makeWorld = () => {
     blogVerifier: new FakeBlogConnectionVerifier(),
     keywords: new FakeKeywordProvider(),
     writer: new FakeContentDrafter(),
+    socialWriter: new FakeContentDrafter(),
     blogPublisher,
-    publishers: new PublisherRegistry([blogPublisher]),
+    xPublisher,
+    linkedinPublisher,
+    publishers: new PublisherRegistry([blogPublisher, xPublisher, linkedinPublisher]),
+    socialProfiles: new InMemorySocialProfileRepository(),
+    linker: new FakeSocialAccountLinker(),
   };
 };
 

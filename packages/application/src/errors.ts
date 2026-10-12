@@ -15,7 +15,8 @@ export type ApplicationErrorCode =
   | "brief_not_approved"
   | "no_keyword_opportunities"
   | "task_not_found"
-  | "content_not_found";
+  | "content_not_found"
+  | "social_not_connected";
 
 /** What a use case can report: a broken domain rule or an application-level refusal. */
 export type UseCaseError =
