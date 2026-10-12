@@ -2,12 +2,12 @@
 
 import { productId } from "@launchpilot/domain";
 import { revalidatePath } from "next/cache";
-import { notFound, redirect } from "next/navigation";
-import { z } from "zod";
+import { redirect } from "next/navigation";
 import { getAppContainer } from "../../container";
 import { briefForm, parseForm, type FieldErrors } from "../../server/forms";
 import { draftFailureMessage } from "../../server/messages";
 import { requireUser } from "./auth";
+import { idParam } from "./params";
 
 export interface BriefActionState {
   readonly errors?: FieldErrors;
@@ -17,14 +17,9 @@ export interface BriefActionState {
 
 const briefPath = (id: string) => `/app/products/${id}/brief`;
 
-/** Bound action arguments come from the client, so they are validated like any input. */
-const productIdParam = z.string().regex(/^[\w-]{1,100}$/);
-
 const target = async (id: string) => {
-  const parsed = productIdParam.safeParse(id);
-  if (!parsed.success) notFound();
   const { user, workspace } = await requireUser();
-  return { user, workspace, productId: productId(parsed.data) };
+  return { user, workspace, productId: productId(idParam(id)) };
 };
 
 const formError = (message: string): BriefActionState => ({ errors: { form: message } });

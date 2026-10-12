@@ -34,6 +34,9 @@ export default defineConfig({
         "apps/worker/src/stripe-setup.ts",
         // Calls real Claude; run by `pnpm eval` and its CI job. Its scoring logic is unit tested.
         "apps/worker/src/eval/run-brief-eval.ts",
+        "apps/worker/src/eval/run-seo-eval.ts",
+        // Calls the real DataForSEO API; run by its CI smoke job. The adapter is integration tested.
+        "apps/worker/src/smoke/**",
         // Postgres code that only runs against a real database is measured by `pnpm test:int`.
         "packages/adapters/src/postgres/database.ts",
         "packages/adapters/src/postgres/migrate.ts",
@@ -47,7 +50,10 @@ export default defineConfig({
         // External HTTP adapters are measured by `pnpm test:int` against recorded responses and local servers.
         "packages/adapters/src/anthropic/**",
         "packages/adapters/src/crawler/http-site-crawler.ts",
-        "packages/adapters/src/crawler/http-get.ts",
+        "packages/adapters/src/net/safe-http.ts",
+        "packages/adapters/src/wordpress/wordpress-*.ts",
+        "packages/adapters/src/wordpress/rest.ts",
+        "packages/adapters/src/dataforseo/dataforseo-keyword-provider.ts",
         "apps/web/src/app/**",
         // Static marketing copy; rendered and asserted by the landing-page E2E suite.
         "apps/web/src/content/**",

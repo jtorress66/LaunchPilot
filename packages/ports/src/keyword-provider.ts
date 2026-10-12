@@ -14,7 +14,7 @@ export interface KeywordIdea {
   readonly difficulty: number;
 }
 
-export type KeywordError = PortError<"quota_exceeded" | "unavailable">;
+export type KeywordError = PortError<"quota_exceeded" | "unavailable" | "invalid_request">;
 
 export interface KeywordProvider {
   suggest(query: KeywordQuery): Promise<Result<readonly KeywordIdea[], KeywordError>>;

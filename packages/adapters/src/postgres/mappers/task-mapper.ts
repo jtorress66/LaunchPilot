@@ -9,6 +9,9 @@ export const taskMapper = {
     kind: task.kind,
     title: task.title,
     status: task.status,
+    seo_keyword: task.seo?.keyword ?? null,
+    seo_monthly_searches: task.seo?.monthlySearches ?? null,
+    seo_difficulty: task.seo?.difficulty ?? null,
   }),
   fromRow: (row: TaskRow): Task => ({
     id: taskId(row.id),
@@ -16,5 +19,13 @@ export const taskMapper = {
     kind: oneOf(taskKinds, row.kind, "tasks.kind"),
     title: row.title,
     status: oneOf(taskStatuses, row.status, "tasks.status"),
+    seo:
+      row.seo_keyword === null
+        ? null
+        : {
+            keyword: row.seo_keyword,
+            monthlySearches: row.seo_monthly_searches ?? 0,
+            difficulty: row.seo_difficulty ?? 0,
+          },
   }),
 };

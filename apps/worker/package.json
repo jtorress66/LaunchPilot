@@ -9,7 +9,9 @@
     "typecheck": "tsc --noEmit -p .",
     "migrate": "tsx src/migrate.ts",
     "stripe:setup": "tsx src/stripe-setup.ts",
-    "eval": "tsx src/eval/run-brief-eval.ts"
+    "eval": "tsx src/eval/run-brief-eval.ts",
+    "eval:seo": "tsx src/eval/run-seo-eval.ts",
+    "smoke:keywords": "tsx src/smoke/dataforseo-smoke.ts"
   },
   "dependencies": {
     "@launchpilot/adapters": "workspace:*",

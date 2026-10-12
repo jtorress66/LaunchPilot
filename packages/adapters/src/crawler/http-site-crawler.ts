@@ -1,6 +1,6 @@
 import { err, ok, type HttpUrl, type Result } from "@launchpilot/domain";
 import type { CrawledPage, CrawledSite, CrawlError, SiteCrawler } from "@launchpilot/ports";
-import { httpGet, type HttpGetOptions } from "./http-get";
+import { httpGet, type SafeHttpOptions } from "../net/safe-http";
 import { parseHtmlPage } from "./html-page";
 import { pickLinks } from "./link-picker";
 import { parseRobots } from "./robots";
@@ -43,7 +43,7 @@ const withinBudget = (pages: readonly CrawledPage[], budget: number): CrawledPag
 
 /** Reads the founder's public site politely: robots.txt, one page at a time, same site only. */
 export class HttpSiteCrawler implements SiteCrawler {
-  private readonly get: HttpGetOptions;
+  private readonly get: SafeHttpOptions;
   private readonly maxPages: number;
   private readonly maxTotalChars: number;
 

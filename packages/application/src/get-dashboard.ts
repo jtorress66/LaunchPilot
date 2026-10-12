@@ -1,6 +1,7 @@
 import {
   type BriefStatus,
   effectivePlan,
+  startOfUtcMonth,
   plans,
   type Plan,
   type Product,
@@ -10,6 +11,7 @@ import {
 import type {
   BriefRepository,
   Clock,
+  ContentItemRepository,
   ProductRepository,
   SubscriptionRepository,
 } from "@launchpilot/ports";
@@ -20,7 +22,7 @@ export interface Dashboard {
   readonly products: readonly Product[];
   readonly plan: Plan;
   readonly subscriptionStatus: SubscriptionStatus;
-  readonly usage: { readonly products: number };
+  readonly usage: { readonly products: number; readonly contentItemsThisMonth: number };
   readonly canAddProduct: boolean;
   /** Brief status per product id; "none" until a brief is drafted. */
   readonly briefStatus: Readonly<Record<string, BriefStatus | "none">>;
@@ -31,6 +33,7 @@ export class GetDashboard {
     private readonly deps: {
       readonly products: ProductRepository;
       readonly briefs: BriefRepository;
+      readonly contentItems: ContentItemRepository;
       readonly subscriptions: SubscriptionRepository;
       readonly clock: Clock;
     },
@@ -51,7 +54,13 @@ export class GetDashboard {
       products,
       plan,
       subscriptionStatus: subscription.status,
-      usage: { products: products.length },
+      usage: {
+        products: products.length,
+        contentItemsThisMonth: await this.deps.contentItems.countCreatedSince(
+          products.map((p) => p.id),
+          startOfUtcMonth(this.deps.clock.now()),
+        ),
+      },
       canAddProduct: products.length < plan.limits.products,
       briefStatus: Object.fromEntries(statuses),
     };

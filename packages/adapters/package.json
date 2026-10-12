@@ -14,9 +14,11 @@
     "@launchpilot/domain": "workspace:*",
     "@launchpilot/ports": "workspace:*",
     "kysely": "0.28.17",
+    "marked": "18.0.14",
     "node-html-parser": "9.0.4",
     "pg": "8.16.3",
-    "stripe": "18.5.0"
+    "stripe": "18.5.0",
+    "zod": "3.25.76"
   },
   "devDependencies": {
     "@launchpilot/testing": "workspace:*",

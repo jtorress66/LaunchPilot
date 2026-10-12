@@ -1,5 +1,6 @@
 import { productId } from "@launchpilot/domain";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BriefEditor } from "../../../../../components/brief/brief-editor";
 import { BriefStatusBadge } from "../../../../../components/brief/brief-status-badge";
@@ -36,7 +37,17 @@ export default async function BriefPage({ params, searchParams }: BriefPageProps
             , then edited and approved by you.
           </p>
         </div>
-        {brief ? <BriefStatusBadge status={brief.status} /> : null}
+        <div className="flex items-center gap-3">
+          {brief ? <BriefStatusBadge status={brief.status} /> : null}
+          {brief?.status === "approved" ? (
+            <Link
+              href={`/app/products/${product.id}/seo`}
+              className="text-sm font-semibold text-brand-600 hover:underline dark:text-brand-400"
+            >
+              Next: SEO →
+            </Link>
+          ) : null}
+        </div>
       </div>
 
       <DraftBriefForm

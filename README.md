@@ -18,6 +18,7 @@ The founder approves everything before it is published.
 ```bash
 pnpm install
 cp .env.example .env               # local defaults: Postgres in Docker, local test billing
+echo "TOKEN_ENCRYPTION_KEY=$(openssl rand -base64 32)" >> .env   # encrypts blog passwords
 pnpm db:up                         # Postgres 16 via docker compose
 set -a && . ./.env && set +a       # load .env into this shell
 pnpm db:migrate                    # apply pending migrations (safe to re-run)
@@ -101,9 +102,41 @@ After adding a product, the founder lands on its **Product Brief** page:
 **Crawler safety (SSRF):** the crawler checks every address it connects to, after DNS and on every
 redirect:
 
-- Private, loopback and CGNAT addresses are refused unless `CRAWLER_ALLOW_PRIVATE_NETWORK=true`.
-  That setting is allowed only in development and test.
+- Private, loopback and CGNAT addresses are refused unless `ALLOW_PRIVATE_NETWORK=true`.
+  That setting is allowed only in development and test. The same guard covers the founder's blog.
 - Link-local, cloud metadata (169.254.169.254) and multicast addresses are always refused.
+
+### SEO module
+
+Once the brief is approved, the product's **SEO** page runs the loop:
+
+1. **Connect your blog.** WordPress only for now: the founder enters the site address, a username
+   and an Application Password (WordPress → Users → Profile → Application Passwords). LaunchPilot
+   checks it with the REST API (the user must be able to publish posts) and stores the password
+   encrypted with AES-256-GCM (`TOKEN_ENCRYPTION_KEY`). It is never logged or shown again.
+2. **Plan articles.** The founder enters up to 5 topics. DataForSEO suggests keyword ideas with
+   search volume and difficulty; the domain keeps realistic ones (difficulty ≤ 60, ≥ 10 searches a
+   month) and plans one article for each of the best 4, ranked by volume ÷ (difficulty + 10).
+3. **Draft.** The SEO writer (Claude, or the offline template writer in dev and test) writes a
+   Markdown article for the keyword from the approved brief. It may state only the brief's facts;
+   cited facts that are not in the brief are dropped. The article goes to review. Each draft counts
+   against the plan's monthly content allowance.
+4. **Edit, approve, publish.** The founder edits (which sends it back to review), approves, then
+   publishes. Publishing goes through the `PublisherRegistry`, which only accepts approved items on
+   auto-publish channels, and posts the article to WordPress as HTML (raw HTML in the Markdown is
+   escaped). A failed attempt leaves the article approved, so it can simply be retried.
+
+**DataForSEO account:** sign up at dataforseo.com and copy the API login and password from the
+dashboard (API Access). Set `DATAFORSEO_LOGIN` and `DATAFORSEO_PASSWORD`. Each plan costs about one
+cent. **CI secrets:** the `dataforseo-smoke` job makes one real call; add `DATAFORSEO_LOGIN` and
+`DATAFORSEO_PASSWORD` under **Settings → Secrets and variables → Actions**. Until then that job
+fails with a message saying the secrets are missing. To use DataForSEO's free Sandbox (made-up
+data, no charge), also add the repository **variable** `DATAFORSEO_BASE_URL` =
+`https://sandbox.dataforseo.com`. All other tests use recorded responses.
+
+**E2E:** `pnpm test:e2e` starts a real WordPress (with MariaDB) in Docker, installs it with wp-cli
+and creates an Application Password, so the gate test publishes to an actual blog and opens the
+live post.
 
 ### LLM evals
 
@@ -115,9 +148,13 @@ Each brief is scored on four checks:
 - there are enough facts
 - none of the site's "forbidden" claims (things it never says) appear
 
-The thresholds are 100% grounding and 100% pass. Below them, the command exits non-zero. It also
-prints token usage and an estimated cost: a few cents per run. Run it whenever the prompt in
-`packages/agents/src/brief/prompt.ts` changes.
+It then runs the **seo-article** suite: the SEO writer drafts one article per recorded brief in
+`evals/seo/cases/*.json`, scored on: cites only brief facts, no "forbidden" claims, the keyword in
+the title or first heading, at least 900 words, and at least 3 sections.
+
+The thresholds are 100% for every suite. Below them, the command exits non-zero. It also prints
+token usage and an estimated cost: a few cents per run. Run it whenever a prompt in
+`packages/agents/src/*/prompt.ts` changes.
 
 **CI secret:** the `eval` job, and the `e2e-stripe` job (whose production configuration drafts with
 Claude), need an Anthropic API key. Create one at console.anthropic.com, then add it under GitHub →
@@ -126,18 +163,19 @@ repository **Settings → Secrets and variables → Actions → New repository s
 
 ## Commands
 
-| Command           | What it does                                                                                   |
-| ----------------- | ---------------------------------------------------------------------------------------------- |
-| `pnpm test`       | Unit + contract tests with coverage thresholds (Vitest)                                        |
-| `pnpm test:int`   | Integration tests + repository contracts against real Postgres (Testcontainers), with coverage |
-| `pnpm db:up`      | Start the local Postgres container                                                             |
-| `pnpm db:migrate` | Apply pending migrations to `DATABASE_URL`                                                     |
-| `pnpm test:e2e`   | Playwright E2E (desktop + mobile); builds and starts the web app                               |
-| `pnpm typecheck`  | `tsc --noEmit` in every package                                                                |
-| `pnpm lint`       | ESLint, zero warnings allowed                                                                  |
-| `pnpm format`     | Prettier write (`pnpm format:check` in CI)                                                     |
-| `pnpm eval`       | LLM evals against real Claude (needs `ANTHROPIC_API_KEY`); fails below thresholds              |
-| `pnpm build`      | Production build of the web app                                                                |
+| Command               | What it does                                                                                   |
+| --------------------- | ---------------------------------------------------------------------------------------------- |
+| `pnpm test`           | Unit + contract tests with coverage thresholds (Vitest)                                        |
+| `pnpm test:int`       | Integration tests + repository contracts against real Postgres (Testcontainers), with coverage |
+| `pnpm db:up`          | Start the local Postgres container                                                             |
+| `pnpm db:migrate`     | Apply pending migrations to `DATABASE_URL`                                                     |
+| `pnpm test:e2e`       | Playwright E2E (desktop + mobile); builds and starts the web app                               |
+| `pnpm typecheck`      | `tsc --noEmit` in every package                                                                |
+| `pnpm lint`           | ESLint, zero warnings allowed                                                                  |
+| `pnpm format`         | Prettier write (`pnpm format:check` in CI)                                                     |
+| `pnpm eval`           | LLM evals against real Claude (needs `ANTHROPIC_API_KEY`); fails below thresholds              |
+| `pnpm smoke:keywords` | One real DataForSEO call (needs `DATAFORSEO_LOGIN` and `DATAFORSEO_PASSWORD`)                  |
+| `pnpm build`          | Production build of the web app                                                                |
 
 The pre-merge gate is `pnpm test && pnpm typecheck && pnpm lint`. CI
 (`.github/workflows/ci.yml`) also runs integration tests, E2E tests and LLM evals. `pnpm test:e2e`
@@ -158,7 +196,7 @@ domain  ←  ports  ←  application  ←  agents / adapters  ←  apps (web, wo
 | `packages/ports`       | Interfaces only: `Clock`, `IdGenerator`, `TokenCipher`, `LlmClient`, `BriefDrafter`, `ContentDrafter`, `ContentReviewer`, `CampaignPlanner`, `SiteCrawler`, `KeywordProvider`, `MetricsSource`, `Publisher`, repositories |
 | `packages/application` | Use cases that orchestrate domain rules and ports                                                                                                                                                                         |
 | `packages/agents`      | AI agents (`BriefAgent`, `ExtractiveBriefDrafter`); implement agent ports, depend on domain and ports only                                                                                                                |
-| `packages/adapters`    | Port implementations: Postgres, Stripe, `ClaudeLlmClient`, `HttpSiteCrawler`, crypto, clock                                                                                                                               |
+| `packages/adapters`    | Port implementations: Postgres, Stripe, `ClaudeLlmClient`, `HttpSiteCrawler`, WordPress, DataForSEO, crypto, clock                                                                                                        |
 | `packages/testing`     | A fake for every port, entity fixtures (`aContentItem({ status })`…), shared contract suites                                                                                                                              |
 | `apps/web`             | Next.js UI + thin API routes; wiring in `src/container.ts`                                                                                                                                                                |
 | `apps/worker`          | Background jobs; wiring in `src/container.ts`                                                                                                                                                                             |
@@ -190,21 +228,27 @@ The rule is enforced twice: by ESLint `no-restricted-imports` per layer, and by
 
 ### Environment variables
 
-| Variable                        | Default           | Used by                                                              |
-| ------------------------------- | ----------------- | -------------------------------------------------------------------- |
-| `DATABASE_URL`                  | none              | web, `pnpm db:migrate` (must be `postgres://…`)                      |
-| `APP_URL`                       | none              | web: absolute base URL for redirects and cookies (Secure when https) |
-| `APP_ENV`                       | `production`      | web: `development`, `test` or `production`                           |
-| `BILLING_PROVIDER`              | none              | web: `local` or `stripe`                                             |
-| `LOCAL_BILLING_SECRET`          | none              | web with local billing: at least 16 characters                       |
-| `STRIPE_SECRET_KEY`             | none              | web with Stripe billing, `pnpm stripe:setup`                         |
-| `STRIPE_WEBHOOK_SECRET`         | none              | web with Stripe billing (`whsec_…`)                                  |
-| `BRIEF_DRAFTER`                 | `claude`          | web: `claude` or `extractive` (development and test only)            |
-| `ANTHROPIC_API_KEY`             | none              | web with `BRIEF_DRAFTER=claude`, `pnpm eval`. Never logged           |
-| `ANTHROPIC_MODEL`               | `claude-opus-5-5` | web, `pnpm eval`: the Claude model that drafts briefs                |
-| `CRAWLER_ALLOW_PRIVATE_NETWORK` | `false`           | web: `true` lets the crawler reach localhost/LAN (dev and test only) |
-| `APP_VERSION`                   | `0.1.0`           | web, worker health reports                                           |
-| `HEARTBEAT_INTERVAL_MS`         | `60000`           | worker                                                               |
+| Variable                | Default           | Used by                                                                             |
+| ----------------------- | ----------------- | ----------------------------------------------------------------------------------- |
+| `DATABASE_URL`          | none              | web, `pnpm db:migrate` (must be `postgres://…`)                                     |
+| `APP_URL`               | none              | web: absolute base URL for redirects and cookies (Secure when https)                |
+| `APP_ENV`               | `production`      | web: `development`, `test` or `production`                                          |
+| `BILLING_PROVIDER`      | none              | web: `local` or `stripe`                                                            |
+| `LOCAL_BILLING_SECRET`  | none              | web with local billing: at least 16 characters                                      |
+| `STRIPE_SECRET_KEY`     | none              | web with Stripe billing, `pnpm stripe:setup`                                        |
+| `STRIPE_WEBHOOK_SECRET` | none              | web with Stripe billing (`whsec_…`)                                                 |
+| `BRIEF_DRAFTER`         | `claude`          | web: `claude` or `extractive` (development and test only)                           |
+| `ARTICLE_WRITER`        | `claude`          | web: `claude` or `template` (development and test only)                             |
+| `ANTHROPIC_API_KEY`     | none              | web when Claude drafts, `pnpm eval`. Never logged                                   |
+| `ANTHROPIC_MODEL`       | `claude-opus-5-5` | web, `pnpm eval`: the Claude model for briefs and articles                          |
+| `TOKEN_ENCRYPTION_KEY`  | none              | web: 32 random bytes, base64 (`openssl rand -base64 32`)                            |
+| `KEYWORD_PROVIDER`      | `dataforseo`      | web: `dataforseo` or `offline` (development and test only)                          |
+| `DATAFORSEO_LOGIN`      | none              | web with DataForSEO, `pnpm smoke:keywords`                                          |
+| `DATAFORSEO_PASSWORD`   | none              | web with DataForSEO, `pnpm smoke:keywords`. Never logged                            |
+| `DATAFORSEO_BASE_URL`   | DataForSEO API    | web: another base URL, for tests                                                    |
+| `ALLOW_PRIVATE_NETWORK` | `false`           | web: `true` lets the crawler and publishers reach localhost/LAN (dev and test only) |
+| `APP_VERSION`           | `0.1.0`           | web, worker health reports                                                          |
+| `HEARTBEAT_INTERVAL_MS` | `60000`           | worker                                                                              |
 
 All configuration is validated with Zod when the app first handles a request; an invalid value
 fails fast with a message naming the variable.

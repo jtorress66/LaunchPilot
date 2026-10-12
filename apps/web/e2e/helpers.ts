@@ -35,3 +35,30 @@ export const draftBrief = async (page: Page) => {
   await page.getByRole("button", { name: /Draft my brief/ }).click();
   await expect(page.getByLabel("Audience")).not.toHaveValue("");
 };
+
+/** The real WordPress blog started by scripts/e2e.mjs, with an Application Password for admin. */
+export const wordpress = () => {
+  const url = process.env.E2E_WP_URL;
+  const username = process.env.E2E_WP_USER;
+  const password = process.env.E2E_WP_APP_PASSWORD;
+  if (!url || !username || !password) throw new Error("Run E2E through `pnpm test:e2e`");
+  return { url, username, password };
+};
+
+/** Signs up with a product whose brief is drafted and approved, then opens its SEO page. */
+export const onSeoPage = async (page: Page) => {
+  await onBriefPage(page);
+  await draftBrief(page);
+  await page.getByRole("button", { name: "Approve brief" }).click();
+  await expect(page.getByTestId("brief-status")).toHaveText("Approved");
+  await page.getByRole("link", { name: "Next: SEO →" }).click();
+  await expect(page.getByRole("heading", { name: "SEO", exact: true })).toBeVisible();
+};
+
+export const connectWordPress = async (page: Page, password = wordpress().password) => {
+  const wp = wordpress();
+  await page.getByLabel("Blog address").fill(wp.url);
+  await page.getByLabel("WordPress username").fill(wp.username);
+  await page.getByLabel("Application Password").fill(password);
+  await page.getByRole("button", { name: /Connect blog|Reconnect blog/ }).click();
+};

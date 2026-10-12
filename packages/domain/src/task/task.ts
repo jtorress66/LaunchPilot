@@ -15,12 +15,20 @@ export const taskStatuses = ["todo", "in_progress", "blocked", "done"] as const;
 export type TaskStatus = (typeof taskStatuses)[number];
 export type TaskEvent = "start" | "pause" | "complete" | "block" | "unblock";
 
+/** The keyword an SEO article targets, with the metrics it was chosen on. */
+export interface SeoTarget {
+  readonly keyword: string;
+  readonly monthlySearches: number;
+  readonly difficulty: number;
+}
+
 export interface Task {
   readonly id: TaskId;
   readonly campaignId: CampaignId;
   readonly kind: TaskKind;
   readonly title: string;
   readonly status: TaskStatus;
+  readonly seo: SeoTarget | null;
 }
 
 const machine = defineTransitions<TaskStatus, TaskEvent>({
@@ -35,6 +43,7 @@ export const createTask = (input: {
   campaignId: CampaignId;
   kind: TaskKind;
   title: string;
+  seo?: SeoTarget;
 }): Result<Task, DomainError> =>
   map(nonEmptyText(input.title, { field: "Task title", max: 200 }), (title) => ({
     id: input.id,
@@ -42,6 +51,7 @@ export const createTask = (input: {
     kind: input.kind,
     title,
     status: "todo" as const,
+    seo: input.seo ?? null,
   }));
 
 export const transitionTask = (task: Task, event: TaskEvent): Result<Task, DomainError> =>

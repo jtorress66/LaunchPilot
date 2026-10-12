@@ -1,4 +1,13 @@
 import {
+  ApproveContentItem,
+  ConnectBlog,
+  DraftSeoArticle,
+  GetContentItem,
+  GetSeoOverview,
+  PlanSeoContent,
+  PublishContentItem,
+  PublisherRegistry,
+  ReviseContentItem,
   ApproveBrief,
   AuthenticateSession,
   CreateProduct,
@@ -12,8 +21,18 @@ import {
   StartCheckout,
   UpdateBrief,
 } from "@launchpilot/application";
-import { BriefAgent, ExtractiveBriefDrafter } from "@launchpilot/agents";
 import {
+  BriefAgent,
+  ExtractiveBriefDrafter,
+  SeoArticleWriter,
+  TemplateArticleWriter,
+} from "@launchpilot/agents";
+import {
+  AesGcmTokenCipher,
+  DataForSeoKeywordProvider,
+  SeedKeywordProvider,
+  WordPressConnectionVerifier,
+  WordPressPublisherProvider,
   ClaudeLlmClient,
   createDatabase,
   createPostgresRepositories,
@@ -29,7 +48,7 @@ import {
   SystemClock,
   UuidIdGenerator,
 } from "@launchpilot/adapters";
-import { parseWebConfig, type WebConfig } from "./server/config";
+import { parseWebConfig, type ClaudeConfig, type WebConfig } from "./server/config";
 import type { HealthHandlerDeps } from "./server/health-handler";
 
 /** Composition root: the only place in the web app where concrete adapters are created. */
@@ -57,19 +76,48 @@ const billingFor = (config: WebConfig) => {
   };
 };
 
-/** Claude drafts briefs in production; the offline drafter is allowed only in development and test. */
+const claudeClient = ({ apiKey, model }: ClaudeConfig) => new ClaudeLlmClient({ apiKey, model });
+
+/** Claude drafts briefs and articles in production; offline stand-ins exist for development and test only. */
 const briefDrafterFor = ({ drafter }: WebConfig["brief"]) =>
-  drafter.kind === "claude"
-    ? new BriefAgent(new ClaudeLlmClient({ apiKey: drafter.apiKey, model: drafter.model }))
-    : new ExtractiveBriefDrafter();
+  drafter.kind === "claude" ? new BriefAgent(claudeClient(drafter)) : new ExtractiveBriefDrafter();
+
+const articleWriterFor = ({ writer }: WebConfig["seo"]) =>
+  writer.kind === "claude"
+    ? new SeoArticleWriter(claudeClient(writer))
+    : new TemplateArticleWriter();
+
+const keywordProviderFor = ({ keywords }: WebConfig["seo"]) =>
+  keywords.kind === "dataforseo"
+    ? new DataForSeoKeywordProvider({
+        login: keywords.login,
+        password: keywords.password,
+        ...(keywords.baseUrl === null ? {} : { baseUrl: keywords.baseUrl }),
+      })
+    : new SeedKeywordProvider();
 
 const build = (config: WebConfig) => {
   const billing = billingFor(config);
+  const repositories = createPostgresRepositories(createDatabase(config.databaseUrl));
+  const network = { allowPrivateNetwork: config.allowPrivateNetwork };
+  const cipher = new AesGcmTokenCipher(config.tokenEncryptionKey);
   const deps = {
-    ...createPostgresRepositories(createDatabase(config.databaseUrl)),
+    ...repositories,
     ...billing,
-    crawler: new HttpSiteCrawler({ allowPrivateNetwork: config.brief.allowPrivateNetwork }),
+    connections: repositories.channelConnections,
+    crawler: new HttpSiteCrawler(network),
     drafter: briefDrafterFor(config.brief),
+    writer: articleWriterFor(config.seo),
+    keywords: keywordProviderFor(config.seo),
+    cipher,
+    blogVerifier: new WordPressConnectionVerifier(network),
+    // One provider per channel; step 7 registers X and LinkedIn here.
+    publishers: new PublisherRegistry([
+      new WordPressPublisherProvider(repositories.channelConnections, cipher, {
+        ...network,
+        clock: container.clock,
+      }),
+    ]),
     clock: container.clock,
     ids: new UuidIdGenerator(),
     tokens: new RandomTokenGenerator(),
@@ -92,6 +140,14 @@ const build = (config: WebConfig) => {
     getBrief: new GetBrief(deps),
     updateBrief: new UpdateBrief(deps),
     approveBrief: new ApproveBrief(deps),
+    connectBlog: new ConnectBlog(deps),
+    planSeoContent: new PlanSeoContent(deps),
+    draftSeoArticle: new DraftSeoArticle(deps),
+    reviseContentItem: new ReviseContentItem(deps),
+    approveContentItem: new ApproveContentItem(deps),
+    publishContentItem: new PublishContentItem(deps),
+    getSeoOverview: new GetSeoOverview(deps),
+    getContentItem: new GetContentItem(deps),
   };
 };
 

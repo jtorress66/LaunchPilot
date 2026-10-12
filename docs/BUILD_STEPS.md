@@ -2,7 +2,7 @@
 
 Place this file at `docs/BUILD_STEPS.md`. Work on one step at a time. Tick a step only when its gate passes and the Definition of Done in `CLAUDE.md` is met.
 
-**Current step:** 5
+**Current step:** 6
 
 | # | Step | Scope | Gate (must pass before next step) | Done |
 | --- | --- | --- | --- | --- |
@@ -11,7 +11,7 @@ Place this file at `docs/BUILD_STEPS.md`. Work on one step at a time. Tick a ste
 | 3 | Persistence | Postgres schema + migrations, repository adapters | Repository contract suites pass against a real test DB (Testcontainers) | [x] |
 | 4 | Auth, workspaces, billing | Sign-up/login, workspaces, products, Stripe subscriptions and plan limits | E2E: sign up → create product → buy plan (Stripe test mode) | [x] |
 | 5 | Onboarding and Product Brief | Crawler adapter, brief agent, brief editor UI | E2E: paste URL → brief drafted → edited → approved | [x] |
-| 6 | SEO module | Keyword provider, content plan, article writer, CMS publisher | E2E: article drafted → approved → published to a test blog | [ ] |
+| 6 | SEO module | Keyword provider, content plan, article writer, CMS publisher | E2E: article drafted → approved → published to a test blog | [x] |
 | 7 | Social module | Calendar, social agent, approval inbox, publisher registry (X, LinkedIn via unified API) | E2E: post approved → published to a sandbox account | [ ] |
 | 8 | Launch module | Directory database, launch kit generator, submission tracker | Launch kit generated for a sample product; tracker statuses update | [ ] |
 | 9 | Analytics | Search Console + GA4/Plausible sources, analyst agent, weekly report | Report built correctly from recorded API data | [ ] |

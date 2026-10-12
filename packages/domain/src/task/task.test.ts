@@ -28,6 +28,7 @@ describe("task", () => {
       kind: "seo_article",
       title: "Write 'best analytics for SaaS' article",
       status: "todo",
+      seo: null,
     });
   });
 
@@ -59,5 +60,17 @@ describe("task", () => {
     const done = run(todo(), "start", "complete");
     const result = transitionTask(done, "start");
     expect(result.ok ? undefined : result.error.code).toBe("invalid_transition");
+  });
+
+  it("can carry the keyword an SEO article targets", () => {
+    const seo = { keyword: "cookieless analytics", monthlySearches: 500, difficulty: 12 };
+    const result = createTask({
+      id: taskId("task_2"),
+      campaignId: campaignId("camp_1"),
+      kind: "seo_article",
+      title: "Article: cookieless analytics",
+      seo,
+    });
+    expect(result.ok && result.value.seo).toEqual(seo);
   });
 });

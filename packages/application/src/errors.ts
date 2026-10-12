@@ -11,7 +11,11 @@ export type ApplicationErrorCode =
   | "invalid_signature"
   | "product_not_found"
   | "brief_not_found"
-  | "crawl_failed";
+  | "crawl_failed"
+  | "brief_not_approved"
+  | "no_keyword_opportunities"
+  | "task_not_found"
+  | "content_not_found";
 
 /** What a use case can report: a broken domain rule or an application-level refusal. */
 export type UseCaseError =

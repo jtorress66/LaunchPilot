@@ -1,6 +1,7 @@
 import type { Kysely } from "kysely";
 import { PostgresBriefRepository } from "./repositories/postgres-brief-repository";
 import { PostgresCampaignRepository } from "./repositories/postgres-campaign-repository";
+import { PostgresChannelConnectionRepository } from "./repositories/postgres-channel-connection-repository";
 import { PostgresContentItemRepository } from "./repositories/postgres-content-item-repository";
 import { PostgresProductRepository } from "./repositories/postgres-product-repository";
 import { PostgresSessionRepository } from "./repositories/postgres-session-repository";
@@ -16,6 +17,7 @@ export { migrateDown, migrateToLatest, type MigrationOutcome } from "./migrate";
 export {
   PostgresBriefRepository,
   PostgresCampaignRepository,
+  PostgresChannelConnectionRepository,
   PostgresContentItemRepository,
   PostgresProductRepository,
   PostgresSessionRepository,
@@ -36,4 +38,5 @@ export const createPostgresRepositories = (db: Kysely<Database>) => ({
   campaigns: new PostgresCampaignRepository(db),
   tasks: new PostgresTaskRepository(db),
   contentItems: new PostgresContentItemRepository(db),
+  channelConnections: new PostgresChannelConnectionRepository(db),
 });

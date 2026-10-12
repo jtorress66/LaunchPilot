@@ -1,0 +1,5 @@
+{
+  "code": "rest_cannot_create",
+  "message": "Sorry, you are not allowed to create posts as this user.",
+  "data": { "status": 401 }
+}

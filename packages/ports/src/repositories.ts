@@ -1,4 +1,6 @@
 import type {
+  Channel,
+  ChannelConnection,
   Email,
   Session,
   Subscription,
@@ -70,4 +72,17 @@ export interface TaskRepository extends Repository<TaskId, Task> {
 
 export interface ContentItemRepository extends Repository<ContentItemId, ContentItem> {
   listByStatus(status: ContentItemStatus): Promise<readonly ContentItem[]>;
+  /** Newest first. */
+  listByProduct(productId: ProductId): Promise<readonly ContentItem[]>;
+  /** Items of these products created at or after `since`, for monthly plan limits. */
+  countCreatedSince(productIds: readonly ProductId[], since: Date): Promise<number>;
+}
+
+export interface ChannelConnectionRepository {
+  findByProductAndChannel(
+    productId: ProductId,
+    channel: Channel,
+  ): Promise<ChannelConnection | undefined>;
+  /** Inserts or replaces the connection for the same product and channel. */
+  save(connection: ChannelConnection): Promise<void>;
 }

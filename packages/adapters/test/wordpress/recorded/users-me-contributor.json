@@ -1,0 +1,8 @@
+{
+  "id": 2,
+  "username": "writer",
+  "name": "writer",
+  "slug": "writer",
+  "roles": ["contributor"],
+  "capabilities": { "edit_posts": true, "publish_posts": false }
+}

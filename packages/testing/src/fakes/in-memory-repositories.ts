@@ -1,4 +1,6 @@
 import type {
+  Channel,
+  ChannelConnection,
   Email,
   Session,
   Subscription,
@@ -21,6 +23,7 @@ import type {
 import type {
   BriefRepository,
   CampaignRepository,
+  ChannelConnectionRepository,
   ContentItemRepository,
   ProductRepository,
   Repository,
@@ -153,5 +156,39 @@ export class InMemoryContentItemRepository implements ContentItemRepository {
 
   listByStatus(status: ContentItemStatus): Promise<readonly ContentItem[]> {
     return Promise.resolve(this.base.store.filter((i) => i.status === status));
+  }
+
+  listByProduct(productId: ProductId): Promise<readonly ContentItem[]> {
+    return Promise.resolve(
+      this.base.store
+        .filter((i) => i.productId === productId)
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()),
+    );
+  }
+
+  countCreatedSince(productIds: readonly ProductId[], since: Date): Promise<number> {
+    return Promise.resolve(
+      this.base.store.filter(
+        (i) => productIds.includes(i.productId) && i.createdAt.getTime() >= since.getTime(),
+      ).length,
+    );
+  }
+}
+
+export class InMemoryChannelConnectionRepository implements ChannelConnectionRepository {
+  private readonly store = new InMemoryStore<string, ChannelConnection>(
+    (c) => `${c.productId}:${c.channel}`,
+  );
+
+  findByProductAndChannel(
+    productId: ProductId,
+    channel: Channel,
+  ): Promise<ChannelConnection | undefined> {
+    return Promise.resolve(this.store.get(`${productId}:${channel}`));
+  }
+
+  save(connection: ChannelConnection): Promise<void> {
+    this.store.put(connection);
+    return Promise.resolve();
   }
 }

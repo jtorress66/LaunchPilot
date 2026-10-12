@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { draftFailureMessage, fieldFor } from "./messages";
+import { draftFailureMessage, fieldFor, keywordFailureMessage } from "./messages";
 
 describe("fieldFor", () => {
   it.each([
@@ -35,5 +35,21 @@ describe("draftFailureMessage", () => {
 
   it("shows other errors as they are", () => {
     expect(draftFailureMessage({ code: "product_not_found", message: "Gone" })).toBe("Gone");
+  });
+});
+
+describe("keywordFailureMessage", () => {
+  it.each([
+    ["quota_exceeded", "Keyword research is paused: the keyword data account needs more credit."],
+    ["unavailable", "Keyword research is unavailable right now. Try again in a minute."],
+    ["invalid_request", "Keyword research could not run for these topics. Try different wording."],
+  ])("explains %s without exposing the provider's details", (code, message) => {
+    expect(keywordFailureMessage({ code, message: "DataForSEO internal detail" })).toBe(message);
+  });
+
+  it("shows other errors as they are", () => {
+    expect(keywordFailureMessage({ code: "brief_not_approved", message: "Approve it" })).toBe(
+      "Approve it",
+    );
   });
 });

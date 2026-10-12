@@ -1,5 +1,6 @@
-import { BriefAgent } from "@launchpilot/agents";
+import { BriefAgent, SeoArticleWriter } from "@launchpilot/agents";
 import {
+  DataForSeoKeywordProvider,
   ClaudeLlmClient,
   createDatabase,
   createStripeClient,
@@ -39,3 +40,19 @@ export const createBriefEvalAgent = ({ apiKey, model }: EvalConfig) => {
   const meter = new MeteredLlmClient(new ClaudeLlmClient({ apiKey, model }));
   return { agent: new BriefAgent(meter), meter };
 };
+
+/** The SEO article writer on real Claude, metered for the seo-article eval. */
+export const createSeoEvalWriter = ({ apiKey, model }: EvalConfig) => {
+  const meter = new MeteredLlmClient(new ClaudeLlmClient({ apiKey, model }));
+  return { writer: new SeoArticleWriter(meter), meter };
+};
+
+export const createKeywordProvider = ({
+  login,
+  password,
+  baseUrl,
+}: {
+  login: string;
+  password: string;
+  baseUrl: string | undefined;
+}) => new DataForSeoKeywordProvider({ login, password, ...(baseUrl ? { baseUrl } : {}) });

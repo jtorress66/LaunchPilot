@@ -16,3 +16,5 @@ export * from "./account-repositories.contract";
 export * from "./checkout-provider.contract";
 export * from "./billing-webhook-verifier.contract";
 export * from "./brief-drafter.contract";
+export * from "./blog-connection-verifier.contract";
+export * from "./publisher-provider.contract";

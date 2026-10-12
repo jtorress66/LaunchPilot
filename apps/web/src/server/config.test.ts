@@ -1,10 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { parseWebConfig } from "./config";
 
+const KEY = Buffer.alloc(32, 7).toString("base64");
+
 const base = {
   DATABASE_URL: "postgres://app:secret@localhost:5432/launchpilot",
   APP_URL: "http://localhost:3000",
   ANTHROPIC_API_KEY: "sk-ant-test-key",
+  TOKEN_ENCRYPTION_KEY: KEY,
+  DATAFORSEO_LOGIN: "founder@acme.dev",
+  DATAFORSEO_PASSWORD: "dfs-password",
 };
 const local = {
   ...base,
@@ -20,16 +25,26 @@ const stripe = {
 };
 
 describe("parseWebConfig", () => {
-  it("accepts local billing in development", () => {
+  it("accepts local billing in development, with Claude and DataForSEO by default", () => {
     expect(parseWebConfig(local)).toEqual({
       ok: true,
       value: {
         databaseUrl: base.DATABASE_URL,
         appUrl: "http://localhost:3000",
         billing: { provider: "local", secret: "a".repeat(32) },
+        allowPrivateNetwork: false,
+        tokenEncryptionKey: KEY,
         brief: {
           drafter: { kind: "claude", apiKey: "sk-ant-test-key", model: "claude-opus-5-5" },
-          allowPrivateNetwork: false,
+        },
+        seo: {
+          keywords: {
+            kind: "dataforseo",
+            login: "founder@acme.dev",
+            password: "dfs-password",
+            baseUrl: null,
+          },
+          writer: { kind: "claude", apiKey: "sk-ant-test-key", model: "claude-opus-5-5" },
         },
       },
     });
@@ -68,55 +83,96 @@ describe("parseWebConfig", () => {
     ["an invalid APP_URL", { ...local, APP_URL: "localhost" }],
     ["an unknown brief drafter", { ...local, BRIEF_DRAFTER: "gpt" }],
     ["a model that is not a Claude model", { ...local, ANTHROPIC_MODEL: "gpt-5" }],
+    ["an unknown keyword provider", { ...local, KEYWORD_PROVIDER: "semrush" }],
+    ["an unknown article writer", { ...local, ARTICLE_WRITER: "gpt" }],
+    ["an invalid DataForSEO base URL", { ...local, DATAFORSEO_BASE_URL: "stub" }],
   ])("refuses %s", (_case, env) => {
     expect(parseWebConfig(env).ok).toBe(false);
   });
 });
 
-describe("parseWebConfig brief settings", () => {
-  it("drafts with Claude by default and lets ANTHROPIC_MODEL choose the model", () => {
+describe("parseWebConfig secrets at rest", () => {
+  it.each([
+    ["missing", undefined],
+    ["too short", Buffer.alloc(16).toString("base64")],
+    ["not base64 of 32 bytes", "not-a-key"],
+  ])("refuses a TOKEN_ENCRYPTION_KEY that is %s", (_case, value) => {
+    expect(parseWebConfig({ ...local, TOKEN_ENCRYPTION_KEY: value })).toEqual({
+      ok: false,
+      error:
+        "TOKEN_ENCRYPTION_KEY must be 32 random bytes, base64-encoded (openssl rand -base64 32)",
+    });
+  });
+});
+
+describe("parseWebConfig AI settings", () => {
+  it("lets ANTHROPIC_MODEL choose the model for briefs and articles", () => {
     expect(parseWebConfig({ ...stripe, ANTHROPIC_MODEL: "claude-sonnet-5-5" })).toMatchObject({
       ok: true,
       value: {
-        brief: {
-          drafter: { kind: "claude", apiKey: "sk-ant-test-key", model: "claude-sonnet-5-5" },
-        },
+        brief: { drafter: { model: "claude-sonnet-5-5" } },
+        seo: { writer: { model: "claude-sonnet-5-5" } },
       },
     });
   });
 
-  it("needs ANTHROPIC_API_KEY to draft with Claude", () => {
+  it("needs ANTHROPIC_API_KEY to draft briefs or articles with Claude", () => {
     expect(parseWebConfig({ ...stripe, ANTHROPIC_API_KEY: undefined })).toEqual({
       ok: false,
-      error: "ANTHROPIC_API_KEY is required when BRIEF_DRAFTER is claude",
+      error: "ANTHROPIC_API_KEY is required when BRIEF_DRAFTER or ARTICLE_WRITER is claude",
     });
   });
 
-  it("allows the offline extractive drafter and private-network crawling in development", () => {
+  it("works offline in development: extractive briefs, template articles, seed keywords, local sites", () => {
     expect(
       parseWebConfig({
         ...local,
         ANTHROPIC_API_KEY: undefined,
+        DATAFORSEO_LOGIN: undefined,
+        DATAFORSEO_PASSWORD: undefined,
         BRIEF_DRAFTER: "extractive",
-        CRAWLER_ALLOW_PRIVATE_NETWORK: "true",
+        ARTICLE_WRITER: "template",
+        KEYWORD_PROVIDER: "offline",
+        ALLOW_PRIVATE_NETWORK: "true",
       }),
     ).toMatchObject({
       ok: true,
-      value: { brief: { drafter: { kind: "extractive" }, allowPrivateNetwork: true } },
+      value: {
+        allowPrivateNetwork: true,
+        brief: { drafter: { kind: "extractive" } },
+        seo: { keywords: { kind: "offline" }, writer: { kind: "template" } },
+      },
     });
   });
 
-  it("refuses the extractive drafter in production so the AI is never skipped silently", () => {
-    expect(parseWebConfig({ ...stripe, BRIEF_DRAFTER: "extractive" })).toEqual({
+  it.each([
+    ["BRIEF_DRAFTER=extractive", { BRIEF_DRAFTER: "extractive" }],
+    ["ARTICLE_WRITER=template", { ARTICLE_WRITER: "template" }],
+    ["KEYWORD_PROVIDER=offline", { KEYWORD_PROVIDER: "offline" }],
+    ["ALLOW_PRIVATE_NETWORK", { ALLOW_PRIVATE_NETWORK: "true" }],
+  ])("refuses %s in production", (setting, override) => {
+    expect(parseWebConfig({ ...stripe, ...override })).toEqual({
       ok: false,
-      error: "BRIEF_DRAFTER=extractive is only allowed when APP_ENV is development or test",
+      error: `${setting} is only allowed when APP_ENV is development or test`,
+    });
+  });
+});
+
+describe("parseWebConfig keyword settings", () => {
+  it("needs DataForSEO credentials unless the offline provider is chosen", () => {
+    expect(parseWebConfig({ ...stripe, DATAFORSEO_PASSWORD: undefined })).toEqual({
+      ok: false,
+      error:
+        "DATAFORSEO_LOGIN and DATAFORSEO_PASSWORD are required when KEYWORD_PROVIDER is dataforseo",
     });
   });
 
-  it("refuses private-network crawling in production", () => {
-    expect(parseWebConfig({ ...stripe, CRAWLER_ALLOW_PRIVATE_NETWORK: "true" })).toEqual({
-      ok: false,
-      error: "CRAWLER_ALLOW_PRIVATE_NETWORK is only allowed when APP_ENV is development or test",
+  it("can point DataForSEO at another base URL, for tests", () => {
+    expect(
+      parseWebConfig({ ...local, DATAFORSEO_BASE_URL: "http://127.0.0.1:4010/dataforseo" }),
+    ).toMatchObject({
+      ok: true,
+      value: { seo: { keywords: { baseUrl: "http://127.0.0.1:4010/dataforseo" } } },
     });
   });
 });

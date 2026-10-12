@@ -6,6 +6,7 @@ interface FieldProps {
   readonly autoComplete?: string;
   readonly placeholder?: string;
   readonly hint?: string;
+  readonly defaultValue?: string;
 }
 
 export function Field({
@@ -16,6 +17,7 @@ export function Field({
   autoComplete,
   placeholder,
   hint,
+  defaultValue,
 }: FieldProps) {
   const errorId = `${name}-error`;
   return (
@@ -29,6 +31,7 @@ export function Field({
         type={type}
         autoComplete={autoComplete}
         placeholder={placeholder}
+        defaultValue={defaultValue}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errorId : undefined}
         className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 aria-invalid:border-red-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"

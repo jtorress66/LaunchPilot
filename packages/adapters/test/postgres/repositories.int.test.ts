@@ -1,4 +1,5 @@
 import {
+  describeChannelConnectionRepositoryContract,
   describeBriefRepositoryContract,
   describeCampaignRepositoryContract,
   describeContentItemRepositoryContract,
@@ -9,13 +10,14 @@ import {
   describeTaskRepositoryContract,
   describeWorkspaceRepositoryContract,
 } from "@launchpilot/testing/contracts";
-import { workspaceId } from "@launchpilot/domain";
-import { aContentItem } from "@launchpilot/testing";
+import { taskId, workspaceId } from "@launchpilot/domain";
+import { aContentItem, aTask } from "@launchpilot/testing";
 import { afterAll, describe, expect, it } from "vitest";
 import {
   createPostgresRepositories,
   PostgresBriefRepository,
   PostgresCampaignRepository,
+  PostgresChannelConnectionRepository,
   PostgresContentItemRepository,
   PostgresProductRepository,
   PostgresSessionRepository,
@@ -77,6 +79,22 @@ describeContentItemRepositoryContract("PostgresContentItemRepository", async () 
   return new PostgresContentItemRepository(db);
 });
 
+describeChannelConnectionRepositoryContract("PostgresChannelConnectionRepository", async () => {
+  await resetWith(db, "products");
+  return new PostgresChannelConnectionRepository(db);
+});
+
+describe("PostgresTaskRepository", () => {
+  it("stores the keyword an SEO task targets", async () => {
+    await resetWith(db, "campaigns");
+    const repo = new PostgresTaskRepository(db);
+    const seo = { keyword: "cookieless analytics", monthlySearches: 480, difficulty: 12 };
+    const task = { ...aTask({ id: taskId("task_seo") }), seo };
+    await repo.save(task);
+    expect(await repo.findById(task.id)).toEqual(task);
+  });
+});
+
 describe("createPostgresRepositories", () => {
   it("builds every repository over one connection pool", async () => {
     await resetWith(db, "tasks");
@@ -88,6 +106,7 @@ describe("createPostgresRepositories", () => {
     expect(Object.keys(repos).sort()).toEqual([
       "briefs",
       "campaigns",
+      "channelConnections",
       "contentItems",
       "products",
       "sessions",

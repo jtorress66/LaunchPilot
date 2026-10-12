@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { briefForm, parseForm, productForm, signUpForm, upgradeForm } from "./forms";
+import {
+  articleForm,
+  blogConnectionForm,
+  briefForm,
+  parseForm,
+  productForm,
+  seedKeywordsForm,
+  signUpForm,
+  upgradeForm,
+} from "./forms";
 
 const form = (entries: Record<string, string>) => {
   const data = new FormData();
@@ -91,6 +100,56 @@ describe("form parsing", () => {
     expect(parseForm(briefForm, form({ ...base, facts: many }))).toEqual({
       ok: false,
       error: { facts: "Use at most 20 lines" },
+    });
+  });
+
+  it("reads a WordPress connection, requiring every field", () => {
+    expect(
+      parseForm(
+        blogConnectionForm,
+        form({ siteUrl: "https://blog.acme.dev", username: "admin", secret: "abcd efgh" }),
+      ),
+    ).toEqual({
+      ok: true,
+      value: { siteUrl: "https://blog.acme.dev", username: "admin", secret: "abcd efgh" },
+    });
+    expect(parseForm(blogConnectionForm, form({}))).toEqual({
+      ok: false,
+      error: {
+        siteUrl: "Enter your blog's address",
+        username: "Enter your WordPress username",
+        secret: "Enter an Application Password",
+      },
+    });
+  });
+
+  it("reads one to five seed topics, one per line", () => {
+    expect(parseForm(seedKeywordsForm, form({ seeds: "privacy analytics\n\n gdpr \n" }))).toEqual({
+      ok: true,
+      value: { seeds: ["privacy analytics", "gdpr"] },
+    });
+    expect(parseForm(seedKeywordsForm, form({ seeds: " " }))).toEqual({
+      ok: false,
+      error: { seeds: "Enter at least one topic" },
+    });
+    expect(parseForm(seedKeywordsForm, form({ seeds: "a\nb\nc\nd\ne\nf" }))).toEqual({
+      ok: false,
+      error: { seeds: "Use at most 5 lines" },
+    });
+    expect(parseForm(seedKeywordsForm, form({ seeds: "x".repeat(81) }))).toEqual({
+      ok: false,
+      error: { seeds: "Keep each line under 80 characters" },
+    });
+  });
+
+  it("reads an article edit with a capped title and body", () => {
+    expect(parseForm(articleForm, form({ title: "Title", body: "Body" }))).toEqual({
+      ok: true,
+      value: { title: "Title", body: "Body" },
+    });
+    expect(parseForm(articleForm, form({ title: "x".repeat(201), body: "b" }))).toEqual({
+      ok: false,
+      error: { title: "Use at most 200 characters" },
     });
   });
 });

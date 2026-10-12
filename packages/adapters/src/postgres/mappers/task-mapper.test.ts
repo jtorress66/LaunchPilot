@@ -10,6 +10,28 @@ describe("taskMapper", () => {
     expect(taskMapper.fromRow(row)).toEqual(task);
   });
 
+  it("round-trips the keyword an SEO task targets", () => {
+    const task = {
+      ...aTask(),
+      seo: { keyword: "seo for saas", monthlySearches: 90, difficulty: 7 },
+    };
+    const row = taskMapper.toRow(task);
+    expect(row).toMatchObject({
+      seo_keyword: "seo for saas",
+      seo_monthly_searches: 90,
+      seo_difficulty: 7,
+    });
+    expect(taskMapper.fromRow(row)).toEqual(task);
+  });
+
+  it("stores no SEO columns for other tasks", () => {
+    expect(taskMapper.toRow(aTask())).toMatchObject({
+      seo_keyword: null,
+      seo_monthly_searches: null,
+      seo_difficulty: null,
+    });
+  });
+
   it("refuses an unknown kind", () => {
     const row = { ...taskMapper.toRow(aTask()), kind: "podcast" };
     expect(() => taskMapper.fromRow(row)).toThrow(/tasks\.kind/);
