@@ -49,7 +49,9 @@ describe("SocialPostWriter", () => {
   });
 
   it("asks for the link to be included when the post promotes an article", async () => {
-    const llm = new FakeLlmClient().reply(reply({ text: "New guide: https://blog.acme.dev/guide" }));
+    const llm = new FakeLlmClient().reply(
+      reply({ text: "New guide: https://blog.acme.dev/guide" }),
+    );
     const result = await write(llm, withLink);
     expect(prompts(llm)[0]).toContain("Include this link exactly: https://blog.acme.dev/guide");
     expect(result.ok).toBe(true);

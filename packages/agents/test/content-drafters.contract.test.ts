@@ -1,7 +1,12 @@
 import type { ContentDrafter } from "@launchpilot/ports";
 import { FakeLlmClient } from "@launchpilot/testing";
 import { describeContentDrafterContract } from "@launchpilot/testing/contracts";
-import { SeoArticleWriter, SocialPostWriter, TemplateArticleWriter, TemplatePostWriter } from "../src";
+import {
+  SeoArticleWriter,
+  SocialPostWriter,
+  TemplateArticleWriter,
+  TemplatePostWriter,
+} from "../src";
 
 describeContentDrafterContract("TemplateArticleWriter", () => {
   const writer = new TemplateArticleWriter();

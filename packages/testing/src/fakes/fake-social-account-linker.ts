@@ -36,7 +36,9 @@ export class FakeSocialAccountLinker implements SocialAccountLinker {
   linkingUrl(profileKey: string, returnUrl: string): Promise<Result<string, SocialLinkError>> {
     return this.respond(() =>
       this.known(profileKey, () =>
-        ok(`https://link.social.test/?profile=${profileKey}&return=${encodeURIComponent(returnUrl)}`),
+        ok(
+          `https://link.social.test/?profile=${profileKey}&return=${encodeURIComponent(returnUrl)}`,
+        ),
       ),
     );
   }
@@ -55,9 +57,7 @@ export class FakeSocialAccountLinker implements SocialAccountLinker {
       : then(channels);
   }
 
-  private respond<T>(
-    run: () => Result<T, SocialLinkError>,
-  ): Promise<Result<T, SocialLinkError>> {
+  private respond<T>(run: () => Result<T, SocialLinkError>): Promise<Result<T, SocialLinkError>> {
     const failure = this.failure.take();
     return Promise.resolve(failure === undefined ? run() : err(failure));
   }

@@ -436,7 +436,9 @@ describe("publish attempts", () => {
   it("start at zero and count each failed attempt while scheduled", () => {
     const scheduled = apply(draft("x"), ...pathTo.scheduled);
     expect(scheduled.publishAttempts).toBe(0);
-    expect(apply(scheduled, events.recordPublishAttempt, events.recordPublishAttempt)).toMatchObject({
+    expect(
+      apply(scheduled, events.recordPublishAttempt, events.recordPublishAttempt),
+    ).toMatchObject({
       status: "scheduled",
       publishAttempts: 2,
     });
