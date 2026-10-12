@@ -32,6 +32,7 @@ import postPublished from "./recorded/post-published.json";
 import profileCreated from "./recorded/profile-created.json";
 import profileExists from "./recorded/profile-exists.json";
 import profileNotFound from "./recorded/profile-not-found.json";
+import profiles from "./recorded/profiles.json";
 import rateLimited from "./recorded/rate-limited.json";
 import unauthorized from "./recorded/unauthorized.json";
 
@@ -306,33 +307,37 @@ describe("ZernioPublisherProvider", () => {
 });
 
 describe("runZernioSmoke", () => {
-  it("posts the text to the test X account, then takes it down again", async () => {
-    const posted = respond("post", "posts", postPublished, 201);
-    const unpublished = respond("post", `posts/${postPublished.post._id}/unpublish`, {
-      message: "Post unpublished",
+  it("checks the key and the response formats with read-only calls, posting nothing", async () => {
+    const listed = respond("get", "profiles", profiles);
+    respond("get", "accounts", accounts);
+    let posted = false;
+    server.use(
+      http.post(`${BASE}/v1/posts`, () => {
+        posted = true;
+        return HttpResponse.json(postPublished, { status: 201 });
+      }),
+    );
+    expect(await runZernioSmoke(options)).toEqual({
+      ok: true,
+      value: { profiles: 1, xAccounts: 1, linkedinAccounts: 1 },
     });
-    const result = await runZernioSmoke(options, X_ACCOUNT, "LaunchPilot CI smoke test 42");
-    expect(result).toEqual({ ok: true, value: { postUrl: POST_URL } });
-    expect(posted.body).toEqual({
-      content: "LaunchPilot CI smoke test 42",
-      platforms: [{ platform: "twitter", accountId: X_ACCOUNT }],
-      publishNow: true,
-    });
-    expect(unpublished.body).toEqual({ platform: "twitter" });
+    expect(listed.headers?.get("authorization")).toBe(`Bearer ${API_KEY}`);
+    expect(posted).toBe(false);
   });
 
-  it("explains a failed post without the key", async () => {
-    respond("post", "posts", unauthorized, 401);
-    const result = await runZernioSmoke(options, X_ACCOUNT, "smoke");
-    expect(result).toEqual({ ok: false, error: "Posting failed: Invalid API key." });
+  it("explains a rejected key without echoing it", async () => {
+    respond("get", "profiles", unauthorized, 401);
+    const result = await runZernioSmoke(options);
+    expect(result).toEqual({ ok: false, error: "Listing profiles failed: Invalid API key." });
+    expect(JSON.stringify(result)).not.toContain(API_KEY);
   });
 
-  it("reports a post it could not take down", async () => {
-    respond("post", "posts", postPublished, 201);
-    respond("post", `posts/${postPublished.post._id}/unpublish`, { error: "Not allowed" }, 400);
-    expect(await runZernioSmoke(options, X_ACCOUNT, "smoke")).toEqual({
+  it("reports a response format that no longer matches the adapter", async () => {
+    respond("get", "profiles", profiles);
+    respond("get", "accounts", { accounts: [{ id: "renamed" }] });
+    expect(await runZernioSmoke(options)).toEqual({
       ok: false,
-      error: `Posted ${String(POST_URL)} but could not take it down: Not allowed`,
+      error: "Listing accounts failed: Zernio answered in an unexpected format",
     });
   });
 });

@@ -124,17 +124,13 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ZERNIO_API_KEY: ${{ secrets.ZERNIO_API_KEY }}
-      # The Zernio account id of a test X account (Zernio dashboard, or GET /v1/accounts).
-      ZERNIO_TEST_X_ACCOUNT_ID: ${{ secrets.ZERNIO_TEST_X_ACCOUNT_ID }}
     steps:
-      - name: Require the Zernio secrets
+      - name: Require the Zernio API key
         run: |
-          for name in ZERNIO_API_KEY ZERNIO_TEST_X_ACCOUNT_ID; do
-            if [ -z "${!name}" ]; then
-              echo "::error::Add the $name repository secret (Settings → Secrets and variables → Actions). See README → Social module."
-              exit 1
-            fi
-          done
+          if [ -z "$ZERNIO_API_KEY" ]; then
+            echo "::error::Add the ZERNIO_API_KEY repository secret (Settings → Secrets and variables → Actions). See README → Social module."
+            exit 1
+          fi
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4

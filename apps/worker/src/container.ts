@@ -6,6 +6,8 @@ import {
   WordPressPublisherProvider,
   ZernioPublisherProvider,
   runZernioSmoke,
+  assessZernioChange,
+  fetchZernioChangelog,
   DataForSeoKeywordProvider,
   ClaudeLlmClient,
   createDatabase,
@@ -100,6 +102,18 @@ export const createPublishDue = (config: PublisherConfig) => {
   };
 };
 
-/** The CI smoke check: one real post to the test X account, then taken down. */
-export const runSocialSmoke = (config: ZernioConfig, accountId: string, text: string) =>
-  runZernioSmoke(zernioOptions(config), accountId, text);
+/** The CI smoke check against the real API: read-only, it never posts. */
+export const runSocialSmoke = (config: ZernioConfig) => runZernioSmoke(zernioOptions(config));
+
+/** Zernio changelog entries since `since` that affect the integration, with the reasons. */
+export const findAffectingZernioChanges = async (since: Date) => {
+  const entries = await fetchZernioChangelog({ since });
+  if (!entries.ok) return entries;
+  return {
+    ok: true as const,
+    value: entries.value.flatMap((entry) => {
+      const { affected, reasons } = assessZernioChange(entry);
+      return affected ? [{ ...entry, reasons }] : [];
+    }),
+  };
+};

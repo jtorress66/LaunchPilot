@@ -178,16 +178,26 @@ Only founder-approved posts reach X or LinkedIn: publishing goes through `toPubl
 3. **X needs a payment method:** Zernio passes X's API costs through, so add a card under Billing
    before connecting an X account. Otherwise publishing to X fails with a "payment method" message.
 
-**CI secrets:** the `zernio-smoke` job posts `LaunchPilot CI smoke test <run id>` to a test X
-account through the real API, then takes it down again. Add these under GitHub → repository
-**Settings → Secrets and variables → Actions → New repository secret**:
+**CI secret:** the `zernio-smoke` job makes read-only calls to the real API (it lists profiles and
+accounts and never posts), proving that the key works and that Zernio's responses still match the
+adapter. Add `ZERNIO_API_KEY` under GitHub → repository **Settings → Secrets and variables →
+Actions → New repository secret**. Until then that job fails with a message saying the secret is
+missing. All other tests use recorded responses, or, in E2E, a local Zernio-compatible stub
+(`scripts/e2e-zernio.mjs`).
 
-- `ZERNIO_API_KEY`: the same kind of key as above
-- `ZERNIO_TEST_X_ACCOUNT_ID`: the Zernio account id of a test X account you linked in Zernio's
-  dashboard (also returned by `GET /v1/accounts`)
+**Zernio API changes:** the daily `Zernio changelog` workflow (`.github/workflows/zernio-changelog.yml`)
+reads Zernio's public API changelog. It is the same feed as Zernio's `api.changelog.published`
+webhook, but it needs no key and no deployed endpoint. The workflow opens one GitHub issue, labelled
+`zernio-changelog`, for each entry that does any of these:
 
-Until they are added, that job fails with a message naming the missing secret. All other tests use
-recorded responses, or, in E2E, a local Zernio-compatible stub (`scripts/e2e-zernio.mjs`).
+- changes or removes an endpoint LaunchPilot calls
+- removes a response schema the adapter reads
+- needs action on X or LinkedIn
+- deprecates something on X or LinkedIn
+- is a breaking change for every integration
+
+It never opens the same issue twice. Run it by hand with `pnpm watch:zernio --days 30`, or from the
+Actions tab. Once the app is deployed (step 11), the webhook can replace it.
 
 ### LLM evals
 
@@ -231,7 +241,8 @@ repository **Settings → Secrets and variables → Actions → New repository s
 | `pnpm format`         | Prettier write (`pnpm format:check` in CI)                                                     |
 | `pnpm eval`           | LLM evals against real Claude (needs `ANTHROPIC_API_KEY`); fails below thresholds              |
 | `pnpm smoke:keywords` | One real DataForSEO call (needs `DATAFORSEO_LOGIN` and `DATAFORSEO_PASSWORD`)                  |
-| `pnpm smoke:social`   | One real X post through Zernio, then taken down (needs the Zernio CI secrets)                  |
+| `pnpm smoke:social`   | Read-only calls to the real Zernio API (needs `ZERNIO_API_KEY`); never posts                   |
+| `pnpm watch:zernio`   | Lists Zernio API changelog entries that affect the integration (no key needed)                 |
 | `pnpm build`          | Production build of the web app                                                                |
 
 The pre-merge gate is `pnpm test && pnpm typecheck && pnpm lint`. CI

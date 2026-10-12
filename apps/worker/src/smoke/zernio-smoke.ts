@@ -1,5 +1,5 @@
-// `pnpm smoke:social`: posts one real test post to X through Zernio, then takes it down.
-// Proves the API key, the linked test X account and the response format still work.
+// `pnpm smoke:social`: read-only calls to the real Zernio API, proving that ZERNIO_API_KEY works
+// and that the responses still match the adapter. It never posts anything.
 import { runSocialSmoke } from "../container";
 
 function fail(message: string): never {
@@ -8,18 +8,15 @@ function fail(message: string): never {
 }
 
 const apiKey = process.env.ZERNIO_API_KEY;
-const accountId = process.env.ZERNIO_TEST_X_ACCOUNT_ID;
-if (!apiKey || !accountId) {
+if (!apiKey) {
   fail(
-    "ZERNIO_API_KEY and ZERNIO_TEST_X_ACCOUNT_ID are not set. In CI: add them under Settings → Secrets and variables → Actions.",
+    "ZERNIO_API_KEY is not set. In CI: add it under Settings → Secrets and variables → Actions.",
   );
 }
 
-const runId = process.env.GITHUB_RUN_ID ?? String(Date.now());
-const result = await runSocialSmoke(
-  { apiKey, baseUrl: null },
-  accountId,
-  `LaunchPilot CI smoke test ${runId}`,
-);
+const result = await runSocialSmoke({ apiKey, baseUrl: null });
 if (!result.ok) fail(result.error);
-console.log(`Zernio smoke check passed: posted and took down ${result.value.postUrl}`);
+const { profiles, xAccounts, linkedinAccounts } = result.value;
+console.log(
+  `Zernio smoke check passed: ${String(profiles)} profiles, ${String(xAccounts)} X and ${String(linkedinAccounts)} LinkedIn accounts linked.`,
+);

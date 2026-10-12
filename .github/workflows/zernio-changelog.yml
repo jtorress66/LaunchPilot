@@ -1,0 +1,51 @@
+name: Zernio changelog
+
+# Daily: flags Zernio API changes that affect LaunchPilot's integration by opening one GitHub
+# issue per affecting changelog entry. Reads Zernio's public changelog; no secret needed.
+on:
+  schedule:
+    - cron: "17 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: zernio-changelog
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    name: Flag Zernio API changes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Eight days of overlap, so a missed run never drops an entry; issues are de-duplicated below.
+      - run: pnpm watch:zernio --days 8 --out "$RUNNER_TEMP/zernio-changes.json"
+      - name: Open an issue per affecting change (once)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FLAGGED: ${{ runner.temp }}/zernio-changes.json
+        run: |
+          gh label create zernio-changelog --color B60205 \
+            --description "A Zernio API change that affects LaunchPilot" 2>/dev/null || true
+          count="$(jq length "$FLAGGED")"
+          for i in $(seq 0 $((count - 1))); do
+            id="$(jq -r ".[$i].id" "$FLAGGED")"
+            existing="$(gh issue list --label zernio-changelog --state all --search "\"[$id]\" in:title" --json number --jq length)"
+            if [ "$existing" != "0" ]; then
+              echo "Already tracked: $id"
+              continue
+            fi
+            jq -r ".[$i].body" "$FLAGGED" > "$RUNNER_TEMP/body.md"
+            gh issue create --label zernio-changelog \
+              --title "$(jq -r ".[$i].title" "$FLAGGED")" \
+              --body-file "$RUNNER_TEMP/body.md"
+          done

@@ -35,3 +35,9 @@ export { ZernioAccountLinker } from "./zernio/zernio-account-linker";
 export { ZernioPublisher } from "./zernio/zernio-publisher";
 export { ZernioPublisherProvider } from "./zernio/zernio-publisher-provider";
 export { runZernioSmoke } from "./zernio/zernio-smoke";
+export {
+  assessZernioChange,
+  fetchZernioChangelog,
+  type ZernioChangeAssessment,
+  type ZernioChangelogEntry,
+} from "./zernio/changelog";

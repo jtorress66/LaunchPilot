@@ -17,20 +17,11 @@ import {
   type ZernioOptions,
   type ZernioResponse,
 } from "./api";
+import { accountList, isUsable } from "./schemas";
 
 const createdProfile = z.object({ profile: z.object({ _id: z.string().min(1) }) });
 const existingProfile = z.object({ details: z.object({ existingProfileId: z.string().min(1) }) });
 const connect = z.object({ authUrl: z.string().url() });
-const accountList = z.object({
-  accounts: z.array(
-    z.object({
-      _id: z.string().min(1),
-      platform: z.string(),
-      isActive: z.boolean(),
-      needsReconnection: z.boolean().optional(),
-    }),
-  ),
-});
 
 const failure = (code: SocialLinkError["code"], message: string, retryable: boolean) =>
   err<SocialLinkError>({ code, message, retryable });
@@ -103,9 +94,7 @@ export class ZernioAccountLinker implements SocialAccountLinker {
     if (!result.ok) return result;
     const usable = result.value.accounts.flatMap((account) => {
       const channel = channelOf(account.platform);
-      return channel && account.isActive && account.needsReconnection !== true
-        ? [{ channel, accountId: account._id }]
-        : [];
+      return channel && isUsable(account) ? [{ channel, accountId: account._id }] : [];
     });
     return ok(socialChannels.flatMap((c) => usable.filter((a) => a.channel === c).slice(0, 1)));
   }
