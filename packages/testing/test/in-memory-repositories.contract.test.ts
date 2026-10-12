@@ -1,5 +1,6 @@
 import {
   describeChannelConnectionRepositoryContract,
+  describeSocialProfileRepositoryContract,
   describeBriefRepositoryContract,
   describeCampaignRepositoryContract,
   describeContentItemRepositoryContract,
@@ -9,6 +10,7 @@ import {
 } from "../contracts";
 import {
   InMemoryChannelConnectionRepository,
+  InMemorySocialProfileRepository,
   InMemoryBriefRepository,
   InMemoryCampaignRepository,
   InMemoryContentItemRepository,
@@ -38,4 +40,8 @@ describeContentItemRepositoryContract(
 describeChannelConnectionRepositoryContract(
   "InMemoryChannelConnectionRepository",
   () => new InMemoryChannelConnectionRepository(),
+);
+describeSocialProfileRepositoryContract(
+  "InMemorySocialProfileRepository",
+  () => new InMemorySocialProfileRepository(),
 );

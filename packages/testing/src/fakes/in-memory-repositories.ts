@@ -1,6 +1,7 @@
 import type {
   Channel,
   ChannelConnection,
+  SocialProfile,
   Email,
   Session,
   Subscription,
@@ -24,6 +25,7 @@ import type {
   BriefRepository,
   CampaignRepository,
   ChannelConnectionRepository,
+  SocialProfileRepository,
   ContentItemRepository,
   ProductRepository,
   Repository,
@@ -158,6 +160,15 @@ export class InMemoryContentItemRepository implements ContentItemRepository {
     return Promise.resolve(this.base.store.filter((i) => i.status === status));
   }
 
+  listByStatusForProducts(
+    status: ContentItemStatus,
+    productIds: readonly ProductId[],
+  ): Promise<readonly ContentItem[]> {
+    return Promise.resolve(
+      this.base.store.filter((i) => i.status === status && productIds.includes(i.productId)),
+    );
+  }
+
   listByProduct(productId: ProductId): Promise<readonly ContentItem[]> {
     return Promise.resolve(
       this.base.store
@@ -189,6 +200,19 @@ export class InMemoryChannelConnectionRepository implements ChannelConnectionRep
 
   save(connection: ChannelConnection): Promise<void> {
     this.store.put(connection);
+    return Promise.resolve();
+  }
+}
+
+export class InMemorySocialProfileRepository implements SocialProfileRepository {
+  private readonly store = new InMemoryStore<ProductId, SocialProfile>((p) => p.productId);
+
+  findByProduct(productId: ProductId): Promise<SocialProfile | undefined> {
+    return Promise.resolve(this.store.get(productId));
+  }
+
+  save(profile: SocialProfile): Promise<void> {
+    this.store.put(profile);
     return Promise.resolve();
   }
 }

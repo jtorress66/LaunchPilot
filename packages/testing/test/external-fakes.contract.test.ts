@@ -1,6 +1,7 @@
 import { channels } from "@launchpilot/domain";
 import {
   describeBlogConnectionVerifierContract,
+  describeSocialAccountLinkerContract,
   describeKeywordProviderContract,
   describePublisherProviderContract,
   describeMetricsSourceContract,
@@ -9,6 +10,7 @@ import {
 } from "../contracts";
 import {
   FakeBlogConnectionVerifier,
+  FakeSocialAccountLinker,
   FakeKeywordProvider,
   FakeMetricsSource,
   FakePublisher,
@@ -84,3 +86,8 @@ describePublisherProviderContract("FakePublisherProvider", () => {
   provider.connect(productId("prod_1"));
   return { provider, connected: productId("prod_1"), unconnected: productId("prod_2") };
 });
+
+describeSocialAccountLinkerContract("FakeSocialAccountLinker", () => ({
+  linker: new FakeSocialAccountLinker(),
+  unknownProfileKey: "pk_unknown_secret",
+}));

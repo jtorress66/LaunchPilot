@@ -16,3 +16,4 @@ export type { PasswordHasher } from "./password-hasher";
 export type { TokenGenerator } from "./token-generator";
 export type * from "./billing";
 export type * from "./blog-connection-verifier";
+export type * from "./social-account-linker";

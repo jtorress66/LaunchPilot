@@ -237,6 +237,30 @@ export function describeContentItemRepositoryContract(
       expect(await repo.listByStatus("published")).toEqual([]);
     });
 
+    it("lists the items in a status for the given products only", async () => {
+      const repo = await make();
+      const mine = aContentItem({ id: contentItemId("item_1"), status: "in_review" });
+      const otherProduct = aContentItem({
+        id: contentItemId("item_2"),
+        productId: productId("prod_2"),
+        status: "in_review",
+      });
+      const otherStatus = aContentItem({ id: contentItemId("item_3"), status: "draft" });
+      await Promise.all([mine, otherProduct, otherStatus].map((i) => repo.save(i)));
+      expect(await repo.listByStatusForProducts("in_review", [productId("prod_1")])).toEqual([
+        mine,
+      ]);
+      expect(await repo.listByStatusForProducts("in_review", [])).toEqual([]);
+    });
+
+    it("keeps the publish attempt count", async () => {
+      const repo = await make();
+      const scheduled = aContentItem({ id: contentItemId("item_1"), status: "scheduled" });
+      const tried = { ...scheduled, publishAttempts: 2 };
+      await repo.save(tried);
+      expect(await repo.findById(tried.id)).toEqual(tried);
+    });
+
     it("lists a product's items, newest first", async () => {
       const repo = await make();
       const older = aContentItem({

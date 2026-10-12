@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { channels, isAutoPublishable } from "./channel";
+import { channels, isAutoPublishable, maxLengthOf } from "./channel";
 
 describe("channels", () => {
   it.each(["reddit", "hackernews", "indiehackers"] as const)(
@@ -35,4 +35,12 @@ describe("manual channels", () => {
       expect(isAutoPublishable(channel)).toBe(false);
     },
   );
+
+  it.each([
+    ["x", 280],
+    ["linkedin", 3000],
+    ["blog", 100_000],
+  ] as const)("limits %s content to %i characters", (channel, max) => {
+    expect(maxLengthOf(channel)).toBe(max);
+  });
 });

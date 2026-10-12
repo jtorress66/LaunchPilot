@@ -1,4 +1,4 @@
-import { isAutoPublishable, type Channel } from "../channels/channel";
+import { isAutoPublishable, maxLengthOf, type Channel } from "../channels/channel";
 import { andThen, err, map, ok, type Result } from "../result";
 import type { Actor } from "../shared/actor";
 import { domainError, type DomainError } from "../shared/errors";
@@ -39,6 +39,8 @@ export interface ContentItem {
   readonly publishAt: Date | null;
   readonly publication: { readonly externalUrl: HttpUrl; readonly at: Date } | null;
   readonly failure: { readonly reason: string; readonly at: Date } | null;
+  /** Failed automatic publish attempts since the item was last scheduled. */
+  readonly publishAttempts: number;
 }
 
 /** A founder-approved item on an API channel. The Publisher port accepts nothing else. */
@@ -53,6 +55,7 @@ export type ContentItemEvent =
   | { readonly type: "schedule"; readonly publishAt: Date }
   | { readonly type: "unschedule" }
   | { readonly type: "markPublished"; readonly externalUrl: string }
+  | { readonly type: "recordPublishAttempt" }
   | { readonly type: "markFailed"; readonly reason: string }
   | { readonly type: "retry"; readonly publishAt: Date }
   | { readonly type: "archive" };
@@ -80,6 +83,7 @@ const machine = defineTransitions<ContentItemStatus, EventType>({
   },
   scheduled: {
     unschedule: "approved",
+    recordPublishAttempt: "scheduled",
     markPublished: "published",
     markFailed: "failed",
     edit: "draft",
@@ -94,7 +98,8 @@ const machine = defineTransitions<ContentItemStatus, EventType>({
 const publishingEvents: ReadonlySet<EventType> = new Set(["schedule", "markPublished", "retry"]);
 
 const title = (value: string) => nonEmptyText(value, { field: "Title", max: 200 });
-const body = (value: string) => nonEmptyText(value, { field: "Body", max: 100_000 });
+const body = (value: string, channel: Channel) =>
+  nonEmptyText(value, { field: "Body", max: maxLengthOf(channel) });
 const note = (value: string, field: string) => nonEmptyText(value, { field, max: 2000 });
 
 const futureTime = (publishAt: Date, now: Date): Result<Date, DomainError> =>
@@ -125,7 +130,7 @@ const handlers: { readonly [K in EventType]: Handler<K> } = {
   // Any edit invalidates approval, schedule and earlier outcomes: the new revision must be reviewed.
   edit: (item, event) =>
     andThen(title(event.title ?? item.title), (newTitle) =>
-      map(body(event.body ?? item.body), (newBody) => ({
+      map(body(event.body ?? item.body, item.channel), (newBody) => ({
         title: newTitle,
         body: newBody,
         version: item.version + 1,
@@ -133,11 +138,13 @@ const handlers: { readonly [K in EventType]: Handler<K> } = {
         publishAt: null,
         rejection: null,
         failure: null,
+        publishAttempts: 0,
       })),
     ),
   schedule: (_item, event, { now }) =>
     map(futureTime(event.publishAt, now), (publishAt) => ({ publishAt })),
   unschedule: () => ok({ publishAt: null }),
+  recordPublishAttempt: (item) => ok({ publishAttempts: item.publishAttempts + 1 }),
   markPublished: (_item, event, { now }) =>
     map(parseHttpUrl(event.externalUrl), (externalUrl) => ({
       publication: { externalUrl, at: now },
@@ -145,7 +152,11 @@ const handlers: { readonly [K in EventType]: Handler<K> } = {
   markFailed: (_item, event, { now }) =>
     map(note(event.reason, "Failure reason"), (reason) => ({ failure: { reason, at: now } })),
   retry: (_item, event, { now }) =>
-    map(futureTime(event.publishAt, now), (publishAt) => ({ publishAt, failure: null })),
+    map(futureTime(event.publishAt, now), (publishAt) => ({
+      publishAt,
+      failure: null,
+      publishAttempts: 0,
+    })),
   archive: () => ok({}),
 };
 
@@ -168,7 +179,7 @@ export const createContentItem = (input: {
   now: Date;
 }): Result<ContentItem, DomainError> =>
   andThen(title(input.title), (validTitle) =>
-    map(body(input.body), (validBody) => ({
+    map(body(input.body, input.channel), (validBody) => ({
       id: input.id,
       productId: input.productId,
       taskId: input.taskId,
@@ -186,6 +197,7 @@ export const createContentItem = (input: {
       publishAt: null,
       publication: null,
       failure: null,
+      publishAttempts: 0,
     })),
   );
 
