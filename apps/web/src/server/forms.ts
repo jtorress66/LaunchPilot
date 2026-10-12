@@ -49,6 +49,21 @@ export const briefForm = z.object({
   facts: lines(20, 500),
 });
 
+export const blogConnectionForm = z.object({
+  siteUrl: text("Enter your blog's address", 2048),
+  username: text("Enter your WordPress username", 200),
+  secret: text("Enter an Application Password", 200),
+});
+
+export const seedKeywordsForm = z.object({
+  seeds: lines(5, 80).refine((items) => items.length > 0, "Enter at least one topic"),
+});
+
+export const articleForm = z.object({
+  title: text("Enter a title", 200),
+  body: text("The article needs a body", 100_000),
+});
+
 export const upgradeForm = z.object({ plan: z.enum(["starter", "growth"]) });
 
 export type FieldErrors = Partial<Record<string, string>>;

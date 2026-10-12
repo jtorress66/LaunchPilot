@@ -26,3 +26,13 @@ export const draftFailureMessage = (error: { code: string; message: string }): s
   if (error.code === "crawl_failed") return `We could not read your site: ${error.message}`;
   return draftMessages[error.code] ?? error.message;
 };
+
+const keywordMessages: Partial<Record<string, string>> = {
+  quota_exceeded: "Keyword research is paused: the keyword data account needs more credit.",
+  unavailable: "Keyword research is unavailable right now. Try again in a minute.",
+  invalid_request: "Keyword research could not run for these topics. Try different wording.",
+};
+
+/** What the founder sees when planning content fails. Provider details stay out of the UI. */
+export const keywordFailureMessage = (error: { code: string; message: string }): string =>
+  keywordMessages[error.code] ?? error.message;
