@@ -5,6 +5,7 @@ import { PostgresChannelConnectionRepository } from "./repositories/postgres-cha
 import { PostgresContentItemRepository } from "./repositories/postgres-content-item-repository";
 import { PostgresProductRepository } from "./repositories/postgres-product-repository";
 import { PostgresSessionRepository } from "./repositories/postgres-session-repository";
+import { PostgresSocialProfileRepository } from "./repositories/postgres-social-profile-repository";
 import { PostgresSubscriptionRepository } from "./repositories/postgres-subscription-repository";
 import { PostgresUserRepository } from "./repositories/postgres-user-repository";
 import { PostgresTaskRepository } from "./repositories/postgres-task-repository";
@@ -21,6 +22,7 @@ export {
   PostgresContentItemRepository,
   PostgresProductRepository,
   PostgresSessionRepository,
+  PostgresSocialProfileRepository,
   PostgresSubscriptionRepository,
   PostgresTaskRepository,
   PostgresUserRepository,
@@ -39,4 +41,5 @@ export const createPostgresRepositories = (db: Kysely<Database>) => ({
   tasks: new PostgresTaskRepository(db),
   contentItems: new PostgresContentItemRepository(db),
   channelConnections: new PostgresChannelConnectionRepository(db),
+  socialProfiles: new PostgresSocialProfileRepository(db),
 });

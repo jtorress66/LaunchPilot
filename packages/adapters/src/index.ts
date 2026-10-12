@@ -30,3 +30,7 @@ export { WordPressPublisher } from "./wordpress/wordpress-publisher";
 export { WordPressPublisherProvider } from "./wordpress/wordpress-publisher-provider";
 export { DataForSeoKeywordProvider } from "./dataforseo/dataforseo-keyword-provider";
 export { SeedKeywordProvider } from "./offline/seed-keyword-provider";
+export type { AyrshareOptions } from "./ayrshare/api";
+export { AyrshareAccountLinker } from "./ayrshare/ayrshare-account-linker";
+export { AyrsharePublisher } from "./ayrshare/ayrshare-publisher";
+export { AyrsharePublisherProvider } from "./ayrshare/ayrshare-publisher-provider";

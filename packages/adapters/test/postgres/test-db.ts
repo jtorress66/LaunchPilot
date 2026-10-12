@@ -12,7 +12,7 @@ import { workspaceMapper } from "../../src/postgres/mappers/workspace-mapper";
 export const connect = (): Kysely<Database> => createDatabase(inject("databaseUrl"));
 
 export const truncateAll = async (db: Kysely<Database>): Promise<void> => {
-  await sql`TRUNCATE users, sessions, subscriptions, workspaces, products, briefs, campaigns, tasks, content_items, channel_connections CASCADE`.execute(
+  await sql`TRUNCATE users, sessions, subscriptions, workspaces, products, briefs, campaigns, tasks, content_items, channel_connections, social_profiles CASCADE`.execute(
     db,
   );
 };

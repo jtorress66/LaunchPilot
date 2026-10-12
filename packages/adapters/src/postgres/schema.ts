@@ -78,6 +78,17 @@ export interface ContentItemRow {
   publication_url: string | null;
   published_at: Date | null;
   failure: string | null;
+  publish_attempts: number;
+}
+
+export interface SocialProfileRow {
+  id: string;
+  product_id: string;
+  provider: string;
+  encrypted_profile_key: string;
+  ref_id: string;
+  linked_channels: string[];
+  created_at: Date;
 }
 
 export interface UserRow {
@@ -115,4 +126,5 @@ export interface Database {
   tasks: TaskRow;
   content_items: ContentItemRow;
   channel_connections: ChannelConnectionRow;
+  social_profiles: SocialProfileRow;
 }

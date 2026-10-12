@@ -1,0 +1,13 @@
+{
+  "status": "error",
+  "errors": [
+    {
+      "action": "post",
+      "status": "error",
+      "code": 156,
+      "message": "Social account not linked. Please link the account in the Social Accounts page.",
+      "platform": "linkedin"
+    }
+  ],
+  "postIds": []
+}

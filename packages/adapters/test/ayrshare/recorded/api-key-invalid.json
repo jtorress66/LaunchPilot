@@ -1,0 +1,6 @@
+{
+  "action": "authorization",
+  "status": "error",
+  "code": 102,
+  "message": "API Key not valid. Please verify your API Key on the API Key page of the dashboard."
+}

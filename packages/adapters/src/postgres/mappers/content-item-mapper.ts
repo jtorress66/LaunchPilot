@@ -84,6 +84,7 @@ export const contentItemMapper = {
       item.failure === null
         ? null
         : toJson({ ...item.failure, at: item.failure.at.toISOString() } satisfies StoredFailure),
+    publish_attempts: item.publishAttempts,
   }),
   fromRow: (row: ContentItemRow): ContentItem => ({
     id: contentItemId(row.id),
@@ -109,5 +110,6 @@ export const contentItemMapper = {
         ? { externalUrl: readUrl(row.publication_url), at: row.published_at }
         : null,
     failure: readFailure(row.failure),
+    publishAttempts: row.publish_attempts,
   }),
 };

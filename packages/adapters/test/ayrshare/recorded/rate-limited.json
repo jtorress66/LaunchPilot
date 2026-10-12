@@ -1,0 +1,6 @@
+{
+  "action": "request",
+  "status": "error",
+  "code": 429,
+  "message": "Too many requests. Please slow down."
+}

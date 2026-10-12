@@ -5,12 +5,13 @@ import {
   describeContentItemRepositoryContract,
   describeProductRepositoryContract,
   describeSessionRepositoryContract,
+  describeSocialProfileRepositoryContract,
   describeSubscriptionRepositoryContract,
   describeUserRepositoryContract,
   describeTaskRepositoryContract,
   describeWorkspaceRepositoryContract,
 } from "@launchpilot/testing/contracts";
-import { taskId, workspaceId } from "@launchpilot/domain";
+import { contentItemId, taskId, workspaceId } from "@launchpilot/domain";
 import { aContentItem, aTask } from "@launchpilot/testing";
 import { afterAll, describe, expect, it } from "vitest";
 import {
@@ -21,6 +22,7 @@ import {
   PostgresContentItemRepository,
   PostgresProductRepository,
   PostgresSessionRepository,
+  PostgresSocialProfileRepository,
   PostgresSubscriptionRepository,
   PostgresUserRepository,
   PostgresTaskRepository,
@@ -84,6 +86,31 @@ describeChannelConnectionRepositoryContract("PostgresChannelConnectionRepository
   return new PostgresChannelConnectionRepository(db);
 });
 
+describeSocialProfileRepositoryContract("PostgresSocialProfileRepository", async () => {
+  await resetWith(db, "products");
+  return new PostgresSocialProfileRepository(db);
+});
+
+describe("PostgresContentItemRepository", () => {
+  it("lists due items earliest publish time first", async () => {
+    await resetWith(db, "tasks");
+    const repo = new PostgresContentItemRepository(db);
+    const base = aContentItem({ id: contentItemId("item_late"), status: "scheduled" });
+    const late = { ...base, publishAt: new Date("2026-05-02T00:00:00.000Z") };
+    const early = {
+      ...base,
+      id: contentItemId("item_early"),
+      publishAt: new Date("2026-05-01T00:00:00.000Z"),
+    };
+    await repo.save(late);
+    await repo.save(early);
+    expect((await repo.listByStatus("scheduled")).map((i) => i.id)).toEqual([
+      "item_early",
+      "item_late",
+    ]);
+  });
+});
+
 describe("PostgresTaskRepository", () => {
   it("stores the keyword an SEO task targets", async () => {
     await resetWith(db, "campaigns");
@@ -110,6 +137,7 @@ describe("createPostgresRepositories", () => {
       "contentItems",
       "products",
       "sessions",
+      "socialProfiles",
       "subscriptions",
       "tasks",
       "users",

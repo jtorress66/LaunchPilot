@@ -14,6 +14,13 @@ describe("contentItemMapper", () => {
     expect(contentItemMapper.fromRow(contentItemMapper.toRow(item))).toEqual(item);
   });
 
+  it("stores the publish attempt count", () => {
+    const item = { ...aContentItem({ status: "scheduled" }), publishAttempts: 2 };
+    const row = contentItemMapper.toRow(item);
+    expect(row.publish_attempts).toBe(2);
+    expect(contentItemMapper.fromRow(row)).toEqual(item);
+  });
+
   it("flattens approval and publication into columns", () => {
     const item = aContentItem({ status: "published" });
     expect(contentItemMapper.toRow(item)).toMatchObject({
