@@ -1,6 +1,0 @@
-{
-  "action": "authorization",
-  "status": "error",
-  "code": 103,
-  "message": "Profile Key not found. Please verify the Profile Key or the Profile was deleted."
-}

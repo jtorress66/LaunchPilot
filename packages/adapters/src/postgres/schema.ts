@@ -85,9 +85,9 @@ export interface SocialProfileRow {
   id: string;
   product_id: string;
   provider: string;
-  encrypted_profile_key: string;
-  ref_id: string;
-  linked_channels: string[];
+  external_profile_id: string;
+  /** jsonb: `[{ channel, accountId }]`; text on the way in. */
+  linked_accounts: string;
   created_at: Date;
 }
 

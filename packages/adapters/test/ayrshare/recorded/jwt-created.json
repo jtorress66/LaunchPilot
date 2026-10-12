@@ -1,8 +1,0 @@
-{
-  "status": "success",
-  "title": "Acme Analytics",
-  "token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.recorded.signature",
-  "url": "https://profile.ayrshare.com?domain=launchpilot&jwt=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.recorded.signature",
-  "emailSent": false,
-  "expiresIn": "5m"
-}

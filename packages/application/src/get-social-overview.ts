@@ -1,5 +1,6 @@
 import {
   buildCalendar,
+  linkedChannels,
   ok,
   socialChannels,
   type Calendar,
@@ -63,7 +64,7 @@ export class GetSocialOverview {
     return ok({
       product: product.value,
       briefApproved: brief?.status === "approved",
-      linkedChannels: profile ? profile.linkedChannels : null,
+      linkedChannels: profile ? linkedChannels(profile) : null,
       posts,
       calendar: buildCalendar(posts, { from: this.deps.clock.now(), days: CALENDAR_DAYS }),
     });

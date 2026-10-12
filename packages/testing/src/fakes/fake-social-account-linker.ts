@@ -1,20 +1,18 @@
-import { err, ok, type Result, type SocialChannel } from "@launchpilot/domain";
-import type {
-  CreatedSocialProfile,
-  SocialAccountLinker,
-  SocialLinkError,
-} from "@launchpilot/ports";
+import { err, ok, type LinkedAccount, type Result, type SocialChannel } from "@launchpilot/domain";
+import type { SocialAccountLinker, SocialLinkError } from "@launchpilot/ports";
 import { NextFailure } from "./next-failure";
 
-/** Hands out sequential profile keys; tests link channels with `link`. */
+/** One profile per external id, with sequential ids; tests link accounts with `link`. */
 export class FakeSocialAccountLinker implements SocialAccountLinker {
+  /** Names of the profiles actually created. */
   readonly created: string[] = [];
-  private readonly linked = new Map<string, readonly SocialChannel[]>();
+  private readonly byExternalId = new Map<string, string>();
+  private readonly accounts = new Map<string, readonly LinkedAccount[]>();
   private readonly failure = new NextFailure<SocialLinkError>();
 
   /** Simulates the founder linking accounts on the provider's page. */
-  link(profileKey: string, channels: readonly SocialChannel[]): this {
-    this.linked.set(profileKey, channels);
+  link(profileId: string, accounts: readonly LinkedAccount[]): this {
+    this.accounts.set(profileId, accounts);
     return this;
   }
 
@@ -23,38 +21,47 @@ export class FakeSocialAccountLinker implements SocialAccountLinker {
     return this;
   }
 
-  createProfile(title: string): Promise<Result<CreatedSocialProfile, SocialLinkError>> {
+  createProfile(
+    name: string,
+    externalId: string,
+  ): Promise<Result<{ readonly profileId: string }, SocialLinkError>> {
     return this.respond(() => {
-      const n = this.linked.size + 1;
-      const profileKey = `pk_fake_${String(n)}`;
-      this.linked.set(profileKey, []);
-      this.created.push(title);
-      return ok({ profileKey, refId: `ref_${String(n)}` });
+      const existing = this.byExternalId.get(externalId);
+      if (existing !== undefined) return ok({ profileId: existing });
+      const profileId = `zp_fake_${String(this.byExternalId.size + 1)}`;
+      this.byExternalId.set(externalId, profileId);
+      this.accounts.set(profileId, []);
+      this.created.push(name);
+      return ok({ profileId });
     });
   }
 
-  linkingUrl(profileKey: string, returnUrl: string): Promise<Result<string, SocialLinkError>> {
+  linkingUrl(
+    profileId: string,
+    channel: SocialChannel,
+    returnUrl: string,
+  ): Promise<Result<string, SocialLinkError>> {
     return this.respond(() =>
-      this.known(profileKey, () =>
+      this.known(profileId, () =>
         ok(
-          `https://link.social.test/?profile=${profileKey}&return=${encodeURIComponent(returnUrl)}`,
+          `https://link.social.test/${channel}?profile=${profileId}&return=${encodeURIComponent(returnUrl)}`,
         ),
       ),
     );
   }
 
-  linkedChannels(profileKey: string): Promise<Result<readonly SocialChannel[], SocialLinkError>> {
-    return this.respond(() => this.known(profileKey, (channels) => ok(channels)));
+  linkedAccounts(profileId: string): Promise<Result<readonly LinkedAccount[], SocialLinkError>> {
+    return this.respond(() => this.known(profileId, (accounts) => ok(accounts)));
   }
 
   private known<T>(
-    profileKey: string,
-    then: (channels: readonly SocialChannel[]) => Result<T, SocialLinkError>,
+    profileId: string,
+    then: (accounts: readonly LinkedAccount[]) => Result<T, SocialLinkError>,
   ): Result<T, SocialLinkError> {
-    const channels = this.linked.get(profileKey);
-    return channels === undefined
+    const accounts = this.accounts.get(profileId);
+    return accounts === undefined
       ? err({ code: "rejected", message: "Unknown social profile", retryable: false })
-      : then(channels);
+      : then(accounts);
   }
 
   private respond<T>(run: () => Result<T, SocialLinkError>): Promise<Result<T, SocialLinkError>> {

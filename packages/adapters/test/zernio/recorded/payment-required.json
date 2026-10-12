@@ -1,0 +1,6 @@
+{
+  "error": "Posting to X needs a payment method on file.",
+  "code": "PAYMENT_REQUIRED",
+  "reason": "twitter_passthrough",
+  "dashboard_url": "https://zernio.com/dashboard/billing"
+}

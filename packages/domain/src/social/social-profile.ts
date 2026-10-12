@@ -7,40 +7,52 @@ import { nonEmptyText } from "../shared/text";
 export const socialChannels = ["x", "linkedin"] as const;
 export type SocialChannel = (typeof socialChannels)[number];
 
-/** A product's account at the unified social API; the founder links X and LinkedIn to it. */
+/** One linked platform account, as the social API identifies it. */
+export interface LinkedAccount {
+  readonly channel: SocialChannel;
+  readonly accountId: string;
+}
+
+/**
+ * A product's profile at the unified social API; the founder links X and LinkedIn to it.
+ * It holds no secret: the API key lives in configuration only.
+ */
 export interface SocialProfile {
   readonly id: SocialProfileId;
   readonly productId: ProductId;
-  readonly provider: "ayrshare";
-  /** Encrypted at rest; only the publishing adapter ever decrypts it. */
-  readonly encryptedProfileKey: string;
-  /** The provider's reference for the profile, safe to show and log. */
-  readonly refId: string;
-  readonly linkedChannels: readonly SocialChannel[];
+  readonly provider: "zernio";
+  /** The provider's id for the profile. */
+  readonly externalProfileId: string;
+  readonly linkedAccounts: readonly LinkedAccount[];
   readonly createdAt: Date;
 }
 
 export const createSocialProfile = (input: {
   id: SocialProfileId;
   productId: ProductId;
-  encryptedProfileKey: string;
-  refId: string;
+  externalProfileId: string;
   now: Date;
 }): Result<SocialProfile, DomainError> =>
-  map(nonEmptyText(input.encryptedProfileKey, { field: "Profile key", max: 4000 }), (key) => ({
+  map(nonEmptyText(input.externalProfileId, { field: "Profile id", max: 200 }), (externalId) => ({
     id: input.id,
     productId: input.productId,
-    provider: "ayrshare" as const,
-    encryptedProfileKey: key,
-    refId: input.refId,
-    linkedChannels: [],
+    provider: "zernio" as const,
+    externalProfileId: externalId,
+    linkedAccounts: [],
     createdAt: input.now,
   }));
 
-export const withLinkedChannels = (
+/** Records the linked accounts: the first one listed per channel wins, in display order. */
+export const withLinkedAccounts = (
   profile: SocialProfile,
-  linked: readonly SocialChannel[],
+  accounts: readonly LinkedAccount[],
 ): SocialProfile => ({
   ...profile,
-  linkedChannels: socialChannels.filter((channel) => linked.includes(channel)),
+  linkedAccounts: socialChannels.flatMap((channel) => {
+    const account = accounts.find((a) => a.channel === channel);
+    return account ? [{ channel, accountId: account.accountId }] : [];
+  }),
 });
+
+export const linkedChannels = (profile: SocialProfile): readonly SocialChannel[] =>
+  profile.linkedAccounts.map((account) => account.channel);

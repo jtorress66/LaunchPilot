@@ -1,0 +1,10 @@
+{
+  "message": "Profile created successfully",
+  "profile": {
+    "_id": "6720f1c2a9b8c7d6e5f40312",
+    "name": "Acme Analytics",
+    "externalId": "prod_1",
+    "isDefault": false,
+    "createdAt": "2026-10-12T21:00:00.000Z"
+  }
+}

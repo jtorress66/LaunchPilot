@@ -1,14 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { productId, socialProfileId } from "../shared/ids";
-import { createSocialProfile, withLinkedChannels } from "./social-profile";
+import {
+  createSocialProfile,
+  linkedChannels,
+  withLinkedAccounts,
+  type SocialProfile,
+} from "./social-profile";
 
 const now = new Date("2026-10-12T00:00:00.000Z");
-const profile = () => {
+const profile = (): SocialProfile => {
   const result = createSocialProfile({
     id: socialProfileId("sp_1"),
     productId: productId("prod_1"),
-    encryptedProfileKey: "v1:ciphertext",
-    refId: "ref_123",
+    externalProfileId: "zp_123",
     now,
   });
   if (!result.ok) throw new Error(result.error.message);
@@ -16,33 +20,38 @@ const profile = () => {
 };
 
 describe("social profile", () => {
-  it("starts with no linked channels", () => {
+  it("starts with no linked accounts", () => {
     expect(profile()).toEqual({
       id: "sp_1",
       productId: "prod_1",
-      provider: "ayrshare",
-      encryptedProfileKey: "v1:ciphertext",
-      refId: "ref_123",
-      linkedChannels: [],
+      provider: "zernio",
+      externalProfileId: "zp_123",
+      linkedAccounts: [],
       createdAt: now,
     });
+    expect(linkedChannels(profile())).toEqual([]);
   });
 
-  it("refuses a missing profile key", () => {
+  it("refuses a missing provider profile id", () => {
     const result = createSocialProfile({
       id: socialProfileId("sp_1"),
       productId: productId("prod_1"),
-      encryptedProfileKey: " ",
-      refId: "ref",
+      externalProfileId: " ",
       now,
     });
     expect(result.ok ? undefined : result.error.code).toBe("invalid_text");
   });
 
-  it("records which channels are linked, deduplicated and in a stable order", () => {
-    expect(withLinkedChannels(profile(), ["linkedin", "x", "x"]).linkedChannels).toEqual([
-      "x",
-      "linkedin",
+  it("keeps one account per channel, X first, and derives the linked channels", () => {
+    const linked = withLinkedAccounts(profile(), [
+      { channel: "linkedin", accountId: "acc_li" },
+      { channel: "x", accountId: "acc_x" },
+      { channel: "x", accountId: "acc_x_older" },
     ]);
+    expect(linked.linkedAccounts).toEqual([
+      { channel: "x", accountId: "acc_x" },
+      { channel: "linkedin", accountId: "acc_li" },
+    ]);
+    expect(linkedChannels(linked)).toEqual(["x", "linkedin"]);
   });
 });

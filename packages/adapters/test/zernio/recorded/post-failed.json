@@ -1,0 +1,19 @@
+{
+  "post": {
+    "_id": "6720f3bb22c3d4e5f6070002",
+    "status": "failed",
+    "platforms": [
+      {
+        "platform": "twitter",
+        "accountId": "6720f2aa11b2c3d4e5f60001",
+        "status": "failed",
+        "errorMessage": "The text of your post is too long."
+      }
+    ]
+  },
+  "message": "Post saved, but publishing failed.",
+  "error": "Publishing failed on every platform.",
+  "platformResults": [
+    { "platform": "twitter", "status": "failed", "error": "The text of your post is too long." }
+  ]
+}

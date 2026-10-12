@@ -54,7 +54,7 @@ export default defineConfig({
         "packages/adapters/src/wordpress/wordpress-*.ts",
         "packages/adapters/src/wordpress/rest.ts",
         "packages/adapters/src/dataforseo/dataforseo-keyword-provider.ts",
-        "packages/adapters/src/ayrshare/**",
+        "packages/adapters/src/zernio/**",
         "apps/web/src/app/**",
         // Static marketing copy; rendered and asserted by the landing-page E2E suite.
         "apps/web/src/content/**",

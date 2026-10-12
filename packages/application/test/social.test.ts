@@ -64,17 +64,21 @@ const setUp = async ({ approveBrief = true } = {}): Promise<Setup> => {
 
 const founder = ({ user }: Setup) => ({ kind: "founder" as const, userId: user.id });
 
-const connect = (s: Setup) =>
+const connect = (s: Setup, channel: "x" | "linkedin" = "x") =>
   new ConnectSocial(s.world).execute({
     workspace: s.workspace,
     productId: s.product.id,
+    channel,
     returnUrl: RETURN_URL,
   });
 
 /** Connects the product and has the founder link the given channels on the provider's page. */
 const linked = async (s: Setup, channels: readonly ("x" | "linkedin")[] = ["x", "linkedin"]) => {
   await connect(s);
-  s.world.linker.link("pk_fake_1", channels);
+  s.world.linker.link(
+    "zp_fake_1",
+    channels.map((channel) => ({ channel, accountId: `acc_${channel}` })),
+  );
   for (const channel of channels) {
     (channel === "x" ? s.world.xPublisher : s.world.linkedinPublisher).connect(s.product.id);
   }
@@ -122,27 +126,29 @@ const publishDue = (s: Setup) => new PublishDueContent(s.world).execute();
 const stored = async (s: Setup, item: ContentItem) => s.world.contentItems.findById(item.id);
 
 describe("ConnectSocial", () => {
-  it("creates a social profile for the product, stores its key encrypted, and returns the linking page", async () => {
+  it("creates a social profile for the product and returns the linking page for the channel", async () => {
     const s = await setUp();
-    const result = await connect(s);
+    const result = await connect(s, "linkedin");
     expect(result).toEqual({
       ok: true,
       value: {
-        url: `https://link.social.test/?profile=pk_fake_1&return=${encodeURIComponent(RETURN_URL)}`,
+        url: `https://link.social.test/linkedin?profile=zp_fake_1&return=${encodeURIComponent(RETURN_URL)}`,
       },
     });
     const profile = await s.world.socialProfiles.findByProduct(s.product.id);
-    expect(profile).toMatchObject({ provider: "ayrshare", refId: "ref_1", linkedChannels: [] });
-    expect(profile?.encryptedProfileKey).not.toContain("pk_fake_1");
-    expect(await s.world.cipher.decrypt(profile?.encryptedProfileKey ?? "")).toBe("pk_fake_1");
+    expect(profile).toMatchObject({
+      provider: "zernio",
+      externalProfileId: "zp_fake_1",
+      linkedAccounts: [],
+    });
     expect(s.world.linker.created).toEqual(["Acme Analytics"]);
   });
 
-  it("reuses the product's profile when the founder connects again", async () => {
+  it("reuses the product's profile when the founder connects another channel", async () => {
     const s = await setUp();
-    await connect(s);
-    const again = await connect(s);
-    expect(again.ok).toBe(true);
+    await connect(s, "x");
+    const again = await connect(s, "linkedin");
+    expect(again.ok && again.value.url).toContain("/linkedin?profile=zp_fake_1");
     expect(s.world.linker.created).toHaveLength(1);
   });
 
@@ -160,6 +166,7 @@ describe("ConnectSocial", () => {
     const result = await new ConnectSocial(s.world).execute({
       workspace: other,
       productId: s.product.id,
+      channel: "x",
       returnUrl: RETURN_URL,
     });
     expect(result.ok ? undefined : result.error.code).toBe("product_not_found");
@@ -167,11 +174,14 @@ describe("ConnectSocial", () => {
 });
 
 describe("RefreshSocialLinks", () => {
-  it("stores which channels the founder linked", async () => {
+  it("stores which accounts the founder linked", async () => {
     const s = await setUp();
     await linked(s, ["linkedin", "x"]);
     const profile = await s.world.socialProfiles.findByProduct(s.product.id);
-    expect(profile?.linkedChannels).toEqual(["x", "linkedin"]);
+    expect(profile?.linkedAccounts).toEqual([
+      { channel: "x", accountId: "acc_x" },
+      { channel: "linkedin", accountId: "acc_linkedin" },
+    ]);
   });
 
   it("asks the founder to connect first when there is no profile", async () => {

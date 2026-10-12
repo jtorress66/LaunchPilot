@@ -228,8 +228,7 @@ export const aSocialProfile = (
     createSocialProfile({
       id: overrides.id ?? socialProfileId("sp_1"),
       productId: overrides.productId ?? productId("prod_1"),
-      encryptedProfileKey: "v1:fixture-profile-key",
-      refId: "ref_fixture",
+      externalProfileId: "zp_fixture",
       now: fixtureNow,
     }),
   );

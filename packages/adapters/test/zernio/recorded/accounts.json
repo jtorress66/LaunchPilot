@@ -1,0 +1,34 @@
+{
+  "accounts": [
+    {
+      "_id": "6720f2aa11b2c3d4e5f60001",
+      "platform": "twitter",
+      "profileId": "6720f1c2a9b8c7d6e5f40312",
+      "username": "acmeanalytics",
+      "displayName": "Acme Analytics",
+      "isActive": true,
+      "needsReconnection": false
+    },
+    {
+      "_id": "6720f2aa11b2c3d4e5f60002",
+      "platform": "linkedin",
+      "profileId": "6720f1c2a9b8c7d6e5f40312",
+      "displayName": "Acme Analytics",
+      "isActive": true
+    },
+    {
+      "_id": "6720f2aa11b2c3d4e5f60003",
+      "platform": "instagram",
+      "profileId": "6720f1c2a9b8c7d6e5f40312",
+      "isActive": true
+    },
+    {
+      "_id": "6720f2aa11b2c3d4e5f60004",
+      "platform": "twitter",
+      "profileId": "6720f1c2a9b8c7d6e5f40312",
+      "isActive": true,
+      "needsReconnection": true
+    }
+  ],
+  "hasAnalyticsAccess": false
+}

@@ -9,15 +9,15 @@ export async function up(db: Kysely<unknown>): Promise<void> {
       col.notNull().unique().references("products.id").onDelete("cascade"),
     )
     .addColumn("provider", "text", (col) => col.notNull())
-    // Ciphertext from the TokenCipher port; the plaintext profile key is never stored.
-    .addColumn("encrypted_profile_key", "text", (col) => col.notNull())
-    .addColumn("ref_id", "text", (col) => col.notNull())
-    .addColumn("linked_channels", sql`text[]`, (col) => col.notNull().defaultTo(sql`'{}'`))
+    // The provider's profile id. Not a secret: the API key lives in configuration only.
+    .addColumn("external_profile_id", "text", (col) => col.notNull())
+    // [{ channel, accountId }], one per linked X or LinkedIn account.
+    .addColumn("linked_accounts", "jsonb", (col) => col.notNull().defaultTo(sql`'[]'::jsonb`))
     .addColumn("created_at", "timestamptz", (col) => col.notNull())
-    .addCheckConstraint("social_profiles_provider_check", sql`provider in ('ayrshare')`)
+    .addCheckConstraint("social_profiles_provider_check", sql`provider in ('zernio')`)
     .addCheckConstraint(
-      "social_profiles_linked_channels_check",
-      sql`linked_channels <@ array['x', 'linkedin']::text[]`,
+      "social_profiles_linked_accounts_check",
+      sql`jsonb_typeof(linked_accounts) = 'array'`,
     )
     .execute();
 

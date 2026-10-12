@@ -89,5 +89,5 @@ describePublisherProviderContract("FakePublisherProvider", () => {
 
 describeSocialAccountLinkerContract("FakeSocialAccountLinker", () => ({
   linker: new FakeSocialAccountLinker(),
-  unknownProfileKey: "pk_unknown_secret",
+  unknownProfileId: "zp_unknown_profile",
 }));
