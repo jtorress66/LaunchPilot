@@ -34,3 +34,4 @@ export type { AyrshareOptions } from "./ayrshare/api";
 export { AyrshareAccountLinker } from "./ayrshare/ayrshare-account-linker";
 export { AyrsharePublisher } from "./ayrshare/ayrshare-publisher";
 export { AyrsharePublisherProvider } from "./ayrshare/ayrshare-publisher-provider";
+export { runAyrshareSmoke } from "./ayrshare/ayrshare-smoke";

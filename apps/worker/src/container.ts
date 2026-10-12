@@ -1,5 +1,11 @@
-import { BriefAgent, SeoArticleWriter } from "@launchpilot/agents";
+import { PublishDueContent, PublisherRegistry } from "@launchpilot/application";
+import { BriefAgent, SeoArticleWriter, SocialPostWriter } from "@launchpilot/agents";
 import {
+  AesGcmTokenCipher,
+  AyrsharePublisher,
+  AyrsharePublisherProvider,
+  createPostgresRepositories,
+  WordPressPublisherProvider,
   DataForSeoKeywordProvider,
   ClaudeLlmClient,
   createDatabase,
@@ -8,7 +14,7 @@ import {
   migrateToLatest,
   SystemClock,
 } from "@launchpilot/adapters";
-import type { DatabaseConfig, StripeSetupConfig } from "./config";
+import type { AyrshareConfig, DatabaseConfig, PublisherConfig, StripeSetupConfig } from "./config";
 import type { EvalConfig } from "./eval/brief-eval";
 import { MeteredLlmClient } from "./eval/metered-llm-client";
 import type { HeartbeatDeps } from "./heartbeat";
@@ -56,3 +62,47 @@ export const createKeywordProvider = ({
   password: string;
   baseUrl: string | undefined;
 }) => new DataForSeoKeywordProvider({ login, password, ...(baseUrl ? { baseUrl } : {}) });
+
+/** The SEO article writer's sibling for X and LinkedIn, metered for the social-post eval. */
+export const createSocialEvalWriter = ({ apiKey, model }: EvalConfig) => {
+  const meter = new MeteredLlmClient(new ClaudeLlmClient({ apiKey, model }));
+  return { writer: new SocialPostWriter(meter), meter };
+};
+
+const ayrshareOptions = (config: AyrshareConfig) => ({
+  apiKey: config.apiKey,
+  domain: config.domain,
+  privateKey: config.privateKey,
+  clock: container.clock,
+  ...(config.baseUrl === null ? {} : { baseUrl: config.baseUrl }),
+  ...(config.xCredentials === null ? {} : { xCredentials: config.xCredentials }),
+});
+
+/** The scheduled publish job over Postgres, with one publisher provider per channel. */
+export const createPublishDue = (config: PublisherConfig) => {
+  const db = createDatabase(config.connectionString);
+  const repositories = createPostgresRepositories(db);
+  const cipher = new AesGcmTokenCipher(config.tokenEncryptionKey);
+  const ayrshare = ayrshareOptions(config.ayrshare);
+  const publishers = new PublisherRegistry([
+    new WordPressPublisherProvider(repositories.channelConnections, cipher, {
+      allowPrivateNetwork: config.allowPrivateNetwork,
+      clock: container.clock,
+    }),
+    new AyrsharePublisherProvider("x", repositories.socialProfiles, cipher, ayrshare),
+    new AyrsharePublisherProvider("linkedin", repositories.socialProfiles, cipher, ayrshare),
+  ]);
+  return {
+    publishDue: new PublishDueContent({
+      contentItems: repositories.contentItems,
+      tasks: repositories.tasks,
+      publishers,
+      clock: container.clock,
+    }),
+    close: () => db.destroy(),
+  };
+};
+
+/** A publisher for the CI smoke check's own test profile. */
+export const createSmokePublisher = (config: AyrshareConfig, profileKey: string) =>
+  new AyrsharePublisher("x", profileKey, ayrshareOptions(config));

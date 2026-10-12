@@ -19,6 +19,7 @@ import {
   AyrshareAccountLinker,
   AyrsharePublisher,
   AyrsharePublisherProvider,
+  runAyrshareSmoke,
   type AyrshareOptions,
 } from "../../src";
 import apiKeyInvalid from "./recorded/api-key-invalid.json";
@@ -288,6 +289,34 @@ describe("AyrsharePublisherProvider", () => {
     expect(await provider.forProduct(productId("prod_1"))).toMatchObject({
       ok: false,
       error: { code: "not_connected", message: "Link your X account first", retryable: false },
+    });
+  });
+});
+
+describe("runAyrshareSmoke", () => {
+  it("posts the text to X on the test profile, then deletes it", async () => {
+    const posted = respond("post", "post", postCreated);
+    const deleted = respond("delete", "post", { status: "success" });
+    const result = await runAyrshareSmoke(options, PROFILE_KEY, "LaunchPilot CI smoke test 42");
+    expect(result).toEqual({ ok: true, value: { postUrl: postCreated.postIds[0]?.postUrl } });
+    expect(posted.body).toEqual({ post: "LaunchPilot CI smoke test 42", platforms: ["twitter"] });
+    expect(deleted.body).toEqual({ id: postCreated.id });
+    expect(deleted.headers?.get("profile-key")).toBe(PROFILE_KEY);
+  });
+
+  it("explains a failed post without leaking keys", async () => {
+    respond("post", "post", apiKeyInvalid, 401);
+    const result = await runAyrshareSmoke(options, PROFILE_KEY, "smoke");
+    expect(result.ok).toBe(false);
+    expect(JSON.stringify(result)).not.toContain(API_KEY);
+  });
+
+  it("reports a post it could not delete", async () => {
+    respond("post", "post", postCreated);
+    respond("delete", "post", { status: "error", message: "Not found" }, 404);
+    expect(await runAyrshareSmoke(options, PROFILE_KEY, "smoke")).toEqual({
+      ok: false,
+      error: `Posted ${String(postCreated.postIds[0]?.postUrl)} but could not delete it: Not found`,
     });
   });
 });
