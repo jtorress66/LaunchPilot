@@ -52,7 +52,7 @@ export default async function DashboardPage() {
         <UsageMeter label="Products" used={dashboard.usage.products} limit={plan.limits.products} />
         <UsageMeter
           label="Content items this month"
-          used={0}
+          used={dashboard.usage.contentItemsThisMonth}
           limit={plan.limits.contentItemsPerMonth}
         />
       </section>
@@ -84,12 +84,20 @@ export default async function DashboardPage() {
                       {product.url}
                     </a>
                   </div>
-                  <Link
-                    href={`/app/products/${product.id}/brief`}
-                    className="text-sm font-semibold text-brand-600 hover:underline dark:text-brand-400"
-                  >
-                    {briefLinkLabel[dashboard.briefStatus[product.id] ?? "none"]}
-                  </Link>
+                  <div className="flex gap-4">
+                    <Link
+                      href={`/app/products/${product.id}/brief`}
+                      className="text-sm font-semibold text-brand-600 hover:underline dark:text-brand-400"
+                    >
+                      {briefLinkLabel[dashboard.briefStatus[product.id] ?? "none"]}
+                    </Link>
+                    <Link
+                      href={`/app/products/${product.id}/seo`}
+                      className="text-sm font-semibold text-brand-600 hover:underline dark:text-brand-400"
+                    >
+                      SEO
+                    </Link>
+                  </div>
                 </li>
               ))}
             </ul>

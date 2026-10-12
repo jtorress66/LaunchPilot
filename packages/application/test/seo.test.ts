@@ -448,6 +448,32 @@ describe("GetSeoOverview and GetContentItem", () => {
     expect(campaign?.tasks[1]?.item).toBeUndefined();
   });
 
+  it("lists planned articles best opportunity first, whatever order storage returns", async () => {
+    const s = await setUp();
+    await plan(s);
+    const tasks = s.world.tasks;
+    const reversed = {
+      ...s.world,
+      tasks: {
+        findById: tasks.findById.bind(tasks),
+        save: tasks.save.bind(tasks),
+        listByCampaign: async (id: Parameters<typeof tasks.listByCampaign>[0]) =>
+          [...(await tasks.listByCampaign(id))].reverse(),
+      },
+    };
+    const result = await new GetSeoOverview(reversed).execute({
+      workspace: s.workspace,
+      productId: s.product.id,
+    });
+    if (!result.ok) throw new Error(result.error.message);
+    expect(result.value.campaigns[0]?.tasks.map(({ task }) => task.seo?.keyword)).toEqual([
+      "cookieless analytics",
+      "privacy friendly analytics",
+      "gdpr analytics",
+      "plausible alternative",
+    ]);
+  });
+
   it("reports an unapproved brief and no connection", async () => {
     const s = await setUp({ approveBrief: false });
     const result = await new GetSeoOverview(s.world).execute({

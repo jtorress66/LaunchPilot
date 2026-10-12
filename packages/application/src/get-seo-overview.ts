@@ -1,4 +1,5 @@
 import {
+  byOpportunity,
   ok,
   type Campaign,
   type ContentItem,
@@ -67,10 +68,10 @@ export class GetSeoOverview {
         .sort((a, b) => b.weekStarting.getTime() - a.weekStarting.getTime())
         .map(async (campaign) => ({
           campaign,
-          tasks: (await this.deps.tasks.listByCampaign(campaign.id)).map((task) => ({
-            task,
-            item: latest.get(task.id),
-          })),
+          // Storage order is arbitrary; show the plan best opportunity first.
+          tasks: [...(await this.deps.tasks.listByCampaign(campaign.id))]
+            .sort((a, b) => (a.seo && b.seo ? byOpportunity(a.seo, b.seo) : 0))
+            .map((task) => ({ task, item: latest.get(task.id) })),
         })),
     );
     return ok({

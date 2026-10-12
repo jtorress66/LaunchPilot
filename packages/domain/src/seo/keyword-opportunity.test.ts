@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { rankKeywordOpportunities, type KeywordMetrics } from "./keyword-opportunity";
+import {
+  byOpportunity,
+  rankKeywordOpportunities,
+  type KeywordMetrics,
+} from "./keyword-opportunity";
 
 const idea = (keyword: string, monthlySearches: number, difficulty: number): KeywordMetrics => ({
   keyword,
@@ -59,5 +63,12 @@ describe("rankKeywordOpportunities", () => {
 
   it("ignores blank keywords", () => {
     expect(rankKeywordOpportunities([idea("  ", 1000, 1)], { max: 5 })).toEqual([]);
+  });
+});
+
+describe("byOpportunity", () => {
+  it("orders keywords best opportunity first, whatever order they were stored in", () => {
+    const stored = [idea("b", 100, 40), idea("a", 900, 14), idea("c", 300, 20)];
+    expect([...stored].sort(byOpportunity).map((i) => i.keyword)).toEqual(["a", "c", "b"]);
   });
 });

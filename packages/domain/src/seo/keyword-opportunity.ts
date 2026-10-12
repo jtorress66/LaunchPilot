@@ -17,6 +17,9 @@ const normalise = (keyword: string) => keyword.trim().toLowerCase().replace(/\s+
 const score = ({ monthlySearches, difficulty }: KeywordMetrics) =>
   monthlySearches / (difficulty + 10);
 
+/** Comparator: best opportunity first. */
+export const byOpportunity = (a: KeywordMetrics, b: KeywordMetrics): number => score(b) - score(a);
+
 /**
  * Picks the keywords a small site can realistically rank for: enough searches,
  * not too competitive, best opportunity first. Deterministic for equal scores.

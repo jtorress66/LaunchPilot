@@ -1,0 +1,127 @@
+{
+  "version": "0.1.20260901",
+  "status_code": 20000,
+  "status_message": "Ok.",
+  "time": "1.2081 sec.",
+  "cost": 0.0107,
+  "tasks_count": 1,
+  "tasks_error": 0,
+  "tasks": [
+    {
+      "id": "10121600-1535-0387-0000-6a3f0c7e1b2d",
+      "status_code": 20000,
+      "status_message": "Ok.",
+      "time": "1.1462 sec.",
+      "cost": 0.0107,
+      "result_count": 1,
+      "path": ["v3", "dataforseo_labs", "google", "keyword_ideas", "live"],
+      "data": {
+        "api": "dataforseo_labs",
+        "function": "keyword_ideas",
+        "se_type": "google",
+        "keywords": ["privacy analytics"],
+        "location_code": 2840,
+        "language_code": "en",
+        "limit": 3
+      },
+      "result": [
+        {
+          "se_type": "google",
+          "seed_keywords": ["privacy analytics"],
+          "location_code": 2840,
+          "language_code": "en",
+          "total_count": 1842,
+          "items_count": 6,
+          "offset": 0,
+          "offset_token": "eyJDdXJyZW50T2Zmc2V0IjozfQ==",
+          "items": [
+            {
+              "se_type": "google",
+              "keyword": "cookieless analytics",
+              "location_code": 2840,
+              "language_code": "en",
+              "keyword_info": {
+                "se_type": "google",
+                "search_volume": 900
+              },
+              "keyword_properties": {
+                "se_type": "google",
+                "keyword_difficulty": 14
+              }
+            },
+            {
+              "se_type": "google",
+              "keyword": "privacy friendly analytics",
+              "location_code": 2840,
+              "language_code": "en",
+              "keyword_info": {
+                "se_type": "google",
+                "search_volume": 1300
+              },
+              "keyword_properties": {
+                "se_type": "google",
+                "keyword_difficulty": 41
+              }
+            },
+            {
+              "se_type": "google",
+              "keyword": "gdpr compliant analytics",
+              "location_code": 2840,
+              "language_code": "en",
+              "keyword_info": {
+                "se_type": "google",
+                "search_volume": 320
+              },
+              "keyword_properties": {
+                "se_type": "google",
+                "keyword_difficulty": 22
+              }
+            },
+            {
+              "se_type": "google",
+              "keyword": "google analytics alternative",
+              "location_code": 2840,
+              "language_code": "en",
+              "keyword_info": {
+                "se_type": "google",
+                "search_volume": 4400
+              },
+              "keyword_properties": {
+                "se_type": "google",
+                "keyword_difficulty": 68
+              }
+            },
+            {
+              "se_type": "google",
+              "keyword": "website analytics without cookies",
+              "location_code": 2840,
+              "language_code": "en",
+              "keyword_info": {
+                "se_type": "google",
+                "search_volume": 210
+              },
+              "keyword_properties": {
+                "se_type": "google",
+                "keyword_difficulty": 18
+              }
+            },
+            {
+              "se_type": "google",
+              "keyword": "analytics",
+              "location_code": 2840,
+              "language_code": "en",
+              "keyword_info": {
+                "se_type": "google",
+                "search_volume": 90500
+              },
+              "keyword_properties": {
+                "se_type": "google",
+                "keyword_difficulty": 92
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
