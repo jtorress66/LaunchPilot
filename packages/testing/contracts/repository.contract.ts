@@ -1,6 +1,7 @@
 import type {
   BriefRepository,
   CampaignRepository,
+  ChannelConnectionRepository,
   ContentItemRepository,
   ProductRepository,
   Repository,
@@ -10,6 +11,7 @@ import type {
 import {
   briefId,
   campaignId,
+  channelConnectionId,
   contentItemId,
   productId,
   taskId,
@@ -18,6 +20,7 @@ import {
 } from "@launchpilot/domain";
 import { describe, expect, it } from "vitest";
 import {
+  aBlogConnection,
   aBrief,
   aCampaign,
   aContentItem,
@@ -232,6 +235,79 @@ export function describeContentItemRepositoryContract(
       await Promise.all([scheduled, draft].map((i) => repo.save(i)));
       expect(await repo.listByStatus("scheduled")).toEqual([scheduled]);
       expect(await repo.listByStatus("published")).toEqual([]);
+    });
+
+    it("lists a product's items, newest first", async () => {
+      const repo = await make();
+      const older = aContentItem({
+        id: contentItemId("item_1"),
+        createdAt: new Date("2026-03-01T00:00:00.000Z"),
+      });
+      const newer = aContentItem({
+        id: contentItemId("item_2"),
+        createdAt: new Date("2026-03-02T00:00:00.000Z"),
+      });
+      const other = aContentItem({ id: contentItemId("item_3"), productId: productId("prod_2") });
+      await Promise.all([older, newer, other].map((i) => repo.save(i)));
+      expect(await repo.listByProduct(productId("prod_1"))).toEqual([newer, older]);
+    });
+
+    it("counts the items of the given products created since a date", async () => {
+      const repo = await make();
+      const at = (iso: string) => new Date(iso);
+      await Promise.all(
+        [
+          aContentItem({ id: contentItemId("item_1"), createdAt: at("2026-02-28T23:59:59.000Z") }),
+          aContentItem({ id: contentItemId("item_2"), createdAt: at("2026-03-01T00:00:00.000Z") }),
+          aContentItem({ id: contentItemId("item_3"), createdAt: at("2026-03-15T00:00:00.000Z") }),
+          aContentItem({
+            id: contentItemId("item_4"),
+            productId: productId("prod_2"),
+            createdAt: at("2026-03-15T00:00:00.000Z"),
+          }),
+        ].map((i) => repo.save(i)),
+      );
+      const since = at("2026-03-01T00:00:00.000Z");
+      expect(await repo.countCreatedSince([productId("prod_1")], since)).toBe(2);
+      expect(await repo.countCreatedSince([productId("prod_1"), productId("prod_2")], since)).toBe(
+        3,
+      );
+      expect(await repo.countCreatedSince([], since)).toBe(0);
+    });
+  });
+}
+
+export function describeChannelConnectionRepositoryContract(
+  name: string,
+  make: Make<ChannelConnectionRepository>,
+): void {
+  describe(`ChannelConnectionRepository contract: ${name}`, () => {
+    it("finds a product's connection for a channel", async () => {
+      const repo = await make();
+      const mine = aBlogConnection();
+      await repo.save(mine);
+      await repo.save(
+        aBlogConnection({ id: channelConnectionId("conn_2"), productId: productId("prod_2") }),
+      );
+      expect(await repo.findByProductAndChannel(productId("prod_1"), "blog")).toEqual(mine);
+    });
+
+    it("returns undefined when the product has no connection for the channel", async () => {
+      const repo = await make();
+      await repo.save(aBlogConnection());
+      expect(await repo.findByProductAndChannel(productId("prod_1"), "x")).toBeUndefined();
+      expect(await repo.findByProductAndChannel(productId("prod_2"), "blog")).toBeUndefined();
+    });
+
+    it("replaces the connection when the product reconnects the same channel", async () => {
+      const repo = await make();
+      await repo.save(aBlogConnection());
+      const replacement = aBlogConnection({
+        id: channelConnectionId("conn_new"),
+        siteUrl: "https://news.acme.dev",
+      });
+      await repo.save(replacement);
+      expect(await repo.findByProductAndChannel(productId("prod_1"), "blog")).toEqual(replacement);
     });
   });
 }

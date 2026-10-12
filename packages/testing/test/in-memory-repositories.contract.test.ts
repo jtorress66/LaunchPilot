@@ -1,4 +1,5 @@
 import {
+  describeChannelConnectionRepositoryContract,
   describeBriefRepositoryContract,
   describeCampaignRepositoryContract,
   describeContentItemRepositoryContract,
@@ -7,6 +8,7 @@ import {
   describeWorkspaceRepositoryContract,
 } from "../contracts";
 import {
+  InMemoryChannelConnectionRepository,
   InMemoryBriefRepository,
   InMemoryCampaignRepository,
   InMemoryContentItemRepository,
@@ -32,4 +34,8 @@ describeTaskRepositoryContract("InMemoryTaskRepository", () => new InMemoryTaskR
 describeContentItemRepositoryContract(
   "InMemoryContentItemRepository",
   () => new InMemoryContentItemRepository(),
+);
+describeChannelConnectionRepositoryContract(
+  "InMemoryChannelConnectionRepository",
+  () => new InMemoryChannelConnectionRepository(),
 );

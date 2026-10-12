@@ -18,3 +18,19 @@ export const checkCanCreateProduct = (
         ),
       );
 };
+
+/** Content items count against the plan's monthly allowance when an agent drafts them. */
+export const checkCanCreateContent = (
+  plan: PlanId,
+  usedThisMonth: number,
+): Result<null, DomainError> => {
+  const { name, limits } = plans[plan];
+  return usedThisMonth < limits.contentItemsPerMonth
+    ? ok(null)
+    : err(
+        domainError(
+          "plan_limit_reached",
+          `The ${name} plan includes ${limits.contentItemsPerMonth} content items a month. Upgrade to create more.`,
+        ),
+      );
+};

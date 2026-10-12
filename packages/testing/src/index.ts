@@ -18,3 +18,5 @@ export { SequentialTokenGenerator } from "./fakes/sequential-token-generator";
 export { FakeCheckoutProvider } from "./fakes/fake-checkout-provider";
 export { FakeWebhookVerifier } from "./fakes/fake-webhook-verifier";
 export * from "./fixtures/accounts";
+export { FakeBlogConnectionVerifier } from "./fakes/fake-blog-connection-verifier";
+export { FakePublisherProvider } from "./fakes/fake-publisher-provider";

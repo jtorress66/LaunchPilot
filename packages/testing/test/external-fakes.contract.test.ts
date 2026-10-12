@@ -1,11 +1,21 @@
 import { channels } from "@launchpilot/domain";
 import {
+  describeBlogConnectionVerifierContract,
   describeKeywordProviderContract,
+  describePublisherProviderContract,
   describeMetricsSourceContract,
   describePublisherContract,
   describeSiteCrawlerContract,
 } from "../contracts";
-import { FakeKeywordProvider, FakeMetricsSource, FakePublisher, FakeSiteCrawler } from "../src";
+import {
+  FakeBlogConnectionVerifier,
+  FakeKeywordProvider,
+  FakeMetricsSource,
+  FakePublisher,
+  FakePublisherProvider,
+  FakeSiteCrawler,
+} from "../src";
+import { productId } from "@launchpilot/domain";
 import { isAutoPublishable } from "@launchpilot/domain";
 
 const outage = { code: "unavailable", message: "Simulated outage", retryable: true } as const;
@@ -60,3 +70,16 @@ for (const channel of channels.filter(isAutoPublishable)) {
     };
   });
 }
+
+describeBlogConnectionVerifierContract("FakeBlogConnectionVerifier", () => {
+  const verifier = new FakeBlogConnectionVerifier();
+  const valid = { siteUrl: "https://blog.acme.dev", username: "admin", secret: "abcd efgh ijkl" };
+  verifier.accept(valid, "Acme Blog");
+  return { verifier, valid };
+});
+
+describePublisherProviderContract("FakePublisherProvider", () => {
+  const provider = new FakePublisherProvider("blog");
+  provider.connect(productId("prod_1"));
+  return { provider, connected: productId("prod_1"), unconnected: productId("prod_2") };
+});

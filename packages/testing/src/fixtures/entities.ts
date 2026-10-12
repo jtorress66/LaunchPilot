@@ -2,6 +2,7 @@ import {
   approveBrief,
   createBrief,
   createCampaign,
+  createBlogConnection,
   createContentItem,
   createProduct,
   createTask,
@@ -16,6 +17,8 @@ import {
   type Campaign,
   type CampaignId,
   type Channel,
+  type ChannelConnection,
+  type ChannelConnectionId,
   type ContentItem,
   type ContentItemEvent,
   type ContentItemId,
@@ -31,6 +34,7 @@ import {
   type WorkspaceId,
   briefId,
   campaignId,
+  channelConnectionId,
   contentItemId,
   productId,
   taskId,
@@ -170,8 +174,10 @@ export const aContentItem = (
     title: string;
     body: string;
     status: ContentItemStatus;
+    createdAt: Date;
   }> = {},
 ): ContentItem => {
+  const now = overrides.createdAt ?? fixtureNow;
   const draft = unwrap(
     createContentItem({
       id: overrides.id ?? contentItemId("item_1"),
@@ -181,11 +187,11 @@ export const aContentItem = (
       title: overrides.title ?? "Privacy-friendly analytics for SaaS",
       body: overrides.body ?? "Here is how to measure growth without cookies.",
       createdBy: { kind: "agent", agent: "seo" },
-      now: fixtureNow,
+      now,
     }),
   );
   return pathTo[overrides.status ?? "draft"].reduce(
-    (item, event) => unwrap(transition(item, event, { now: fixtureNow })),
+    (item, event) => unwrap(transition(item, event, { now })),
     draft,
   );
 };
@@ -195,3 +201,18 @@ export const aPublishableItem = (
   id = "item_publishable",
 ): PublishableContentItem =>
   unwrap(toPublishable(aContentItem({ id: contentItemId(id), channel, status: "approved" })));
+
+export const aBlogConnection = (
+  overrides: Partial<{ id: ChannelConnectionId; productId: ProductId; siteUrl: string }> = {},
+): ChannelConnection =>
+  unwrap(
+    createBlogConnection({
+      id: overrides.id ?? channelConnectionId("conn_1"),
+      productId: overrides.productId ?? productId("prod_1"),
+      siteUrl: overrides.siteUrl ?? "https://blog.acme.dev",
+      siteName: "Acme Blog",
+      username: "admin",
+      encryptedSecret: "v1:fixture-ciphertext",
+      now: fixtureNow,
+    }),
+  );

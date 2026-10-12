@@ -1,4 +1,4 @@
-import type { Channel, PublishableContentItem, Result } from "@launchpilot/domain";
+import type { Channel, ProductId, PublishableContentItem, Result } from "@launchpilot/domain";
 import type { PortError } from "./port-error";
 
 export interface PublishReceipt {
@@ -16,4 +16,13 @@ export type PublishError = PortError<"not_connected" | "rejected_by_platform" | 
 export interface Publisher {
   readonly channel: Channel;
   publish(item: PublishableContentItem): Promise<Result<PublishReceipt, PublishError>>;
+}
+
+/**
+ * Turns a product's stored connection for one channel into a ready Publisher.
+ * Registering a provider per channel adds a channel without touching the use cases.
+ */
+export interface PublisherProvider {
+  readonly channel: Channel;
+  forProduct(productId: ProductId): Promise<Result<Publisher, PublishError>>;
 }

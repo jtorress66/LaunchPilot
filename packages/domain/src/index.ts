@@ -21,3 +21,6 @@ export * from "./billing/plans";
 export * from "./billing/limits";
 export * from "./billing/subscription";
 export * from "./brief/grounding";
+export * from "./shared/month";
+export * from "./seo/keyword-opportunity";
+export * from "./connections/channel-connection";

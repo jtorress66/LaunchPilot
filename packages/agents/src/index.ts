@@ -3,3 +3,6 @@
 export { BriefAgent } from "./brief/brief-agent";
 export { ExtractiveBriefDrafter } from "./brief/extractive-brief-drafter";
 export { BRIEF_SYSTEM_PROMPT } from "./brief/prompt";
+export { SeoArticleWriter } from "./seo/seo-article-writer";
+export { TemplateArticleWriter } from "./seo/template-article-writer";
+export { SEO_SYSTEM_PROMPT } from "./seo/prompt";
