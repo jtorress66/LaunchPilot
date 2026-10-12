@@ -21,6 +21,7 @@ import {
   GetSocialOverview,
   PublishDueContent,
   RefreshSocialLinks,
+  ReviseContentItem,
   SchedulePost,
   UnschedulePost,
 } from "../src";
@@ -196,7 +197,9 @@ describe("DraftSocialWeek", () => {
     expect(tasks.map((t) => [t.kind, t.status])).toEqual(
       Array.from({ length: 5 }, () => ["social_post", "in_progress"]),
     );
-    expect(s.world.socialWriter.requests.map((r) => r.channel)).toEqual(items.map((i) => i.channel));
+    expect(s.world.socialWriter.requests.map((r) => r.channel)).toEqual(
+      items.map((i) => i.channel),
+    );
   });
 
   it("promotes the latest published blog article, with its link", async () => {
@@ -279,6 +282,23 @@ describe("DraftSocialWeek", () => {
       productId: s.product.id,
     });
     expect(result.ok ? undefined : result.error.code).toBe("unavailable");
+  });
+});
+
+describe("revising a post", () => {
+  it("keeps the post's title when only its text changes, and the X limit applies", async () => {
+    const s = await setUp();
+    const post = await approvedPost(s);
+    const revise = (body: string) =>
+      new ReviseContentItem(s.world).execute({ workspace: s.workspace, itemId: post.id, body });
+    expect(await revise("Shorter and better.")).toMatchObject({
+      ok: true,
+      value: { title: post.title, body: "Shorter and better.", status: "in_review" },
+    });
+    const tooLong = await revise("a".repeat(281));
+    expect(tooLong.ok ? undefined : tooLong.error.message).toBe(
+      "Body must be at most 280 characters",
+    );
   });
 });
 

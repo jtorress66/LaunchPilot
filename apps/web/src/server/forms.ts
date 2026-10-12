@@ -85,3 +85,33 @@ export const parseForm = <T extends z.ZodTypeAny>(
   }
   return err(errors);
 };
+
+/** Post text; LinkedIn's 3,000 is the widest limit, and the domain applies each channel's own. */
+export const postForm = z.object({ body: text("The post needs text", 3000) });
+
+const LOCAL_DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+const MAX_OFFSET_MINUTES = 14 * 60;
+
+/**
+ * A `datetime-local` value is the founder's wall-clock time; the browser adds its
+ * `getTimezoneOffset()` (minutes behind UTC) so the server can store the moment in UTC.
+ */
+export const scheduleForm = z
+  .object({
+    publishAt: z
+      .string()
+      .default("")
+      .refine(
+        (value) => LOCAL_DATE_TIME.test(value) && !Number.isNaN(Date.parse(`${value}:00Z`)),
+        "Choose a date and time",
+      ),
+    tzOffset: z
+      .string()
+      .default("0")
+      .refine((value) => /^-?\d{1,4}$/.test(value), "Unknown timezone")
+      .transform(Number)
+      .refine((value) => Math.abs(value) <= MAX_OFFSET_MINUTES, "Unknown timezone"),
+  })
+  .transform(({ publishAt, tzOffset }) => ({
+    publishAt: new Date(Date.parse(`${publishAt}:00Z`) + tzOffset * 60_000),
+  }));

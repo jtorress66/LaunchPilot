@@ -36,3 +36,18 @@ const keywordMessages: Partial<Record<string, string>> = {
 /** What the founder sees when planning content fails. Provider details stay out of the UI. */
 export const keywordFailureMessage = (error: { code: string; message: string }): string =>
   keywordMessages[error.code] ?? error.message;
+
+const socialMessages: Partial<Record<string, string>> = {
+  unavailable: "Social accounts are unavailable right now. Try again in a minute.",
+  rejected: "The social account service refused the request. Check the Ayrshare settings.",
+};
+
+/** What the founder sees when connecting X or LinkedIn fails. Provider details stay out of the UI. */
+export const socialFailureMessage = (error: { code: string; message: string }): string =>
+  socialMessages[error.code] ?? error.message;
+
+/** What the founder sees when publishing fails; the platform's own reason is kept when useful. */
+export const publishFailureMessage = (error: { code: string; message: string }): string =>
+  error.code === "unavailable"
+    ? "The channel is unavailable right now. Try again in a minute."
+    : error.message;

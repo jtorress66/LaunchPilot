@@ -22,6 +22,16 @@ export type KeywordProviderConfig =
     }
   | { readonly kind: "offline" };
 
+export type SocialWriterConfig = ClaudeConfig | { readonly kind: "template" };
+
+export interface AyrshareConfig {
+  readonly apiKey: string;
+  readonly domain: string;
+  readonly privateKey: string;
+  readonly baseUrl: string | null;
+  readonly xCredentials: { readonly apiKey: string; readonly apiSecret: string } | null;
+}
+
 export interface WebConfig {
   readonly databaseUrl: string;
   readonly appUrl: string;
@@ -32,10 +42,14 @@ export interface WebConfig {
   readonly tokenEncryptionKey: string;
   readonly brief: { readonly drafter: BriefDrafterConfig };
   readonly seo: { readonly keywords: KeywordProviderConfig; readonly writer: ArticleWriterConfig };
+  readonly social: { readonly writer: SocialWriterConfig; readonly ayrshare: AyrshareConfig };
 }
 
 const KEY_MESSAGE =
   "TOKEN_ENCRYPTION_KEY must be 32 random bytes, base64-encoded (openssl rand -base64 32)";
+
+const required = (name: string) =>
+  z.string({ required_error: `${name} is required` }).min(1, `${name} is required`);
 
 const shared = {
   DATABASE_URL: z
@@ -63,6 +77,13 @@ const shared = {
   DATAFORSEO_PASSWORD: z.string().min(1).optional(),
   DATAFORSEO_BASE_URL: z.string().url("DATAFORSEO_BASE_URL must be an absolute URL").optional(),
   ALLOW_PRIVATE_NETWORK: z.enum(["true", "false"]).default("false"),
+  SOCIAL_WRITER: z.enum(["claude", "template"]).default("claude"),
+  AYRSHARE_API_KEY: required("AYRSHARE_API_KEY"),
+  AYRSHARE_DOMAIN: required("AYRSHARE_DOMAIN"),
+  AYRSHARE_PRIVATE_KEY: required("AYRSHARE_PRIVATE_KEY"),
+  AYRSHARE_BASE_URL: z.string().url("AYRSHARE_BASE_URL must be an absolute URL").optional(),
+  AYRSHARE_X_API_KEY: z.string().min(1).optional(),
+  AYRSHARE_X_API_SECRET: z.string().min(1).optional(),
 };
 
 const schema = z.discriminatedUnion("BILLING_PROVIDER", [
@@ -91,6 +112,7 @@ const devOnlySettings: readonly [string, (c: Env) => boolean][] = [
   ["BRIEF_DRAFTER=extractive", (c) => c.BRIEF_DRAFTER === "extractive"],
   ["ARTICLE_WRITER=template", (c) => c.ARTICLE_WRITER === "template"],
   ["KEYWORD_PROVIDER=offline", (c) => c.KEYWORD_PROVIDER === "offline"],
+  ["SOCIAL_WRITER=template", (c) => c.SOCIAL_WRITER === "template"],
   ["ALLOW_PRIVATE_NETWORK", (c) => c.ALLOW_PRIVATE_NETWORK === "true"],
 ];
 
@@ -110,6 +132,22 @@ const keywordsFor = (c: Env): KeywordProviderConfig | undefined => {
   };
 };
 
+const ayrshareFor = (c: Env): Result<AyrshareConfig, string> => {
+  const { AYRSHARE_X_API_KEY: xKey, AYRSHARE_X_API_SECRET: xSecret } = c;
+  if ((xKey === undefined) !== (xSecret === undefined)) {
+    return err("AYRSHARE_X_API_KEY and AYRSHARE_X_API_SECRET go together: set both or neither");
+  }
+  return ok({
+    apiKey: c.AYRSHARE_API_KEY,
+    domain: c.AYRSHARE_DOMAIN,
+    // A PEM key in one environment variable usually arrives with escaped newlines.
+    privateKey: c.AYRSHARE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+    baseUrl: c.AYRSHARE_BASE_URL ?? null,
+    xCredentials:
+      xKey !== undefined && xSecret !== undefined ? { apiKey: xKey, apiSecret: xSecret } : null,
+  });
+};
+
 /** Validates the web app's environment once, at the edge. APP_ENV defaults to production. */
 export const parseWebConfig = (
   env: Readonly<Record<string, string | undefined>>,
@@ -123,9 +161,12 @@ export const parseWebConfig = (
     if (refused) return err(`${refused[0]} is only allowed when APP_ENV is development or test`);
   }
   const ai = claude(c);
-  const needsClaude = c.BRIEF_DRAFTER === "claude" || c.ARTICLE_WRITER === "claude";
+  const needsClaude =
+    c.BRIEF_DRAFTER === "claude" || c.ARTICLE_WRITER === "claude" || c.SOCIAL_WRITER === "claude";
   if (needsClaude && !ai) {
-    return err("ANTHROPIC_API_KEY is required when BRIEF_DRAFTER or ARTICLE_WRITER is claude");
+    return err(
+      "ANTHROPIC_API_KEY is required when BRIEF_DRAFTER, ARTICLE_WRITER or SOCIAL_WRITER is claude",
+    );
   }
   const keywords = keywordsFor(c);
   if (!keywords) {
@@ -133,6 +174,9 @@ export const parseWebConfig = (
       "DATAFORSEO_LOGIN and DATAFORSEO_PASSWORD are required when KEYWORD_PROVIDER is dataforseo",
     );
   }
+
+  const ayrshare = ayrshareFor(c);
+  if (!ayrshare.ok) return ayrshare;
 
   return ok({
     databaseUrl: c.DATABASE_URL,
@@ -149,5 +193,9 @@ export const parseWebConfig = (
     tokenEncryptionKey: c.TOKEN_ENCRYPTION_KEY,
     brief: { drafter: c.BRIEF_DRAFTER === "claude" && ai ? ai : { kind: "extractive" } },
     seo: { keywords, writer: c.ARTICLE_WRITER === "claude" && ai ? ai : { kind: "template" } },
+    social: {
+      writer: c.SOCIAL_WRITER === "claude" && ai ? ai : { kind: "template" },
+      ayrshare: ayrshare.value,
+    },
   });
 };

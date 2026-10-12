@@ -97,6 +97,12 @@ export default async function DashboardPage() {
                     >
                       SEO
                     </Link>
+                    <Link
+                      href={`/app/products/${product.id}/social`}
+                      className="text-sm font-semibold text-brand-600 hover:underline dark:text-brand-400"
+                    >
+                      Social
+                    </Link>
                   </div>
                 </li>
               ))}

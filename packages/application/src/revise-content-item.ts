@@ -23,14 +23,23 @@ export class ReviseContentItem {
   async execute(input: {
     workspace: Workspace;
     itemId: ContentItemId;
-    title: string;
+    /** Omitted for social posts, whose title is their planned angle. */
+    title?: string;
     body: string;
   }): Promise<Result<ContentItem, UseCaseError>> {
     const owned = await loadOwnedItem(this.deps, input.workspace, input.itemId);
     if (!owned.ok) return owned;
     const now = this.deps.clock.now();
     const revised = andThen(
-      transition(owned.value.item, { type: "edit", title: input.title, body: input.body }, { now }),
+      transition(
+        owned.value.item,
+        {
+          type: "edit",
+          body: input.body,
+          ...(input.title === undefined ? {} : { title: input.title }),
+        },
+        { now },
+      ),
       (edited) => transition(edited, { type: "submit" }, { now }),
     );
     if (revised.ok) await this.deps.contentItems.save(revised.value);

@@ -1,6 +1,13 @@
 import {
   ApproveContentItem,
   ConnectBlog,
+  ConnectSocial,
+  DraftSocialWeek,
+  GetInbox,
+  GetSocialOverview,
+  RefreshSocialLinks,
+  SchedulePost,
+  UnschedulePost,
   DraftSeoArticle,
   GetContentItem,
   GetSeoOverview,
@@ -25,10 +32,14 @@ import {
   BriefAgent,
   ExtractiveBriefDrafter,
   SeoArticleWriter,
+  SocialPostWriter,
   TemplateArticleWriter,
+  TemplatePostWriter,
 } from "@launchpilot/agents";
 import {
   AesGcmTokenCipher,
+  AyrshareAccountLinker,
+  AyrsharePublisherProvider,
   DataForSeoKeywordProvider,
   SeedKeywordProvider,
   WordPressConnectionVerifier,
@@ -87,6 +98,18 @@ const articleWriterFor = ({ writer }: WebConfig["seo"]) =>
     ? new SeoArticleWriter(claudeClient(writer))
     : new TemplateArticleWriter();
 
+const socialWriterFor = ({ writer }: WebConfig["social"]) =>
+  writer.kind === "claude" ? new SocialPostWriter(claudeClient(writer)) : new TemplatePostWriter();
+
+const ayrshareOptionsFor = ({ ayrshare }: WebConfig["social"]) => ({
+  apiKey: ayrshare.apiKey,
+  domain: ayrshare.domain,
+  privateKey: ayrshare.privateKey,
+  clock: container.clock,
+  ...(ayrshare.baseUrl === null ? {} : { baseUrl: ayrshare.baseUrl }),
+  ...(ayrshare.xCredentials === null ? {} : { xCredentials: ayrshare.xCredentials }),
+});
+
 const keywordProviderFor = ({ keywords }: WebConfig["seo"]) =>
   keywords.kind === "dataforseo"
     ? new DataForSeoKeywordProvider({
@@ -101,6 +124,7 @@ const build = (config: WebConfig) => {
   const repositories = createPostgresRepositories(createDatabase(config.databaseUrl));
   const network = { allowPrivateNetwork: config.allowPrivateNetwork };
   const cipher = new AesGcmTokenCipher(config.tokenEncryptionKey);
+  const ayrshare = ayrshareOptionsFor(config.social);
   const deps = {
     ...repositories,
     ...billing,
@@ -111,12 +135,16 @@ const build = (config: WebConfig) => {
     keywords: keywordProviderFor(config.seo),
     cipher,
     blogVerifier: new WordPressConnectionVerifier(network),
-    // One provider per channel; step 7 registers X and LinkedIn here.
+    socialWriter: socialWriterFor(config.social),
+    linker: new AyrshareAccountLinker(ayrshare),
+    // One provider per channel: adding a channel means registering its provider here.
     publishers: new PublisherRegistry([
       new WordPressPublisherProvider(repositories.channelConnections, cipher, {
         ...network,
         clock: container.clock,
       }),
+      new AyrsharePublisherProvider("x", repositories.socialProfiles, cipher, ayrshare),
+      new AyrsharePublisherProvider("linkedin", repositories.socialProfiles, cipher, ayrshare),
     ]),
     clock: container.clock,
     ids: new UuidIdGenerator(),
@@ -148,6 +176,13 @@ const build = (config: WebConfig) => {
     publishContentItem: new PublishContentItem(deps),
     getSeoOverview: new GetSeoOverview(deps),
     getContentItem: new GetContentItem(deps),
+    connectSocial: new ConnectSocial(deps),
+    refreshSocialLinks: new RefreshSocialLinks(deps),
+    draftSocialWeek: new DraftSocialWeek(deps),
+    schedulePost: new SchedulePost(deps),
+    unschedulePost: new UnschedulePost(deps),
+    getInbox: new GetInbox(deps),
+    getSocialOverview: new GetSocialOverview(deps),
   };
 };
 
