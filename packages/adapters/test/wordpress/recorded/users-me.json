@@ -1,0 +1,8 @@
+{
+  "id": 1,
+  "username": "admin",
+  "name": "admin",
+  "slug": "admin",
+  "roles": ["administrator"],
+  "capabilities": { "edit_posts": true, "publish_posts": true, "upload_files": true }
+}

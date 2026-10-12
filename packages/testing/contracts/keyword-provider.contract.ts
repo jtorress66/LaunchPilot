@@ -1,10 +1,11 @@
-import type { KeywordIdea, KeywordProvider } from "@launchpilot/ports";
+import type { KeywordIdea, KeywordProvider, KeywordQuery } from "@launchpilot/ports";
 import { describe, expect, it } from "vitest";
 
 export interface KeywordProviderHarness {
   readonly provider: KeywordProvider;
   givenIdeas(ideas: readonly KeywordIdea[]): void | Promise<void>;
-  givenFailure(): void | Promise<void>;
+  /** Arrange the next call to fail; a provider that only fails on bad input returns that input. */
+  givenFailure(): KeywordQuery | undefined | Promise<KeywordQuery | undefined>;
 }
 
 const ideas: KeywordIdea[] = [
@@ -37,8 +38,8 @@ export function describeKeywordProviderContract(
 
     it("reports a failure as a KeywordError result instead of throwing", async () => {
       const harness = await make();
-      await harness.givenFailure();
-      const result = await harness.provider.suggest({ seeds: ["x"], locale: "en-US", limit: 5 });
+      const failing = (await harness.givenFailure()) ?? { seeds: ["x"], locale: "en-US", limit: 5 };
+      const result = await harness.provider.suggest(failing);
       expect(result.ok).toBe(false);
     });
   });

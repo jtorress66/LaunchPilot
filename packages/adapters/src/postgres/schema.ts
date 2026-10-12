@@ -41,6 +41,21 @@ export interface TaskRow {
   kind: string;
   title: string;
   status: string;
+  seo_keyword: string | null;
+  seo_monthly_searches: number | null;
+  seo_difficulty: number | null;
+}
+
+export interface ChannelConnectionRow {
+  id: string;
+  product_id: string;
+  channel: string;
+  provider: string;
+  site_url: string;
+  site_name: string;
+  username: string;
+  encrypted_secret: string;
+  connected_at: Date;
 }
 
 export interface ContentItemRow {
@@ -99,4 +114,5 @@ export interface Database {
   campaigns: CampaignRow;
   tasks: TaskRow;
   content_items: ContentItemRow;
+  channel_connections: ChannelConnectionRow;
 }

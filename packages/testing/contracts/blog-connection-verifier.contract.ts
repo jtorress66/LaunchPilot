@@ -12,11 +12,12 @@ export function describeBlogConnectionVerifierContract(
   make: () => BlogConnectionVerifierHarness | Promise<BlogConnectionVerifierHarness>,
 ): void {
   describe(`BlogConnectionVerifier contract: ${name}`, () => {
-    it("accepts working credentials and names the site", async () => {
+    it("accepts working credentials and names the site and its address", async () => {
       const { verifier, valid } = await make();
       const result = await verifier.verify(valid);
       if (!result.ok) throw new Error(result.error.message);
       expect(result.value.siteName.trim()).not.toBe("");
+      expect(result.value.siteUrl).toMatch(/^https?:\/\//);
     });
 
     it("rejects a wrong password as invalid_credentials, without echoing it", async () => {

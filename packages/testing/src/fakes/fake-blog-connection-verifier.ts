@@ -1,5 +1,10 @@
 import { err, ok, type Result } from "@launchpilot/domain";
-import type { BlogConnectionVerifier, BlogCredentials, ConnectionError } from "@launchpilot/ports";
+import type {
+  BlogConnectionVerifier,
+  BlogCredentials,
+  ConnectionError,
+  VerifiedBlog,
+} from "@launchpilot/ports";
 
 const key = ({ siteUrl, username, secret }: BlogCredentials) =>
   `${siteUrl.replace(/\/$/, "")}\n${username}\n${secret}`;
@@ -14,7 +19,7 @@ export class FakeBlogConnectionVerifier implements BlogConnectionVerifier {
     return this;
   }
 
-  verify(credentials: BlogCredentials): Promise<Result<{ siteName: string }, ConnectionError>> {
+  verify(credentials: BlogCredentials): Promise<Result<VerifiedBlog, ConnectionError>> {
     this.attempts.push(credentials);
     const siteName = this.accepted.get(key(credentials));
     return Promise.resolve(
@@ -24,7 +29,7 @@ export class FakeBlogConnectionVerifier implements BlogConnectionVerifier {
             message: "The username or application password was not accepted",
             retryable: false,
           })
-        : ok({ siteName }),
+        : ok({ siteName, siteUrl: credentials.siteUrl }),
     );
   }
 }

@@ -47,7 +47,7 @@ export default defineConfig({
         // External HTTP adapters are measured by `pnpm test:int` against recorded responses and local servers.
         "packages/adapters/src/anthropic/**",
         "packages/adapters/src/crawler/http-site-crawler.ts",
-        "packages/adapters/src/crawler/http-get.ts",
+        "packages/adapters/src/net/safe-http.ts",
         "apps/web/src/app/**",
         // Static marketing copy; rendered and asserted by the landing-page E2E suite.
         "apps/web/src/content/**",

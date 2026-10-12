@@ -42,6 +42,7 @@ describeKeywordProviderContract("FakeKeywordProvider", () => {
     },
     givenFailure: () => {
       provider.failNext(outage);
+      return undefined;
     },
   };
 });

@@ -1,4 +1,4 @@
-import type { ContentItem, ContentItemId, ContentItemStatus } from "@launchpilot/domain";
+import type { ContentItem, ContentItemId, ContentItemStatus, ProductId } from "@launchpilot/domain";
 import type { ContentItemRepository } from "@launchpilot/ports";
 import type { Kysely } from "kysely";
 import { contentItemMapper } from "../mappers/content-item-mapper";
@@ -31,5 +31,27 @@ export class PostgresContentItemRepository implements ContentItemRepository {
       .orderBy("id")
       .execute();
     return rows.map(contentItemMapper.fromRow);
+  }
+
+  async listByProduct(productId: ProductId): Promise<readonly ContentItem[]> {
+    const rows = await this.db
+      .selectFrom("content_items")
+      .selectAll()
+      .where("product_id", "=", productId)
+      .orderBy("created_at", "desc")
+      .orderBy("id")
+      .execute();
+    return rows.map(contentItemMapper.fromRow);
+  }
+
+  async countCreatedSince(productIds: readonly ProductId[], since: Date): Promise<number> {
+    if (productIds.length === 0) return 0;
+    const { count } = await this.db
+      .selectFrom("content_items")
+      .select((eb) => eb.fn.countAll<string>().as("count"))
+      .where("product_id", "in", productIds)
+      .where("created_at", ">=", since)
+      .executeTakeFirstOrThrow();
+    return Number(count);
   }
 }

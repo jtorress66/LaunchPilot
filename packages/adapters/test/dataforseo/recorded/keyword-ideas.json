@@ -1,0 +1,94 @@
+{
+  "version": "0.1.20260901",
+  "status_code": 20000,
+  "status_message": "Ok.",
+  "time": "1.2081 sec.",
+  "cost": 0.0107,
+  "tasks_count": 1,
+  "tasks_error": 0,
+  "tasks": [
+    {
+      "id": "10121600-1535-0387-0000-6a3f0c7e1b2d",
+      "status_code": 20000,
+      "status_message": "Ok.",
+      "time": "1.1462 sec.",
+      "cost": 0.0107,
+      "result_count": 1,
+      "path": ["v3", "dataforseo_labs", "google", "keyword_ideas", "live"],
+      "data": {
+        "api": "dataforseo_labs",
+        "function": "keyword_ideas",
+        "se_type": "google",
+        "keywords": ["privacy analytics"],
+        "location_code": 2840,
+        "language_code": "en",
+        "limit": 3
+      },
+      "result": [
+        {
+          "se_type": "google",
+          "seed_keywords": ["privacy analytics"],
+          "location_code": 2840,
+          "language_code": "en",
+          "total_count": 1842,
+          "items_count": 3,
+          "offset": 0,
+          "offset_token": "eyJDdXJyZW50T2Zmc2V0IjozfQ==",
+          "items": [
+            {
+              "se_type": "google",
+              "keyword": "cookieless analytics",
+              "location_code": 2840,
+              "language_code": "en",
+              "keyword_info": {
+                "se_type": "google",
+                "last_updated_time": "2026-09-14 03:12:44 +00:00",
+                "competition": 0.08,
+                "competition_level": "LOW",
+                "cpc": 6.41,
+                "search_volume": 480,
+                "low_top_of_page_bid": 2.1,
+                "high_top_of_page_bid": 9.85,
+                "categories": [10007, 10019],
+                "monthly_searches": [{ "year": 2026, "month": 8, "search_volume": 480 }]
+              },
+              "keyword_properties": {
+                "se_type": "google",
+                "core_keyword": null,
+                "synonym_clustering_algorithm": "text_processing",
+                "keyword_difficulty": 14,
+                "detected_language": "en",
+                "is_another_language": false,
+                "words_count": 2
+              }
+            },
+            {
+              "se_type": "google",
+              "keyword": "privacy friendly analytics",
+              "location_code": 2840,
+              "language_code": "en",
+              "keyword_info": { "se_type": "google", "search_volume": 1300, "cpc": 4.9 },
+              "keyword_properties": {
+                "se_type": "google",
+                "keyword_difficulty": 41,
+                "words_count": 3
+              }
+            },
+            {
+              "se_type": "google",
+              "keyword": "google analytics alternative",
+              "location_code": 2840,
+              "language_code": "en",
+              "keyword_info": { "se_type": "google", "search_volume": null },
+              "keyword_properties": {
+                "se_type": "google",
+                "keyword_difficulty": null,
+                "words_count": 3
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

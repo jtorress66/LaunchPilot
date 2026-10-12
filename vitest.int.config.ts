@@ -19,7 +19,7 @@ export default defineConfig({
         "packages/adapters/src/billing/stripe-setup.ts",
         "packages/adapters/src/anthropic/**/*.ts",
         "packages/adapters/src/crawler/http-site-crawler.ts",
-        "packages/adapters/src/crawler/http-get.ts",
+        "packages/adapters/src/net/safe-http.ts",
       ],
       exclude: ["**/*.test.ts"],
       thresholds: { lines: 90, functions: 90, branches: 90, statements: 90 },

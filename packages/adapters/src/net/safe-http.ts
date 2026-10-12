@@ -4,16 +4,26 @@ import https from "node:https";
 import { isIP } from "node:net";
 import { guardedLookup, isBlockedAddress, type AddressPolicy } from "./address-policy";
 
-export interface HttpGetOptions {
+/**
+ * Outbound HTTP to URLs a founder supplied (their site, their blog). Every hop is checked
+ * against the address policy, so a founder URL can never reach our own network.
+ */
+export interface SafeHttpOptions {
   readonly policy: AddressPolicy;
   readonly userAgent: string;
-  /** Deadline for the whole fetch, redirects included. */
+  /** Deadline for the whole request, redirects included. */
   readonly timeoutMs: number;
-  /** The body is cut off after this many bytes. */
+  /** The response body is cut off after this many bytes. */
   readonly maxBytes: number;
 }
 
-export interface HttpGetResponse {
+export interface SafeHttpRequest {
+  readonly method: "GET" | "POST";
+  readonly headers?: Readonly<Record<string, string>>;
+  readonly body?: string;
+}
+
+export interface HttpResponse {
   /** Final URL after redirects. */
   readonly url: string;
   readonly status: number;
@@ -21,7 +31,7 @@ export interface HttpGetResponse {
   readonly body: string;
 }
 
-export interface HttpGetFailure {
+export interface HttpFailure {
   readonly reason: "blocked" | "timeout" | "network" | "too_many_redirects";
   readonly message: string;
 }
@@ -29,7 +39,7 @@ export interface HttpGetFailure {
 const MAX_REDIRECTS = 5;
 const REDIRECTS = new Set([301, 302, 303, 307, 308]);
 
-type Hop = { redirect: string } | { response: HttpGetResponse };
+type Hop = { redirect: string } | { response: HttpResponse };
 
 const blockedTarget = (url: URL, policy: AddressPolicy): boolean => {
   if (url.protocol !== "http:" && url.protocol !== "https:") return true;
@@ -37,33 +47,32 @@ const blockedTarget = (url: URL, policy: AddressPolicy): boolean => {
   return isIP(host) !== 0 && isBlockedAddress(host, policy);
 };
 
-const failureOf = (error: unknown, signal: AbortSignal): HttpGetFailure => {
+const failureOf = (error: unknown, signal: AbortSignal): HttpFailure => {
   if (signal.aborted) return { reason: "timeout", message: "The site did not answer in time" };
   const code = (error as NodeJS.ErrnoException).code;
   if (code === "EADDRBLOCKED") {
-    return { reason: "blocked", message: "The site resolves to an address we cannot crawl" };
+    return { reason: "blocked", message: "The site resolves to an address we cannot reach" };
   }
   return { reason: "network", message: "The site could not be reached" };
 };
 
-const requestOnce = (url: URL, options: HttpGetOptions, signal: AbortSignal) =>
+const send = (url: URL, request: SafeHttpRequest, options: SafeHttpOptions, signal: AbortSignal) =>
   new Promise<Hop>((resolve, reject) => {
     const client = url.protocol === "https:" ? https : http;
-    const request = client.get(
+    const outgoing = client.request(
       url,
       {
+        method: request.method,
         agent: false,
         signal,
         lookup: guardedLookup(options.policy),
-        headers: {
-          "user-agent": options.userAgent,
-          accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.1",
-        },
+        headers: { "user-agent": options.userAgent, ...request.headers },
       },
       (response) => {
         const status = response.statusCode ?? 0;
         const location = response.headers.location;
-        if (REDIRECTS.has(status) && location !== undefined) {
+        // Only safe requests follow redirects; a redirected POST is reported to the caller.
+        if (request.method === "GET" && REDIRECTS.has(status) && location !== undefined) {
           response.resume();
           resolve({ redirect: location });
           return;
@@ -92,26 +101,28 @@ const requestOnce = (url: URL, options: HttpGetOptions, signal: AbortSignal) =>
         response.on("error", reject);
       },
     );
-    request.on("error", reject);
+    outgoing.on("error", reject);
+    outgoing.end(request.body);
   });
 
 /**
- * GET with SSRF protection on every hop, a deadline and a size cap.
+ * A request with SSRF protection on every hop, a deadline and a size cap.
  * Expected failures come back as a Result; nothing here throws for a bad site.
  */
-export const httpGet = async (
+export const safeRequest = async (
   target: string,
-  options: HttpGetOptions,
-): Promise<Result<HttpGetResponse, HttpGetFailure>> => {
+  request: SafeHttpRequest,
+  options: SafeHttpOptions,
+): Promise<Result<HttpResponse, HttpFailure>> => {
   const signal = AbortSignal.timeout(options.timeoutMs);
   let url = new URL(target);
   for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
     if (blockedTarget(url, options.policy)) {
-      return err({ reason: "blocked", message: "The site points to an address we cannot crawl" });
+      return err({ reason: "blocked", message: "The site points to an address we cannot reach" });
     }
     let result: Hop;
     try {
-      result = await requestOnce(url, options, signal);
+      result = await send(url, request, options, signal);
     } catch (error) {
       return err(failureOf(error, signal));
     }
@@ -120,3 +131,6 @@ export const httpGet = async (
   }
   return err({ reason: "too_many_redirects", message: "The site redirected too many times" });
 };
+
+export const httpGet = (target: string, options: SafeHttpOptions) =>
+  safeRequest(target, { method: "GET" }, options);
