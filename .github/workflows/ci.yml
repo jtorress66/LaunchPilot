@@ -119,19 +119,17 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm smoke:keywords
 
-  ayrshare-smoke:
-    name: Ayrshare smoke check (real API)
+  zernio-smoke:
+    name: Zernio smoke check (real API)
     runs-on: ubuntu-latest
     env:
-      AYRSHARE_API_KEY: ${{ secrets.AYRSHARE_API_KEY }}
-      AYRSHARE_TEST_PROFILE_KEY: ${{ secrets.AYRSHARE_TEST_PROFILE_KEY }}
-      # Since March 2026 Ayrshare needs your own X developer app's keys to post to X.
-      AYRSHARE_X_API_KEY: ${{ secrets.AYRSHARE_X_API_KEY }}
-      AYRSHARE_X_API_SECRET: ${{ secrets.AYRSHARE_X_API_SECRET }}
+      ZERNIO_API_KEY: ${{ secrets.ZERNIO_API_KEY }}
+      # The Zernio account id of a test X account (Zernio dashboard, or GET /v1/accounts).
+      ZERNIO_TEST_X_ACCOUNT_ID: ${{ secrets.ZERNIO_TEST_X_ACCOUNT_ID }}
     steps:
-      - name: Require the Ayrshare secrets
+      - name: Require the Zernio secrets
         run: |
-          for name in AYRSHARE_API_KEY AYRSHARE_TEST_PROFILE_KEY AYRSHARE_X_API_KEY AYRSHARE_X_API_SECRET; do
+          for name in ZERNIO_API_KEY ZERNIO_TEST_X_ACCOUNT_ID; do
             if [ -z "${!name}" ]; then
               echo "::error::Add the $name repository secret (Settings → Secrets and variables → Actions). See README → Social module."
               exit 1
@@ -157,9 +155,7 @@ jobs:
       DATAFORSEO_LOGIN: unused-in-the-stripe-journey
       DATAFORSEO_PASSWORD: unused-in-the-stripe-journey
       # Nor does it post to social accounts.
-      AYRSHARE_API_KEY: unused-in-the-stripe-journey
-      AYRSHARE_DOMAIN: unused-in-the-stripe-journey
-      AYRSHARE_PRIVATE_KEY: unused-in-the-stripe-journey
+      ZERNIO_API_KEY: unused-in-the-stripe-journey
       DATABASE_URL: postgres://launchpilot:launchpilot@localhost:5432/launchpilot
       APP_URL: http://localhost:3000
       BILLING_PROVIDER: stripe

@@ -10,9 +10,7 @@ const base = {
   TOKEN_ENCRYPTION_KEY: KEY,
   DATAFORSEO_LOGIN: "founder@acme.dev",
   DATAFORSEO_PASSWORD: "dfs-password",
-  AYRSHARE_API_KEY: "ayr-key",
-  AYRSHARE_DOMAIN: "launchpilot",
-  AYRSHARE_PRIVATE_KEY: "-----BEGIN RSA PRIVATE KEY-----\\nabc\\n-----END RSA PRIVATE KEY-----",
+  ZERNIO_API_KEY: "sk_test_zernio",
 };
 const local = {
   ...base,
@@ -51,13 +49,7 @@ describe("parseWebConfig", () => {
         },
         social: {
           writer: { kind: "claude", apiKey: "sk-ant-test-key", model: "claude-opus-5-5" },
-          ayrshare: {
-            apiKey: "ayr-key",
-            domain: "launchpilot",
-            privateKey: "-----BEGIN RSA PRIVATE KEY-----\nabc\n-----END RSA PRIVATE KEY-----",
-            baseUrl: null,
-            xCredentials: null,
-          },
+          zernio: { apiKey: "sk_test_zernio", baseUrl: null },
         },
       },
     });
@@ -193,38 +185,21 @@ describe("parseWebConfig keyword settings", () => {
 });
 
 describe("parseWebConfig social settings", () => {
-  it("needs the Ayrshare API key, linking domain and private key", () => {
-    for (const name of ["AYRSHARE_API_KEY", "AYRSHARE_DOMAIN", "AYRSHARE_PRIVATE_KEY"]) {
-      expect(parseWebConfig({ ...stripe, [name]: undefined })).toEqual({
-        ok: false,
-        error: `${name} is required`,
-      });
-    }
+  it("needs ZERNIO_API_KEY", () => {
+    expect(parseWebConfig({ ...stripe, ZERNIO_API_KEY: undefined })).toEqual({
+      ok: false,
+      error: "ZERNIO_API_KEY is required",
+    });
   });
 
-  it("takes X developer app keys in pairs, and a base URL for tests", () => {
+  it("can point Zernio at another base URL, for tests", () => {
     expect(
-      parseWebConfig({
-        ...local,
-        AYRSHARE_X_API_KEY: "x-key",
-        AYRSHARE_X_API_SECRET: "x-secret",
-        AYRSHARE_BASE_URL: "http://127.0.0.1:4020",
-      }),
+      parseWebConfig({ ...local, ZERNIO_BASE_URL: "http://127.0.0.1:4020/api" }),
     ).toMatchObject({
       ok: true,
-      value: {
-        social: {
-          ayrshare: {
-            baseUrl: "http://127.0.0.1:4020",
-            xCredentials: { apiKey: "x-key", apiSecret: "x-secret" },
-          },
-        },
-      },
+      value: { social: { zernio: { baseUrl: "http://127.0.0.1:4020/api" } } },
     });
-    expect(parseWebConfig({ ...local, AYRSHARE_X_API_KEY: "x-key" })).toEqual({
-      ok: false,
-      error: "AYRSHARE_X_API_KEY and AYRSHARE_X_API_SECRET go together: set both or neither",
-    });
+    expect(parseWebConfig({ ...local, ZERNIO_BASE_URL: "stub" }).ok).toBe(false);
   });
 
   it("writes posts with the offline template writer only in development and test", () => {

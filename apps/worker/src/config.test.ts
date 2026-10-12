@@ -56,12 +56,10 @@ describe("parsePublisherConfig", () => {
   const env = {
     DATABASE_URL: "postgres://localhost/launchpilot",
     TOKEN_ENCRYPTION_KEY: KEY,
-    AYRSHARE_API_KEY: "ayr-key",
-    AYRSHARE_DOMAIN: "launchpilot",
-    AYRSHARE_PRIVATE_KEY: "-----BEGIN RSA PRIVATE KEY-----\\nabc\\n-----END RSA PRIVATE KEY-----",
+    ZERNIO_API_KEY: "sk_test_zernio",
   };
 
-  it("reads what the publish job needs, turning escaped newlines in the private key into real ones", () => {
+  it("reads what the publish job needs", () => {
     expect(parsePublisherConfig(env)).toEqual({
       ok: true,
       value: {
@@ -69,23 +67,15 @@ describe("parsePublisherConfig", () => {
         tokenEncryptionKey: KEY,
         allowPrivateNetwork: false,
         intervalMs: 60_000,
-        ayrshare: {
-          apiKey: "ayr-key",
-          domain: "launchpilot",
-          privateKey: "-----BEGIN RSA PRIVATE KEY-----\nabc\n-----END RSA PRIVATE KEY-----",
-          baseUrl: null,
-          xCredentials: null,
-        },
+        zernio: { apiKey: "sk_test_zernio", baseUrl: null },
       },
     });
   });
 
-  it("accepts X developer app keys, a base URL and an interval", () => {
+  it("accepts a Zernio base URL and an interval", () => {
     const result = parsePublisherConfig({
       ...env,
-      AYRSHARE_BASE_URL: "http://127.0.0.1:4020",
-      AYRSHARE_X_API_KEY: "x-key",
-      AYRSHARE_X_API_SECRET: "x-secret",
+      ZERNIO_BASE_URL: "http://127.0.0.1:4020/api",
       PUBLISH_INTERVAL_MS: "30000",
       APP_ENV: "test",
       ALLOW_PRIVATE_NETWORK: "true",
@@ -95,18 +85,15 @@ describe("parsePublisherConfig", () => {
       value: {
         intervalMs: 30_000,
         allowPrivateNetwork: true,
-        ayrshare: {
-          baseUrl: "http://127.0.0.1:4020",
-          xCredentials: { apiKey: "x-key", apiSecret: "x-secret" },
-        },
+        zernio: { baseUrl: "http://127.0.0.1:4020/api" },
       },
     });
   });
 
   it.each([
-    [{ AYRSHARE_API_KEY: undefined }, "AYRSHARE_API_KEY is required"],
+    [{ ZERNIO_API_KEY: undefined }, "ZERNIO_API_KEY is required"],
     [{ TOKEN_ENCRYPTION_KEY: "short" }, "TOKEN_ENCRYPTION_KEY must be 32 random bytes"],
-    [{ AYRSHARE_X_API_KEY: "x-key" }, "AYRSHARE_X_API_KEY and AYRSHARE_X_API_SECRET go together"],
+    [{ ZERNIO_BASE_URL: "stub" }, "ZERNIO_BASE_URL must be an absolute URL"],
     [{ ALLOW_PRIVATE_NETWORK: "true" }, "ALLOW_PRIVATE_NETWORK is only allowed"],
     [{ PUBLISH_INTERVAL_MS: "500" }, "PUBLISH_INTERVAL_MS must be at least 5000"],
   ])("refuses %o", (override, message) => {

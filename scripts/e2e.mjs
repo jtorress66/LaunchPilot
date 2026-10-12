@@ -1,5 +1,5 @@
 // `pnpm test:e2e`: disposable Postgres and a real WordPress blog (Testcontainers) + migrations
-// + a local fixture website, DataForSEO and Ayrshare stubs + Playwright with local billing and offline AI.
+// + a local fixture website, DataForSEO and Zernio stubs + Playwright with local billing and offline AI.
 // Extra arguments are passed to Playwright, e.g. `pnpm test:e2e --project=desktop`.
 import { randomBytes } from "node:crypto";
 import { spawn } from "node:child_process";
@@ -7,7 +7,7 @@ import { readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { join } from "node:path";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
-import { startAyrshareStub } from "./e2e-ayrshare.mjs";
+import { startZernioStub } from "./e2e-zernio.mjs";
 import { startWordPress } from "./e2e-wordpress.mjs";
 
 const SITE_PORT = 4010;
@@ -48,7 +48,7 @@ const run = (command, args, env) =>
   });
 
 const site = await startFixtureSite();
-const ayrshare = await startAyrshareStub();
+const zernio = await startZernioStub();
 const [container, wordpress] = await Promise.all([
   new PostgreSqlContainer("postgres:16-alpine").start(),
   startWordPress(),
@@ -72,7 +72,7 @@ try {
     ALLOW_PRIVATE_NETWORK: "true",
     E2E_SITE_URL: `http://127.0.0.1:${SITE_PORT}/`,
     ...wordpress.env,
-    ...ayrshare.env,
+    ...zernio.env,
   };
   status = await run("pnpm", ["--silent", "db:migrate"], env);
   if (status === 0)
@@ -80,6 +80,6 @@ try {
 } finally {
   await Promise.all([container.stop(), wordpress.stop()]);
   site.close();
-  await ayrshare.stop();
+  await zernio.stop();
 }
 process.exit(status);

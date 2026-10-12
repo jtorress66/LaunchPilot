@@ -63,13 +63,13 @@ describe("keywordFailureMessage", () => {
 describe("socialFailureMessage", () => {
   it("keeps provider details out of an outage message", () => {
     expect(
-      socialFailureMessage({ code: "unavailable", message: "Ayrshare is unavailable (HTTP 503)" }),
+      socialFailureMessage({ code: "unavailable", message: "Zernio is unavailable (HTTP 503)" }),
     ).toBe("Social accounts are unavailable right now. Try again in a minute.");
   });
 
   it("explains a refusal and passes other errors through", () => {
     expect(socialFailureMessage({ code: "rejected", message: "x" })).toBe(
-      "The social account service refused the request. Check the Ayrshare settings.",
+      "The social account service refused the request. Check the Zernio settings.",
     );
     expect(socialFailureMessage({ code: "product_not_found", message: "Missing" })).toBe("Missing");
   });

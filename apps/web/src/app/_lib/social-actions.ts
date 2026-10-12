@@ -1,8 +1,8 @@
 "use server";
 
-import { contentItemId, productId } from "@launchpilot/domain";
+import { contentItemId, productId, socialChannels } from "@launchpilot/domain";
+import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { getAppContainer } from "../../container";
 import { parseForm, postForm, scheduleForm, type FieldErrors } from "../../server/forms";
 import {
@@ -23,13 +23,17 @@ const socialPath = (id: string) => `/app/products/${id}/social`;
 const contentPath = (id: string) => `/app/content/${id}`;
 const formError = (message: string): SocialActionState => ({ errors: { form: message } });
 
-/** Sends the founder to the provider's page to link X and LinkedIn; they come back to /linked. */
-export async function connectSocialAction(id: string): Promise<SocialActionState> {
+/** Sends the founder to the provider's page to link one channel; they come back to /linked. */
+export async function connectSocialAction(id: string, channel: string): Promise<SocialActionState> {
   const { workspace } = await requireUser();
+  // Bound arguments arrive from the browser, so the channel is validated like any input.
+  const social = socialChannels.find((c) => c === channel);
+  if (!social) notFound();
   const app = getAppContainer();
   const result = await app.connectSocial.execute({
     workspace,
     productId: productId(idParam(id)),
+    channel: social,
     returnUrl: `${app.appUrl}${socialPath(id)}/linked`,
   });
   if (!result.ok) return formError(socialFailureMessage(result.error));

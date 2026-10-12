@@ -2,10 +2,10 @@ import { PublishDueContent, PublisherRegistry } from "@launchpilot/application";
 import { BriefAgent, SeoArticleWriter, SocialPostWriter } from "@launchpilot/agents";
 import {
   AesGcmTokenCipher,
-  runAyrshareSmoke,
-  AyrsharePublisherProvider,
   createPostgresRepositories,
   WordPressPublisherProvider,
+  ZernioPublisherProvider,
+  runZernioSmoke,
   DataForSeoKeywordProvider,
   ClaudeLlmClient,
   createDatabase,
@@ -14,7 +14,7 @@ import {
   migrateToLatest,
   SystemClock,
 } from "@launchpilot/adapters";
-import type { AyrshareConfig, DatabaseConfig, PublisherConfig, StripeSetupConfig } from "./config";
+import type { DatabaseConfig, PublisherConfig, StripeSetupConfig, ZernioConfig } from "./config";
 import type { EvalConfig } from "./eval/brief-eval";
 import { MeteredLlmClient } from "./eval/metered-llm-client";
 import type { HeartbeatDeps } from "./heartbeat";
@@ -69,13 +69,10 @@ export const createSocialEvalWriter = ({ apiKey, model }: EvalConfig) => {
   return { writer: new SocialPostWriter(meter), meter };
 };
 
-const ayrshareOptions = (config: AyrshareConfig) => ({
-  apiKey: config.apiKey,
-  domain: config.domain,
-  privateKey: config.privateKey,
+const zernioOptions = ({ apiKey, baseUrl }: ZernioConfig) => ({
+  apiKey,
   clock: container.clock,
-  ...(config.baseUrl === null ? {} : { baseUrl: config.baseUrl }),
-  ...(config.xCredentials === null ? {} : { xCredentials: config.xCredentials }),
+  ...(baseUrl === null ? {} : { baseUrl }),
 });
 
 /** The scheduled publish job over Postgres, with one publisher provider per channel. */
@@ -83,14 +80,14 @@ export const createPublishDue = (config: PublisherConfig) => {
   const db = createDatabase(config.connectionString);
   const repositories = createPostgresRepositories(db);
   const cipher = new AesGcmTokenCipher(config.tokenEncryptionKey);
-  const ayrshare = ayrshareOptions(config.ayrshare);
+  const zernio = zernioOptions(config.zernio);
   const publishers = new PublisherRegistry([
     new WordPressPublisherProvider(repositories.channelConnections, cipher, {
       allowPrivateNetwork: config.allowPrivateNetwork,
       clock: container.clock,
     }),
-    new AyrsharePublisherProvider("x", repositories.socialProfiles, cipher, ayrshare),
-    new AyrsharePublisherProvider("linkedin", repositories.socialProfiles, cipher, ayrshare),
+    new ZernioPublisherProvider("x", repositories.socialProfiles, zernio),
+    new ZernioPublisherProvider("linkedin", repositories.socialProfiles, zernio),
   ]);
   return {
     publishDue: new PublishDueContent({
@@ -103,15 +100,6 @@ export const createPublishDue = (config: PublisherConfig) => {
   };
 };
 
-/** The CI smoke check: one real post to the test profile's X account, then deleted. */
-export const runSocialSmoke = (
-  { apiKey, xCredentials }: { apiKey: string; xCredentials: AyrshareConfig["xCredentials"] },
-  profileKey: string,
-  text: string,
-) =>
-  // Linking is not exercised, so the JWT domain and private key are not needed.
-  runAyrshareSmoke(
-    ayrshareOptions({ apiKey, domain: "", privateKey: "", baseUrl: null, xCredentials }),
-    profileKey,
-    text,
-  );
+/** The CI smoke check: one real post to the test X account, then taken down. */
+export const runSocialSmoke = (config: ZernioConfig, accountId: string, text: string) =>
+  runZernioSmoke(zernioOptions(config), accountId, text);

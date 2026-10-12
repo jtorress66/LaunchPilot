@@ -25,7 +25,7 @@ packages/domain       entities, value objects, ContentItem state machine — NO 
 packages/ports        interfaces only
 packages/application  use cases: orchestrate domain + ports, return Result — NO I/O, NO framework imports
 packages/agents       strategist, seo, launch, social, analyst, reviewer — depend on ports only
-packages/adapters     claude, dataforseo, ayrshare, cms, search-console, postgres — implement ports
+packages/adapters     claude, dataforseo, zernio, cms, search-console, postgres — implement ports
 packages/testing      fakes, fixtures, shared contract test suites
 ```
 

@@ -9,11 +9,13 @@ export const dynamic = "force-dynamic";
 
 /** Where the provider's linking page sends the founder back: store what they linked. */
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { readonly params: Promise<{ id: string }> },
 ) {
   const id = idParam((await params).id);
   const { workspace } = await requireUser();
+  // The provider appends `error` when the founder cancelled or linking failed.
+  if (request.nextUrl.searchParams.has("error")) redirect(`/app/products/${id}/social?linked=0`);
   const result = await getAppContainer().refreshSocialLinks.execute({
     workspace,
     productId: productId(id),

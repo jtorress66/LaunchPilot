@@ -400,7 +400,7 @@ describe("PublishDueContent", () => {
     await linked(s);
     const post = await scheduledPost(s);
     s.world.clock.advance(2 * HOUR);
-    const outage = { code: "unavailable", message: "Ayrshare is down", retryable: true } as const;
+    const outage = { code: "unavailable", message: "Zernio is down", retryable: true } as const;
 
     for (const attempt of [1, 2]) {
       s.world.xPublisher.publisher.failNext(outage);
@@ -414,7 +414,7 @@ describe("PublishDueContent", () => {
     expect(await publishDue(s)).toEqual({ published: 0, retrying: 0, failed: 1 });
     expect(await stored(s, post)).toMatchObject({
       status: "failed",
-      failure: { reason: "Ayrshare is down" },
+      failure: { reason: "Zernio is down" },
     });
   });
 

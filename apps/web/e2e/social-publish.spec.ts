@@ -1,25 +1,26 @@
 import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";
-import { ayrshareStub, draftSocialWeek, onSocialPage, openFirstXPostFromInbox } from "./helpers";
+import { draftSocialWeek, onSocialPage, openFirstXPostFromInbox, zernioStub } from "./helpers";
 
 interface StubPost {
-  readonly post: string;
-  readonly platforms: readonly string[];
+  readonly content: string;
+  readonly platforms: readonly { readonly platform: string; readonly accountId: string }[];
 }
 
-// Build step 7 gate: post approved → published to a sandbox account (local Ayrshare stub).
-test("a founder links X, approves a drafted post from the inbox and publishes it", async ({
+// Build step 7 gate: post approved → published to a sandbox account (local Zernio stub).
+test("a founder links X through Zernio, approves a drafted post from the inbox and publishes it", async ({
   page,
   request,
 }) => {
   await onSocialPage(page);
 
-  // Link accounts on the provider's page and come back.
-  await page.getByRole("button", { name: "Connect X and LinkedIn" }).click();
-  await expect(page.getByRole("heading", { name: "Link your social accounts" })).toBeVisible();
-  await page.getByRole("button", { name: "Link X and LinkedIn" }).click();
+  // Link X on the platform's consent page (through Zernio) and come back.
+  await page.getByRole("button", { name: "Connect X" }).click();
+  await expect(page.getByRole("heading", { name: "Authorize LaunchPilot on X" })).toBeVisible();
+  await page.getByRole("button", { name: "Authorize" }).click();
   await expect(page).toHaveURL(/\/social\?linked=1$/);
-  await expect(page.getByRole("status")).toContainText("Linked: X and LinkedIn");
+  await expect(page.getByRole("status")).toContainText("Linked: X");
+  await expect(page.getByRole("button", { name: "Reconnect X" })).toBeVisible();
 
   await draftSocialWeek(page);
   await expect(page.getByRole("link", { name: "Inbox (5)" })).toBeVisible();
@@ -47,10 +48,11 @@ test("a founder links X, approves a drafted post from the inbox and publishes it
   await page.getByRole("button", { name: "Publish now" }).click();
   await expect(page.getByTestId("content-status")).toHaveText("Published");
   const live = page.getByRole("status").getByRole("link");
-  await expect(live).toHaveAttribute("href", new RegExp(`^${ayrshareStub()}/posts/`));
+  await expect(live).toHaveAttribute("href", new RegExp(`^${zernioStub()}/posts/`));
 
-  // Exactly that text went to X (Ayrshare's "twitter"), once.
-  const posts = (await (await request.get(`${ayrshareStub()}/_stub/posts`)).json()) as StubPost[];
-  const sent = posts.filter((p) => p.post === text);
-  expect(sent).toEqual([expect.objectContaining({ post: text, platforms: ["twitter"] })]);
+  // Exactly that text went to the linked X account (Zernio's "twitter"), once.
+  const posts = (await (await request.get(`${zernioStub()}/_stub/posts`)).json()) as StubPost[];
+  const sent = posts.filter((p) => p.content === text);
+  expect(sent).toHaveLength(1);
+  expect(sent[0]?.platforms).toEqual([{ platform: "twitter", accountId: expect.any(String) }]);
 });

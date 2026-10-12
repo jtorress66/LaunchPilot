@@ -47,7 +47,7 @@ export default async function SocialPage({ params, searchParams }: SocialPagePro
           role="alert"
           className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-900"
         >
-          We could not check your linked accounts. Try connecting again.
+          Linking was cancelled or failed. Try connecting again.
         </p>
       ) : null}
 

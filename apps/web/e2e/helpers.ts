@@ -63,9 +63,9 @@ export const connectWordPress = async (page: Page, password = wordpress().passwo
   await page.getByRole("button", { name: /Connect blog|Reconnect blog/ }).click();
 };
 
-/** The local Ayrshare stub started by scripts/e2e.mjs. */
-export const ayrshareStub = () => {
-  const url = process.env.E2E_AYRSHARE_URL;
+/** The local Zernio stub started by scripts/e2e.mjs. */
+export const zernioStub = () => {
+  const url = process.env.E2E_ZERNIO_URL;
   if (!url) throw new Error("Run E2E through `pnpm test:e2e`");
   return url;
 };

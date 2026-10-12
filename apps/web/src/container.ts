@@ -38,8 +38,6 @@ import {
 } from "@launchpilot/agents";
 import {
   AesGcmTokenCipher,
-  AyrshareAccountLinker,
-  AyrsharePublisherProvider,
   DataForSeoKeywordProvider,
   SeedKeywordProvider,
   WordPressConnectionVerifier,
@@ -58,6 +56,8 @@ import {
   StripeWebhookVerifier,
   SystemClock,
   UuidIdGenerator,
+  ZernioAccountLinker,
+  ZernioPublisherProvider,
 } from "@launchpilot/adapters";
 import { parseWebConfig, type ClaudeConfig, type WebConfig } from "./server/config";
 import type { HealthHandlerDeps } from "./server/health-handler";
@@ -101,13 +101,10 @@ const articleWriterFor = ({ writer }: WebConfig["seo"]) =>
 const socialWriterFor = ({ writer }: WebConfig["social"]) =>
   writer.kind === "claude" ? new SocialPostWriter(claudeClient(writer)) : new TemplatePostWriter();
 
-const ayrshareOptionsFor = ({ ayrshare }: WebConfig["social"]) => ({
-  apiKey: ayrshare.apiKey,
-  domain: ayrshare.domain,
-  privateKey: ayrshare.privateKey,
+const zernioOptionsFor = ({ zernio }: WebConfig["social"]) => ({
+  apiKey: zernio.apiKey,
   clock: container.clock,
-  ...(ayrshare.baseUrl === null ? {} : { baseUrl: ayrshare.baseUrl }),
-  ...(ayrshare.xCredentials === null ? {} : { xCredentials: ayrshare.xCredentials }),
+  ...(zernio.baseUrl === null ? {} : { baseUrl: zernio.baseUrl }),
 });
 
 const keywordProviderFor = ({ keywords }: WebConfig["seo"]) =>
@@ -124,7 +121,7 @@ const build = (config: WebConfig) => {
   const repositories = createPostgresRepositories(createDatabase(config.databaseUrl));
   const network = { allowPrivateNetwork: config.allowPrivateNetwork };
   const cipher = new AesGcmTokenCipher(config.tokenEncryptionKey);
-  const ayrshare = ayrshareOptionsFor(config.social);
+  const zernio = zernioOptionsFor(config.social);
   const deps = {
     ...repositories,
     ...billing,
@@ -136,15 +133,15 @@ const build = (config: WebConfig) => {
     cipher,
     blogVerifier: new WordPressConnectionVerifier(network),
     socialWriter: socialWriterFor(config.social),
-    linker: new AyrshareAccountLinker(ayrshare),
+    linker: new ZernioAccountLinker(zernio),
     // One provider per channel: adding a channel means registering its provider here.
     publishers: new PublisherRegistry([
       new WordPressPublisherProvider(repositories.channelConnections, cipher, {
         ...network,
         clock: container.clock,
       }),
-      new AyrsharePublisherProvider("x", repositories.socialProfiles, cipher, ayrshare),
-      new AyrsharePublisherProvider("linkedin", repositories.socialProfiles, cipher, ayrshare),
+      new ZernioPublisherProvider("x", repositories.socialProfiles, zernio),
+      new ZernioPublisherProvider("linkedin", repositories.socialProfiles, zernio),
     ]),
     clock: container.clock,
     ids: new UuidIdGenerator(),

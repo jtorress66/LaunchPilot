@@ -142,10 +142,10 @@ live post.
 
 The product's **Social** page (it needs an approved brief) and the **Inbox** run the loop:
 
-1. **Connect X and LinkedIn.** LaunchPilot creates an [Ayrshare](https://www.ayrshare.com) profile
-   for the product and sends the founder to Ayrshare's hosted linking page. LaunchPilot never sees
-   their passwords. The profile key is stored encrypted (AES-256-GCM, `TOKEN_ENCRYPTION_KEY`) and
-   never logged. When the founder comes back, LaunchPilot reads which accounts they linked.
+1. **Connect X and LinkedIn.** One button per channel. LaunchPilot creates a
+   [Zernio](https://zernio.com) profile for the product, the first time only, then sends the
+   founder to the platform's own sign-in page through Zernio. LaunchPilot never sees their
+   passwords. When the founder comes back, LaunchPilot stores which accounts they linked.
 2. **Draft the week.** The social writer (Claude, or the offline template writer in dev and test)
    drafts 3 X posts and 2 LinkedIn posts. Angles come from the brief's differentiators and facts;
    when a blog article was published, the first post on each channel promotes it, with its link.
@@ -160,34 +160,34 @@ The product's **Social** page (it needs an approved brief) and the **Inbox** run
    are not scheduled yet.
 5. **Worker.** Every minute (`PUBLISH_INTERVAL_MS`), the worker publishes scheduled posts whose
    time has come, up to 20 per run, earliest first. A temporary failure keeps the post scheduled
-   and it is retried on the next run, up to 3 attempts. A permanent failure (rejected by the
-   platform, account not linked) marks it **Failed** with the reason, and the founder can edit or
-   retry. Run one worker instance for now; concurrent workers need a lock (step 11).
+   and it is retried on the next run, up to 3 attempts. Each publish carries an idempotency key, so
+   a retry after a timeout can never post twice. A permanent failure (rejected by the platform,
+   account not linked, payment needed) marks it **Failed** with the reason, and the founder can
+   edit or retry. Run one worker instance for now; concurrent workers need a lock (step 11).
 
 Only founder-approved posts reach X or LinkedIn: publishing goes through `toPublishable` and the
-`PublisherRegistry`, where X and LinkedIn are two more registered providers. Posting uses Ayrshare's
-official API only: no likes, follows or DMs.
+`PublisherRegistry`, where X and LinkedIn are two registered `ZernioPublisherProvider`s behind the
+`Publisher` port. Posting uses Zernio's official API only: no likes, follows or DMs.
 
-**Ayrshare setup:**
+**Zernio setup:**
 
-- **Plan:** a **Business** plan, which allows one profile per product and the hosted linking page.
-- **API key:** in the dashboard, copy the API key into `AYRSHARE_API_KEY`.
-- **Linking page:** under Business → Integration, copy the domain into `AYRSHARE_DOMAIN` and the
-  RSA private key into `AYRSHARE_PRIVATE_KEY`. Keep the key on one line with `\n` for line breaks.
-- **X developer app:** since March 2026, Ayrshare needs your own X developer app to post to X. Create
-  one at developer.x.com, then set its consumer key and secret as `AYRSHARE_X_API_KEY` and
-  `AYRSHARE_X_API_SECRET`.
+1. Create an account at zernio.com, then **Settings → API Keys → Create**. Copy the key (it starts
+   with `sk_` and is shown once) into `.env` as `ZERNIO_API_KEY`. `set -a && . ./.env` loads it
+   for `pnpm dev`. The key is never stored in the database or logged.
+2. Profiles are created automatically, one per product. Nothing else to configure.
+3. **X needs a payment method:** Zernio passes X's API costs through, so add a card under Billing
+   before connecting an X account. Otherwise publishing to X fails with a "payment method" message.
 
-**CI secrets:** the `ayrshare-smoke` job posts `LaunchPilot CI smoke test <run id>` to a test X
-account through the real API, then deletes it. It needs these repository secrets:
+**CI secrets:** the `zernio-smoke` job posts `LaunchPilot CI smoke test <run id>` to a test X
+account through the real API, then takes it down again. Add these under GitHub → repository
+**Settings → Secrets and variables → Actions → New repository secret**:
 
-- `AYRSHARE_API_KEY`
-- `AYRSHARE_TEST_PROFILE_KEY`: the profile key of a test profile with a test X account linked
-- `AYRSHARE_X_API_KEY`
-- `AYRSHARE_X_API_SECRET`
+- `ZERNIO_API_KEY`: the same kind of key as above
+- `ZERNIO_TEST_X_ACCOUNT_ID`: the Zernio account id of a test X account you linked in Zernio's
+  dashboard (also returned by `GET /v1/accounts`)
 
 Until they are added, that job fails with a message naming the missing secret. All other tests use
-recorded responses, or, in E2E, a local Ayrshare-compatible stub (`scripts/e2e-ayrshare.mjs`).
+recorded responses, or, in E2E, a local Zernio-compatible stub (`scripts/e2e-zernio.mjs`).
 
 ### LLM evals
 
@@ -231,7 +231,7 @@ repository **Settings → Secrets and variables → Actions → New repository s
 | `pnpm format`         | Prettier write (`pnpm format:check` in CI)                                                     |
 | `pnpm eval`           | LLM evals against real Claude (needs `ANTHROPIC_API_KEY`); fails below thresholds              |
 | `pnpm smoke:keywords` | One real DataForSEO call (needs `DATAFORSEO_LOGIN` and `DATAFORSEO_PASSWORD`)                  |
-| `pnpm smoke:social`   | One real X post through Ayrshare, then deleted (needs the Ayrshare CI secrets)                 |
+| `pnpm smoke:social`   | One real X post through Zernio, then taken down (needs the Zernio CI secrets)                  |
 | `pnpm build`          | Production build of the web app                                                                |
 
 The pre-merge gate is `pnpm test && pnpm typecheck && pnpm lint`. CI
@@ -253,7 +253,7 @@ domain  ←  ports  ←  application  ←  agents / adapters  ←  apps (web, wo
 | `packages/ports`       | Interfaces only: `Clock`, `IdGenerator`, `TokenCipher`, `LlmClient`, `BriefDrafter`, `ContentDrafter`, `ContentReviewer`, `CampaignPlanner`, `SiteCrawler`, `KeywordProvider`, `MetricsSource`, `Publisher`, repositories |
 | `packages/application` | Use cases that orchestrate domain rules and ports                                                                                                                                                                         |
 | `packages/agents`      | AI agents (`BriefAgent`, `SeoArticleWriter`, `SocialPostWriter` and offline stand-ins); implement agent ports, depend on domain and ports only                                                                            |
-| `packages/adapters`    | Port implementations: Postgres, Stripe, `ClaudeLlmClient`, `HttpSiteCrawler`, WordPress, DataForSEO, Ayrshare, crypto, clock                                                                                              |
+| `packages/adapters`    | Port implementations: Postgres, Stripe, `ClaudeLlmClient`, `HttpSiteCrawler`, WordPress, DataForSEO, Zernio, crypto, clock                                                                                                |
 | `packages/testing`     | A fake for every port, entity fixtures (`aContentItem({ status })`…), shared contract suites                                                                                                                              |
 | `apps/web`             | Next.js UI + thin API routes; wiring in `src/container.ts`                                                                                                                                                                |
 | `apps/worker`          | Background jobs; wiring in `src/container.ts`                                                                                                                                                                             |
@@ -307,12 +307,8 @@ The rule is enforced twice: by ESLint `no-restricted-imports` per layer, and by
 | `APP_VERSION`           | `0.1.0`           | web, worker health reports                                                          |
 | `HEARTBEAT_INTERVAL_MS` | `60000`           | worker                                                                              |
 | `SOCIAL_WRITER`         | `claude`          | web: `claude` or `template` (development and test only)                             |
-| `AYRSHARE_API_KEY`      | none              | web, worker. Never logged                                                           |
-| `AYRSHARE_DOMAIN`       | none              | web, worker: the linking page's domain                                              |
-| `AYRSHARE_PRIVATE_KEY`  | none              | web, worker: RSA key for the linking page, `\n` for line breaks. Never logged       |
-| `AYRSHARE_X_API_KEY`    | none              | web, worker: your X developer app's consumer key (set with the secret)              |
-| `AYRSHARE_X_API_SECRET` | none              | web, worker: your X developer app's consumer secret. Never logged                   |
-| `AYRSHARE_BASE_URL`     | Ayrshare API      | web, worker: another base URL, for tests                                            |
+| `ZERNIO_API_KEY`        | none              | web, worker, `pnpm smoke:social`. Never logged                                      |
+| `ZERNIO_BASE_URL`       | Zernio API        | web, worker: another base URL, for tests                                            |
 | `PUBLISH_INTERVAL_MS`   | `60000`           | worker: how often scheduled posts are published (at least 5000)                     |
 
 All configuration is validated with Zod when the app first handles a request; an invalid value

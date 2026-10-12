@@ -24,12 +24,10 @@ export type KeywordProviderConfig =
 
 export type SocialWriterConfig = ClaudeConfig | { readonly kind: "template" };
 
-export interface AyrshareConfig {
+export interface ZernioConfig {
+  /** Never logged. */
   readonly apiKey: string;
-  readonly domain: string;
-  readonly privateKey: string;
   readonly baseUrl: string | null;
-  readonly xCredentials: { readonly apiKey: string; readonly apiSecret: string } | null;
 }
 
 export interface WebConfig {
@@ -42,7 +40,7 @@ export interface WebConfig {
   readonly tokenEncryptionKey: string;
   readonly brief: { readonly drafter: BriefDrafterConfig };
   readonly seo: { readonly keywords: KeywordProviderConfig; readonly writer: ArticleWriterConfig };
-  readonly social: { readonly writer: SocialWriterConfig; readonly ayrshare: AyrshareConfig };
+  readonly social: { readonly writer: SocialWriterConfig; readonly zernio: ZernioConfig };
 }
 
 const KEY_MESSAGE =
@@ -78,12 +76,8 @@ const shared = {
   DATAFORSEO_BASE_URL: z.string().url("DATAFORSEO_BASE_URL must be an absolute URL").optional(),
   ALLOW_PRIVATE_NETWORK: z.enum(["true", "false"]).default("false"),
   SOCIAL_WRITER: z.enum(["claude", "template"]).default("claude"),
-  AYRSHARE_API_KEY: required("AYRSHARE_API_KEY"),
-  AYRSHARE_DOMAIN: required("AYRSHARE_DOMAIN"),
-  AYRSHARE_PRIVATE_KEY: required("AYRSHARE_PRIVATE_KEY"),
-  AYRSHARE_BASE_URL: z.string().url("AYRSHARE_BASE_URL must be an absolute URL").optional(),
-  AYRSHARE_X_API_KEY: z.string().min(1).optional(),
-  AYRSHARE_X_API_SECRET: z.string().min(1).optional(),
+  ZERNIO_API_KEY: required("ZERNIO_API_KEY"),
+  ZERNIO_BASE_URL: z.string().url("ZERNIO_BASE_URL must be an absolute URL").optional(),
 };
 
 const schema = z.discriminatedUnion("BILLING_PROVIDER", [
@@ -132,22 +126,6 @@ const keywordsFor = (c: Env): KeywordProviderConfig | undefined => {
   };
 };
 
-const ayrshareFor = (c: Env): Result<AyrshareConfig, string> => {
-  const { AYRSHARE_X_API_KEY: xKey, AYRSHARE_X_API_SECRET: xSecret } = c;
-  if ((xKey === undefined) !== (xSecret === undefined)) {
-    return err("AYRSHARE_X_API_KEY and AYRSHARE_X_API_SECRET go together: set both or neither");
-  }
-  return ok({
-    apiKey: c.AYRSHARE_API_KEY,
-    domain: c.AYRSHARE_DOMAIN,
-    // A PEM key in one environment variable usually arrives with escaped newlines.
-    privateKey: c.AYRSHARE_PRIVATE_KEY.replace(/\\n/g, "\n"),
-    baseUrl: c.AYRSHARE_BASE_URL ?? null,
-    xCredentials:
-      xKey !== undefined && xSecret !== undefined ? { apiKey: xKey, apiSecret: xSecret } : null,
-  });
-};
-
 /** Validates the web app's environment once, at the edge. APP_ENV defaults to production. */
 export const parseWebConfig = (
   env: Readonly<Record<string, string | undefined>>,
@@ -175,9 +153,6 @@ export const parseWebConfig = (
     );
   }
 
-  const ayrshare = ayrshareFor(c);
-  if (!ayrshare.ok) return ayrshare;
-
   return ok({
     databaseUrl: c.DATABASE_URL,
     appUrl: c.APP_URL.replace(/\/$/, ""),
@@ -195,7 +170,7 @@ export const parseWebConfig = (
     seo: { keywords, writer: c.ARTICLE_WRITER === "claude" && ai ? ai : { kind: "template" } },
     social: {
       writer: c.SOCIAL_WRITER === "claude" && ai ? ai : { kind: "template" },
-      ayrshare: ayrshare.value,
+      zernio: { apiKey: c.ZERNIO_API_KEY, baseUrl: c.ZERNIO_BASE_URL ?? null },
     },
   });
 };

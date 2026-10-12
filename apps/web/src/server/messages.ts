@@ -39,7 +39,7 @@ export const keywordFailureMessage = (error: { code: string; message: string }):
 
 const socialMessages: Partial<Record<string, string>> = {
   unavailable: "Social accounts are unavailable right now. Try again in a minute.",
-  rejected: "The social account service refused the request. Check the Ayrshare settings.",
+  rejected: "The social account service refused the request. Check the Zernio settings.",
 };
 
 /** What the founder sees when connecting X or LinkedIn fails. Provider details stay out of the UI. */

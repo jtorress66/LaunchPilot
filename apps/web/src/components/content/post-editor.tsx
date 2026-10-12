@@ -178,7 +178,7 @@ export function PostEditor({ itemId, channel, body, status, justSaved }: PostEdi
           </form>
         ) : null}
         <p className="text-xs text-slate-500">
-          Nothing is posted until you approve it. Posts go out through Ayrshare to the{" "}
+          Nothing is posted until you approve it. Posts go out through Zernio to the{" "}
           {channelName(channel)} account you linked.
         </p>
       </section>

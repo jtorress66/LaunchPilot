@@ -40,12 +40,10 @@ export const parseStripeSetupConfig = (
   return ok({ secretKey: key });
 };
 
-export interface AyrshareConfig {
+export interface ZernioConfig {
+  /** Never logged. */
   readonly apiKey: string;
-  readonly domain: string;
-  readonly privateKey: string;
   readonly baseUrl: string | null;
-  readonly xCredentials: { readonly apiKey: string; readonly apiSecret: string } | null;
 }
 
 export interface PublisherConfig {
@@ -54,13 +52,16 @@ export interface PublisherConfig {
   /** Lets the WordPress publisher reach localhost and LAN blogs; development and test only. */
   readonly allowPrivateNetwork: boolean;
   readonly intervalMs: number;
-  readonly ayrshare: AyrshareConfig;
+  readonly zernio: ZernioConfig;
 }
 
 const KEY_MESSAGE =
   "TOKEN_ENCRYPTION_KEY must be 32 random bytes, base64-encoded (openssl rand -base64 32)";
-const required = (name: string) =>
-  z.string({ required_error: `${name} is required` }).min(1, `${name} is required`);
+
+const zernioKey = z
+  .string({ required_error: "ZERNIO_API_KEY is required" })
+  .min(1, "ZERNIO_API_KEY is required");
+const zernioBaseUrl = z.string().url("ZERNIO_BASE_URL must be an absolute URL").optional();
 
 const publisherSchema = z.object({
   APP_ENV: z.enum(["development", "test", "production"]).default("production"),
@@ -76,40 +77,9 @@ const publisherSchema = z.object({
     .int()
     .min(5_000, "PUBLISH_INTERVAL_MS must be at least 5000")
     .default(60_000),
-  AYRSHARE_API_KEY: required("AYRSHARE_API_KEY"),
-  AYRSHARE_DOMAIN: required("AYRSHARE_DOMAIN"),
-  AYRSHARE_PRIVATE_KEY: required("AYRSHARE_PRIVATE_KEY"),
-  AYRSHARE_BASE_URL: z.string().url("AYRSHARE_BASE_URL must be an absolute URL").optional(),
-  AYRSHARE_X_API_KEY: z.string().min(1).optional(),
-  AYRSHARE_X_API_SECRET: z.string().min(1).optional(),
+  ZERNIO_API_KEY: zernioKey,
+  ZERNIO_BASE_URL: zernioBaseUrl,
 });
-
-/** Ayrshare settings shared by the publish job and the smoke check. */
-export const readAyrshare = (
-  c: Pick<
-    z.infer<typeof publisherSchema>,
-    | "AYRSHARE_API_KEY"
-    | "AYRSHARE_DOMAIN"
-    | "AYRSHARE_PRIVATE_KEY"
-    | "AYRSHARE_BASE_URL"
-    | "AYRSHARE_X_API_KEY"
-    | "AYRSHARE_X_API_SECRET"
-  >,
-): Result<AyrshareConfig, string> => {
-  const { AYRSHARE_X_API_KEY: xKey, AYRSHARE_X_API_SECRET: xSecret } = c;
-  if ((xKey === undefined) !== (xSecret === undefined)) {
-    return err("AYRSHARE_X_API_KEY and AYRSHARE_X_API_SECRET go together: set both or neither");
-  }
-  return ok({
-    apiKey: c.AYRSHARE_API_KEY,
-    domain: c.AYRSHARE_DOMAIN,
-    // A PEM key in one environment variable usually arrives with escaped newlines.
-    privateKey: c.AYRSHARE_PRIVATE_KEY.replace(/\\n/g, "\n"),
-    baseUrl: c.AYRSHARE_BASE_URL ?? null,
-    xCredentials:
-      xKey !== undefined && xSecret !== undefined ? { apiKey: xKey, apiSecret: xSecret } : null,
-  });
-};
 
 /** Everything the scheduled publish job needs, validated before it touches the database. */
 export const parsePublisherConfig = (
@@ -123,13 +93,11 @@ export const parsePublisherConfig = (
   if (c.APP_ENV === "production" && c.ALLOW_PRIVATE_NETWORK === "true") {
     return err("ALLOW_PRIVATE_NETWORK is only allowed when APP_ENV is development or test");
   }
-  const ayrshare = readAyrshare(c);
-  if (!ayrshare.ok) return ayrshare;
   return ok({
     connectionString: database.value.connectionString,
     tokenEncryptionKey: c.TOKEN_ENCRYPTION_KEY,
     allowPrivateNetwork: c.ALLOW_PRIVATE_NETWORK === "true",
     intervalMs: c.PUBLISH_INTERVAL_MS,
-    ayrshare: ayrshare.value,
+    zernio: { apiKey: c.ZERNIO_API_KEY, baseUrl: c.ZERNIO_BASE_URL ?? null },
   });
 };
