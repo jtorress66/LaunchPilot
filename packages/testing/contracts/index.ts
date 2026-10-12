@@ -15,3 +15,4 @@ export { describeTokenGeneratorContract } from "./token-generator.contract";
 export * from "./account-repositories.contract";
 export * from "./checkout-provider.contract";
 export * from "./billing-webhook-verifier.contract";
+export * from "./brief-drafter.contract";

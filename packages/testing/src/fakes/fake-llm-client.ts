@@ -11,6 +11,12 @@ export class FakeLlmClient implements LlmClient {
     return this;
   }
 
+  /** A reply cut off because it hit `maxTokens`. */
+  replyTruncated(text: string, usage = { inputTokens: 10, outputTokens: 20 }): this {
+    this.script.push(ok({ text, stopReason: "max_tokens", usage }));
+    return this;
+  }
+
   fail(error: LlmError): this {
     this.script.push(err(error));
     return this;

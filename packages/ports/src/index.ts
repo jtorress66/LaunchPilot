@@ -7,6 +7,7 @@ export type * from "./content-drafter";
 export type * from "./content-reviewer";
 export type * from "./campaign-planner";
 export type * from "./site-crawler";
+export type * from "./brief-drafter";
 export type * from "./keyword-provider";
 export type * from "./metrics-source";
 export type * from "./publisher";

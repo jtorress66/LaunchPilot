@@ -182,6 +182,16 @@ importers:
       '@launchpilot/ports':
         specifier: workspace:*
         version: link:../ports
+      zod:
+        specifier: 3.25.76
+        version: 3.25.76
+    devDependencies:
+      '@launchpilot/testing':
+        specifier: workspace:*
+        version: link:../testing
+      vitest:
+        specifier: 3.2.7
+        version: 3.2.7(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.32.0)(msw@2.15.0(@types/node@22.20.5)(typescript@5.9.3))(tsx@4.20.6)(yaml@2.9.1)
 
   packages/application:
     dependencies:

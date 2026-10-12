@@ -11,7 +11,11 @@ export interface LlmRequest {
   readonly messages: readonly LlmMessage[];
   readonly maxTokens: number;
   readonly temperature?: number;
+  /** Ask for JSON matching this schema; providers map it to their structured output feature. */
+  readonly responseFormat?: { readonly type: "json_schema"; readonly schema: JsonSchema };
 }
+
+export type JsonSchema = Readonly<Record<string, unknown>>;
 
 export interface LlmResponse {
   readonly text: string;
