@@ -39,6 +39,7 @@ const noFrameworksOrIo = [
       "stripe",
       "@anthropic-ai/*",
       "node-html-parser",
+      "marked",
       "node:*",
       "fs",
       "http",

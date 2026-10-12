@@ -74,6 +74,8 @@ const allowed: Record<
   draft: { submit: "in_review", edit: "draft", archive: "archived" },
   in_review: {
     requestChanges: "draft",
+    // The founder may edit a draft that is waiting for their review.
+    edit: "draft",
     approve: "approved",
     reject: "rejected",
     archive: "archived",

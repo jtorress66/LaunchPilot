@@ -67,6 +67,7 @@ const machine = defineTransitions<ContentItemStatus, EventType>({
   draft: { submit: "in_review", edit: "draft", archive: "archived" },
   in_review: {
     requestChanges: "draft",
+    edit: "draft",
     approve: "approved",
     reject: "rejected",
     archive: "archived",

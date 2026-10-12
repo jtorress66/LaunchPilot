@@ -62,7 +62,7 @@ describe("architecture", () => {
     "%s production code imports no adapters, SDKs, frameworks or I/O modules",
     (name) => {
       const forbidden =
-        /^(@launchpilot\/(application|adapters|testing|web|worker)|next|react|react-dom|pg|kysely|stripe|node:|fs$|http$|https$|@anthropic-ai\/|node-html-parser)/;
+        /^(@launchpilot\/(application|adapters|testing|web|worker)|next|react|react-dom|pg|kysely|stripe|node:|fs$|http$|https$|@anthropic-ai\/|node-html-parser|marked)/;
       const violations = sourceFiles(join(root, "packages", name, "src"))
         .filter((file) => !file.endsWith(".test.ts"))
         .flatMap((file) =>
