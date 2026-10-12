@@ -5,6 +5,7 @@ import { spawnSync } from "node:child_process";
 const suites = [
   ["--filter", "@launchpilot/worker", "eval"],
   ["--filter", "@launchpilot/worker", "eval:seo"],
+  ["--filter", "@launchpilot/worker", "eval:social"],
 ];
 for (const suite of suites) {
   const { status } = spawnSync("pnpm", ["--silent", ...suite], { stdio: "inherit" });

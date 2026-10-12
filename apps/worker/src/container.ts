@@ -2,7 +2,7 @@ import { PublishDueContent, PublisherRegistry } from "@launchpilot/application";
 import { BriefAgent, SeoArticleWriter, SocialPostWriter } from "@launchpilot/agents";
 import {
   AesGcmTokenCipher,
-  AyrsharePublisher,
+  runAyrshareSmoke,
   AyrsharePublisherProvider,
   createPostgresRepositories,
   WordPressPublisherProvider,
@@ -103,6 +103,15 @@ export const createPublishDue = (config: PublisherConfig) => {
   };
 };
 
-/** A publisher for the CI smoke check's own test profile. */
-export const createSmokePublisher = (config: AyrshareConfig, profileKey: string) =>
-  new AyrsharePublisher("x", profileKey, ayrshareOptions(config));
+/** The CI smoke check: one real post to the test profile's X account, then deleted. */
+export const runSocialSmoke = (
+  { apiKey, xCredentials }: { apiKey: string; xCredentials: AyrshareConfig["xCredentials"] },
+  profileKey: string,
+  text: string,
+) =>
+  // Linking is not exercised, so the JWT domain and private key are not needed.
+  runAyrshareSmoke(
+    ayrshareOptions({ apiKey, domain: "", privateKey: "", baseUrl: null, xCredentials }),
+    profileKey,
+    text,
+  );

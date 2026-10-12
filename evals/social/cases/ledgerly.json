@@ -1,0 +1,33 @@
+{
+  "name": "ledgerly",
+  "forbidden": ["CPA-certified", "IRS approved", "tax advice", "100,000", "bank-grade"],
+  "brief": {
+    "audience": "Freelancers in the US, UK and Canada who do their own bookkeeping",
+    "problem": "Freelancers lose evenings every quarter matching receipts to bank transactions",
+    "solution": "Ledgerly sorts bank transactions into income and expenses automatically and matches receipts you snap with your phone",
+    "differentiators": [
+      "Shows what to set aside for taxes every time you get paid",
+      "Read-only bank connection"
+    ],
+    "tone": "Friendly and reassuring",
+    "facts": [
+      "Free for 30 days, then $12 per month",
+      "Connects to your bank with read-only access through Plaid",
+      "Exports everything to CSV or sends it to your accountant in one click"
+    ]
+  },
+  "angles": [
+    {
+      "channel": "x",
+      "angle": "Worth knowing: Free for 30 days, then $12 per month"
+    },
+    {
+      "channel": "x",
+      "angle": "Why it matters: Read-only bank connection"
+    },
+    {
+      "channel": "linkedin",
+      "angle": "How we solve it: Ledgerly sorts bank transactions into income and expenses automatically and matches receipts you snap with your phone"
+    }
+  ]
+}

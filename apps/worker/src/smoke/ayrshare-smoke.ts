@@ -1,6 +1,6 @@
 // `pnpm smoke:social`: posts one real test post to X through Ayrshare on a dedicated test
 // profile, then deletes it. Proves the API key, the linked X account and the response format.
-import { runAyrshareSmoke, SystemClock } from "@launchpilot/adapters";
+import { runSocialSmoke } from "../container";
 
 function fail(message: string): never {
   console.error(`smoke:social: ${message}`);
@@ -23,15 +23,8 @@ if (!xKey || !xSecret) {
 }
 
 const runId = process.env.GITHUB_RUN_ID ?? String(Date.now());
-const result = await runAyrshareSmoke(
-  // Linking is not exercised here, so the JWT domain and key are not needed.
-  {
-    apiKey,
-    domain: "",
-    privateKey: "",
-    xCredentials: { apiKey: xKey, apiSecret: xSecret },
-    clock: new SystemClock(),
-  },
+const result = await runSocialSmoke(
+  { apiKey, xCredentials: { apiKey: xKey, apiSecret: xSecret } },
   profileKey,
   `LaunchPilot CI smoke test ${runId}`,
 );
