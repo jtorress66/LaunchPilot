@@ -53,6 +53,7 @@ const events = {
   markFailed: { type: "markFailed", reason: "API timeout" },
   retry: { type: "retry", publishAt: later },
   archive: { type: "archive" },
+  recordPublishAttempt: { type: "recordPublishAttempt" },
 } as const satisfies Record<ContentItemEvent["type"], ContentItemEvent>;
 
 /** Shortest path from a fresh draft to each status, using a publishable channel. */
@@ -91,6 +92,8 @@ const allowed: Record<
     markPublished: "published",
     markFailed: "failed",
     edit: "draft",
+    // The worker counts failed attempts so it can give up after a few.
+    recordPublishAttempt: "scheduled",
   },
   failed: { retry: "scheduled", edit: "draft", archive: "archived" },
   rejected: { edit: "draft", archive: "archived" },
@@ -145,6 +148,7 @@ describe("ContentItem state machine", () => {
         publishAt: null,
         publication: null,
         failure: null,
+        publishAttempts: 0,
       });
     });
 
@@ -394,5 +398,55 @@ describe("ContentItem state machine", () => {
       const result = toPublishable(apply(draft("reddit"), events.submit, events.approve));
       expect(result.ok ? undefined : result.error.code).toBe("channel_is_draft_only");
     });
+  });
+});
+
+describe("channel length limits", () => {
+  const create = (channel: Channel, body: string) =>
+    createContentItem({
+      id: contentItemId("item_1"),
+      productId: productId("prod_1"),
+      taskId: taskId("task_1"),
+      channel,
+      title: "Post",
+      body,
+      createdBy: { kind: "agent", agent: "social" },
+      now: t0,
+    });
+
+  it("accepts an X post of exactly 280 characters and refuses a longer one", () => {
+    expect(create("x", "a".repeat(280)).ok).toBe(true);
+    expect(create("x", "a".repeat(281))).toEqual({
+      ok: false,
+      error: { code: "invalid_text", message: "Body must be at most 280 characters" },
+    });
+  });
+
+  it("applies the channel's limit to edits too", () => {
+    const post = apply(draft("x"), events.submit);
+    const result = transition(post, { type: "edit", body: "b".repeat(281) }, ctx);
+    expect(result.ok ? undefined : result.error.message).toBe(
+      "Body must be at most 280 characters",
+    );
+    expect(transition(post, { type: "edit", body: "b".repeat(280) }, ctx).ok).toBe(true);
+  });
+});
+
+describe("publish attempts", () => {
+  it("start at zero and count each failed attempt while scheduled", () => {
+    const scheduled = apply(draft("x"), ...pathTo.scheduled);
+    expect(scheduled.publishAttempts).toBe(0);
+    expect(
+      apply(scheduled, events.recordPublishAttempt, events.recordPublishAttempt),
+    ).toMatchObject({
+      status: "scheduled",
+      publishAttempts: 2,
+    });
+  });
+
+  it("reset when the founder retries or edits", () => {
+    const tried = apply(draft("x"), ...pathTo.scheduled, events.recordPublishAttempt);
+    expect(apply(tried, events.markFailed, events.retry).publishAttempts).toBe(0);
+    expect(apply(tried, events.edit).publishAttempts).toBe(0);
   });
 });

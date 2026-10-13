@@ -11,6 +11,7 @@ export type TaskId = Brand<string, "TaskId">;
 export type ContentItemId = Brand<string, "ContentItemId">;
 export type UserId = Brand<string, "UserId">;
 export type ChannelConnectionId = Brand<string, "ChannelConnectionId">;
+export type SocialProfileId = Brand<string, "SocialProfileId">;
 
 /** Ids come from the IdGenerator port or storage, so an empty one is a programmer error. */
 const nonEmptyId = (value: string): string => {
@@ -26,3 +27,4 @@ export const taskId = (value: string) => nonEmptyId(value) as TaskId;
 export const contentItemId = (value: string) => nonEmptyId(value) as ContentItemId;
 export const userId = (value: string) => nonEmptyId(value) as UserId;
 export const channelConnectionId = (value: string) => nonEmptyId(value) as ChannelConnectionId;
+export const socialProfileId = (value: string) => nonEmptyId(value) as SocialProfileId;

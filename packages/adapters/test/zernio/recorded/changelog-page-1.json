@@ -1,0 +1,41 @@
+{
+  "entries": [
+    {
+      "id": "chg_posts_field_removed",
+      "type": "breaking_change",
+      "impact": "action_required",
+      "platforms": ["x"],
+      "message": "**Posts:** `platformPostUrl` moves from `post.platforms[]` to `post.results[]`.\n\nUpdate parsers before 2026-12-01.",
+      "publishedAt": "2026-10-11T09:00:00.000Z",
+      "specVersion": "1.180.0",
+      "url": "https://docs.zernio.com/changelog#chg_posts_field_removed",
+      "changes": {
+        "endpoints": {
+          "added": [],
+          "removed": [],
+          "modified": [{ "method": "POST", "path": "/v1/posts", "operationId": "createPost" }]
+        },
+        "schemas": { "added": [], "removed": [], "modified": ["PlatformTarget"] }
+      }
+    },
+    {
+      "id": "chg_tiktok_feature",
+      "type": "new_feature",
+      "impact": "additive",
+      "platforms": ["tiktok"],
+      "message": "TikTok carousels can now be scheduled.",
+      "publishedAt": "2026-10-10T09:00:00.000Z",
+      "specVersion": "1.179.0",
+      "url": "https://docs.zernio.com/changelog#chg_tiktok_feature",
+      "changes": {
+        "endpoints": {
+          "added": [{ "method": "POST", "path": "/v1/tiktok/carousels" }],
+          "removed": [],
+          "modified": []
+        },
+        "schemas": { "added": ["TikTokCarousel"], "removed": [], "modified": [] }
+      }
+    }
+  ],
+  "nextCursor": "2026-10-10T09:00:00.000Z"
+}

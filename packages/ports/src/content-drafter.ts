@@ -8,6 +8,8 @@ export interface DraftRequest {
   readonly keywords?: readonly string[];
   /** Reviewer or founder feedback on the previous revision. */
   readonly revisionNote?: string;
+  /** A URL the content must include, e.g. the article a social post promotes. */
+  readonly link?: string;
 }
 
 export interface Draft {

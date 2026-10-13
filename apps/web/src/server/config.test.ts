@@ -10,6 +10,7 @@ const base = {
   TOKEN_ENCRYPTION_KEY: KEY,
   DATAFORSEO_LOGIN: "founder@acme.dev",
   DATAFORSEO_PASSWORD: "dfs-password",
+  ZERNIO_API_KEY: "sk_test_zernio",
 };
 const local = {
   ...base,
@@ -45,6 +46,10 @@ describe("parseWebConfig", () => {
             baseUrl: null,
           },
           writer: { kind: "claude", apiKey: "sk-ant-test-key", model: "claude-opus-5-5" },
+        },
+        social: {
+          writer: { kind: "claude", apiKey: "sk-ant-test-key", model: "claude-opus-5-5" },
+          zernio: { apiKey: "sk_test_zernio", baseUrl: null },
         },
       },
     });
@@ -119,7 +124,8 @@ describe("parseWebConfig AI settings", () => {
   it("needs ANTHROPIC_API_KEY to draft briefs or articles with Claude", () => {
     expect(parseWebConfig({ ...stripe, ANTHROPIC_API_KEY: undefined })).toEqual({
       ok: false,
-      error: "ANTHROPIC_API_KEY is required when BRIEF_DRAFTER or ARTICLE_WRITER is claude",
+      error:
+        "ANTHROPIC_API_KEY is required when BRIEF_DRAFTER, ARTICLE_WRITER or SOCIAL_WRITER is claude",
     });
   });
 
@@ -133,6 +139,7 @@ describe("parseWebConfig AI settings", () => {
         BRIEF_DRAFTER: "extractive",
         ARTICLE_WRITER: "template",
         KEYWORD_PROVIDER: "offline",
+        SOCIAL_WRITER: "template",
         ALLOW_PRIVATE_NETWORK: "true",
       }),
     ).toMatchObject({
@@ -173,6 +180,51 @@ describe("parseWebConfig keyword settings", () => {
     ).toMatchObject({
       ok: true,
       value: { seo: { keywords: { baseUrl: "http://127.0.0.1:4010/dataforseo" } } },
+    });
+  });
+});
+
+describe("parseWebConfig social settings", () => {
+  it("needs ZERNIO_API_KEY", () => {
+    expect(parseWebConfig({ ...stripe, ZERNIO_API_KEY: undefined })).toEqual({
+      ok: false,
+      error: "ZERNIO_API_KEY is required",
+    });
+  });
+
+  it("can point Zernio at another base URL, for tests", () => {
+    expect(
+      parseWebConfig({ ...local, ZERNIO_BASE_URL: "http://127.0.0.1:4020/api" }),
+    ).toMatchObject({
+      ok: true,
+      value: { social: { zernio: { baseUrl: "http://127.0.0.1:4020/api" } } },
+    });
+    expect(parseWebConfig({ ...local, ZERNIO_BASE_URL: "stub" }).ok).toBe(false);
+  });
+
+  it("writes posts with the offline template writer only in development and test", () => {
+    expect(parseWebConfig({ ...local, SOCIAL_WRITER: "template" })).toMatchObject({
+      ok: true,
+      value: { social: { writer: { kind: "template" } } },
+    });
+    expect(parseWebConfig({ ...stripe, SOCIAL_WRITER: "template" })).toEqual({
+      ok: false,
+      error: "SOCIAL_WRITER=template is only allowed when APP_ENV is development or test",
+    });
+  });
+
+  it("needs ANTHROPIC_API_KEY to write posts with Claude", () => {
+    expect(
+      parseWebConfig({
+        ...local,
+        ANTHROPIC_API_KEY: undefined,
+        BRIEF_DRAFTER: "extractive",
+        ARTICLE_WRITER: "template",
+      }),
+    ).toEqual({
+      ok: false,
+      error:
+        "ANTHROPIC_API_KEY is required when BRIEF_DRAFTER, ARTICLE_WRITER or SOCIAL_WRITER is claude",
     });
   });
 });

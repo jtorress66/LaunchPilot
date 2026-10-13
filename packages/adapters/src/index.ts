@@ -30,3 +30,14 @@ export { WordPressPublisher } from "./wordpress/wordpress-publisher";
 export { WordPressPublisherProvider } from "./wordpress/wordpress-publisher-provider";
 export { DataForSeoKeywordProvider } from "./dataforseo/dataforseo-keyword-provider";
 export { SeedKeywordProvider } from "./offline/seed-keyword-provider";
+export type { ZernioOptions } from "./zernio/api";
+export { ZernioAccountLinker } from "./zernio/zernio-account-linker";
+export { ZernioPublisher } from "./zernio/zernio-publisher";
+export { ZernioPublisherProvider } from "./zernio/zernio-publisher-provider";
+export { runZernioSmoke } from "./zernio/zernio-smoke";
+export {
+  assessZernioChange,
+  fetchZernioChangelog,
+  type ZernioChangeAssessment,
+  type ZernioChangelogEntry,
+} from "./zernio/changelog";

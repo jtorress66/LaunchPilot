@@ -24,3 +24,6 @@ export * from "./brief/grounding";
 export * from "./shared/month";
 export * from "./seo/keyword-opportunity";
 export * from "./connections/channel-connection";
+export * from "./social/post-angles";
+export * from "./social/social-profile";
+export * from "./calendar/calendar";

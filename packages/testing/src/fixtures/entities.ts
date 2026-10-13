@@ -5,6 +5,7 @@ import {
   createBlogConnection,
   createContentItem,
   createProduct,
+  createSocialProfile,
   createTask,
   createWorkspace,
   toPublishable,
@@ -27,6 +28,8 @@ import {
   type ProductId,
   type PublishableContentItem,
   type Result,
+  type SocialProfile,
+  type SocialProfileId,
   type Task,
   type TaskId,
   type TaskKind,
@@ -37,6 +40,7 @@ import {
   channelConnectionId,
   contentItemId,
   productId,
+  socialProfileId,
   taskId,
   userId,
   workspaceId,
@@ -213,6 +217,18 @@ export const aBlogConnection = (
       siteName: "Acme Blog",
       username: "admin",
       encryptedSecret: "v1:fixture-ciphertext",
+      now: fixtureNow,
+    }),
+  );
+
+export const aSocialProfile = (
+  overrides: Partial<{ id: SocialProfileId; productId: ProductId }> = {},
+): SocialProfile =>
+  unwrap(
+    createSocialProfile({
+      id: overrides.id ?? socialProfileId("sp_1"),
+      productId: overrides.productId ?? productId("prod_1"),
+      externalProfileId: "zp_fixture",
       now: fixtureNow,
     }),
   );

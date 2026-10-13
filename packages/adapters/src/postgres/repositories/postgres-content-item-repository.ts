@@ -33,6 +33,22 @@ export class PostgresContentItemRepository implements ContentItemRepository {
     return rows.map(contentItemMapper.fromRow);
   }
 
+  async listByStatusForProducts(
+    status: ContentItemStatus,
+    productIds: readonly ProductId[],
+  ): Promise<readonly ContentItem[]> {
+    if (productIds.length === 0) return [];
+    const rows = await this.db
+      .selectFrom("content_items")
+      .selectAll()
+      .where("status", "=", status)
+      .where("product_id", "in", productIds)
+      .orderBy("updated_at")
+      .orderBy("id")
+      .execute();
+    return rows.map(contentItemMapper.fromRow);
+  }
+
   async listByProduct(productId: ProductId): Promise<readonly ContentItem[]> {
     const rows = await this.db
       .selectFrom("content_items")

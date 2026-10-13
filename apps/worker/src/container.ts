@@ -1,5 +1,13 @@
-import { BriefAgent, SeoArticleWriter } from "@launchpilot/agents";
+import { PublishDueContent, PublisherRegistry } from "@launchpilot/application";
+import { BriefAgent, SeoArticleWriter, SocialPostWriter } from "@launchpilot/agents";
 import {
+  AesGcmTokenCipher,
+  createPostgresRepositories,
+  WordPressPublisherProvider,
+  ZernioPublisherProvider,
+  runZernioSmoke,
+  assessZernioChange,
+  fetchZernioChangelog,
   DataForSeoKeywordProvider,
   ClaudeLlmClient,
   createDatabase,
@@ -8,7 +16,7 @@ import {
   migrateToLatest,
   SystemClock,
 } from "@launchpilot/adapters";
-import type { DatabaseConfig, StripeSetupConfig } from "./config";
+import type { DatabaseConfig, PublisherConfig, StripeSetupConfig, ZernioConfig } from "./config";
 import type { EvalConfig } from "./eval/brief-eval";
 import { MeteredLlmClient } from "./eval/metered-llm-client";
 import type { HeartbeatDeps } from "./heartbeat";
@@ -56,3 +64,56 @@ export const createKeywordProvider = ({
   password: string;
   baseUrl: string | undefined;
 }) => new DataForSeoKeywordProvider({ login, password, ...(baseUrl ? { baseUrl } : {}) });
+
+/** The SEO article writer's sibling for X and LinkedIn, metered for the social-post eval. */
+export const createSocialEvalWriter = ({ apiKey, model }: EvalConfig) => {
+  const meter = new MeteredLlmClient(new ClaudeLlmClient({ apiKey, model }));
+  return { writer: new SocialPostWriter(meter), meter };
+};
+
+const zernioOptions = ({ apiKey, baseUrl }: ZernioConfig) => ({
+  apiKey,
+  clock: container.clock,
+  ...(baseUrl === null ? {} : { baseUrl }),
+});
+
+/** The scheduled publish job over Postgres, with one publisher provider per channel. */
+export const createPublishDue = (config: PublisherConfig) => {
+  const db = createDatabase(config.connectionString);
+  const repositories = createPostgresRepositories(db);
+  const cipher = new AesGcmTokenCipher(config.tokenEncryptionKey);
+  const zernio = zernioOptions(config.zernio);
+  const publishers = new PublisherRegistry([
+    new WordPressPublisherProvider(repositories.channelConnections, cipher, {
+      allowPrivateNetwork: config.allowPrivateNetwork,
+      clock: container.clock,
+    }),
+    new ZernioPublisherProvider("x", repositories.socialProfiles, zernio),
+    new ZernioPublisherProvider("linkedin", repositories.socialProfiles, zernio),
+  ]);
+  return {
+    publishDue: new PublishDueContent({
+      contentItems: repositories.contentItems,
+      tasks: repositories.tasks,
+      publishers,
+      clock: container.clock,
+    }),
+    close: () => db.destroy(),
+  };
+};
+
+/** The CI smoke check against the real API: read-only, it never posts. */
+export const runSocialSmoke = (config: ZernioConfig) => runZernioSmoke(zernioOptions(config));
+
+/** Zernio changelog entries since `since` that affect the integration, with the reasons. */
+export const findAffectingZernioChanges = async (since: Date) => {
+  const entries = await fetchZernioChangelog({ since });
+  if (!entries.ok) return entries;
+  return {
+    ok: true as const,
+    value: entries.value.flatMap((entry) => {
+      const { affected, reasons } = assessZernioChange(entry);
+      return affected ? [{ ...entry, reasons }] : [];
+    }),
+  };
+};

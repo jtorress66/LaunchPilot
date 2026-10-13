@@ -1,0 +1,4 @@
+{
+  "authUrl": "https://twitter.com/i/oauth2/authorize?response_type=code&client_id=zernio&state=recorded",
+  "state": "recorded"
+}

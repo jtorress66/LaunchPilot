@@ -119,6 +119,27 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm smoke:keywords
 
+  zernio-smoke:
+    name: Zernio smoke check (real API)
+    runs-on: ubuntu-latest
+    env:
+      ZERNIO_API_KEY: ${{ secrets.ZERNIO_API_KEY }}
+    steps:
+      - name: Require the Zernio API key
+        run: |
+          if [ -z "$ZERNIO_API_KEY" ]; then
+            echo "::error::Add the ZERNIO_API_KEY repository secret (Settings → Secrets and variables → Actions). See README → Social module."
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm smoke:social
+
   e2e-stripe:
     name: E2E against Stripe test mode
     runs-on: ubuntu-latest
@@ -129,6 +150,8 @@ jobs:
       # This journey never researches keywords; the production config only needs them present.
       DATAFORSEO_LOGIN: unused-in-the-stripe-journey
       DATAFORSEO_PASSWORD: unused-in-the-stripe-journey
+      # Nor does it post to social accounts.
+      ZERNIO_API_KEY: unused-in-the-stripe-journey
       DATABASE_URL: postgres://launchpilot:launchpilot@localhost:5432/launchpilot
       APP_URL: http://localhost:3000
       BILLING_PROVIDER: stripe

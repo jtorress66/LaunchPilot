@@ -22,7 +22,9 @@
     "db:migrate": "pnpm --filter @launchpilot/worker migrate",
     "stripe:setup": "pnpm --filter @launchpilot/worker stripe:setup",
     "test:e2e:stripe": "playwright test --config playwright.stripe.config.ts",
-    "smoke:keywords": "pnpm --filter @launchpilot/worker smoke:keywords"
+    "smoke:keywords": "pnpm --filter @launchpilot/worker smoke:keywords",
+    "smoke:social": "pnpm --filter @launchpilot/worker smoke:social",
+    "watch:zernio": "pnpm --filter @launchpilot/worker watch:zernio"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",

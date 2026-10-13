@@ -4,7 +4,9 @@ import {
   blogConnectionForm,
   briefForm,
   parseForm,
+  postForm,
   productForm,
+  scheduleForm,
   seedKeywordsForm,
   signUpForm,
   upgradeForm,
@@ -150,6 +152,42 @@ describe("form parsing", () => {
     expect(parseForm(articleForm, form({ title: "x".repeat(201), body: "b" }))).toEqual({
       ok: false,
       error: { title: "Use at most 200 characters" },
+    });
+  });
+});
+
+describe("post and schedule forms", () => {
+  it("accepts post text up to LinkedIn's limit; the domain enforces each channel's own", () => {
+    expect(parseForm(postForm, form({ body: "Hello" }))).toEqual({
+      ok: true,
+      value: { body: "Hello" },
+    });
+    expect(parseForm(postForm, form({ body: " " }))).toEqual({
+      ok: false,
+      error: { body: "The post needs text" },
+    });
+    expect(parseForm(postForm, form({ body: "a".repeat(3001) })).ok).toBe(false);
+  });
+
+  it("turns the founder's local date and time into UTC using their timezone offset", () => {
+    // getTimezoneOffset() is 300 in New York in winter (UTC-5).
+    expect(
+      parseForm(scheduleForm, form({ publishAt: "2026-12-01T09:30", tzOffset: "300" })),
+    ).toEqual({ ok: true, value: { publishAt: new Date("2026-12-01T14:30:00.000Z") } });
+    expect(
+      parseForm(scheduleForm, form({ publishAt: "2026-12-01T09:30", tzOffset: "-60" })),
+    ).toEqual({ ok: true, value: { publishAt: new Date("2026-12-01T08:30:00.000Z") } });
+  });
+
+  it.each([
+    [{ publishAt: "", tzOffset: "0" }, "publishAt", "Choose a date and time"],
+    [{ publishAt: "tomorrow", tzOffset: "0" }, "publishAt", "Choose a date and time"],
+    [{ publishAt: "2026-12-01T09:30", tzOffset: "abc" }, "tzOffset", "Unknown timezone"],
+    [{ publishAt: "2026-12-01T09:30", tzOffset: "9999" }, "tzOffset", "Unknown timezone"],
+  ])("refuses %o", (entries, field, message) => {
+    expect(parseForm(scheduleForm, form(entries))).toEqual({
+      ok: false,
+      error: { [field]: message },
     });
   });
 });

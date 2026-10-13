@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseDatabaseConfig, parseStripeSetupConfig } from "./config";
+import { parseDatabaseConfig, parsePublisherConfig, parseStripeSetupConfig } from "./config";
 
 describe("parseDatabaseConfig", () => {
   it.each([
@@ -48,5 +48,56 @@ describe("parseStripeSetupConfig", () => {
       ok: false,
       error: "STRIPE_SECRET_KEY is required",
     });
+  });
+});
+
+describe("parsePublisherConfig", () => {
+  const KEY = Buffer.alloc(32, 7).toString("base64");
+  const env = {
+    DATABASE_URL: "postgres://localhost/launchpilot",
+    TOKEN_ENCRYPTION_KEY: KEY,
+    ZERNIO_API_KEY: "sk_test_zernio",
+  };
+
+  it("reads what the publish job needs", () => {
+    expect(parsePublisherConfig(env)).toEqual({
+      ok: true,
+      value: {
+        connectionString: "postgres://localhost/launchpilot",
+        tokenEncryptionKey: KEY,
+        allowPrivateNetwork: false,
+        intervalMs: 60_000,
+        zernio: { apiKey: "sk_test_zernio", baseUrl: null },
+      },
+    });
+  });
+
+  it("accepts a Zernio base URL and an interval", () => {
+    const result = parsePublisherConfig({
+      ...env,
+      ZERNIO_BASE_URL: "http://127.0.0.1:4020/api",
+      PUBLISH_INTERVAL_MS: "30000",
+      APP_ENV: "test",
+      ALLOW_PRIVATE_NETWORK: "true",
+    });
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        intervalMs: 30_000,
+        allowPrivateNetwork: true,
+        zernio: { baseUrl: "http://127.0.0.1:4020/api" },
+      },
+    });
+  });
+
+  it.each([
+    [{ ZERNIO_API_KEY: undefined }, "ZERNIO_API_KEY is required"],
+    [{ TOKEN_ENCRYPTION_KEY: "short" }, "TOKEN_ENCRYPTION_KEY must be 32 random bytes"],
+    [{ ZERNIO_BASE_URL: "stub" }, "ZERNIO_BASE_URL must be an absolute URL"],
+    [{ ALLOW_PRIVATE_NETWORK: "true" }, "ALLOW_PRIVATE_NETWORK is only allowed"],
+    [{ PUBLISH_INTERVAL_MS: "500" }, "PUBLISH_INTERVAL_MS must be at least 5000"],
+  ])("refuses %o", (override, message) => {
+    const result = parsePublisherConfig({ ...env, ...override });
+    expect(result.ok ? undefined : result.error).toContain(message);
   });
 });

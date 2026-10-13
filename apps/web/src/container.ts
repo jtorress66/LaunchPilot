@@ -1,6 +1,13 @@
 import {
   ApproveContentItem,
   ConnectBlog,
+  ConnectSocial,
+  DraftSocialWeek,
+  GetInbox,
+  GetSocialOverview,
+  RefreshSocialLinks,
+  SchedulePost,
+  UnschedulePost,
   DraftSeoArticle,
   GetContentItem,
   GetSeoOverview,
@@ -25,7 +32,9 @@ import {
   BriefAgent,
   ExtractiveBriefDrafter,
   SeoArticleWriter,
+  SocialPostWriter,
   TemplateArticleWriter,
+  TemplatePostWriter,
 } from "@launchpilot/agents";
 import {
   AesGcmTokenCipher,
@@ -47,6 +56,8 @@ import {
   StripeWebhookVerifier,
   SystemClock,
   UuidIdGenerator,
+  ZernioAccountLinker,
+  ZernioPublisherProvider,
 } from "@launchpilot/adapters";
 import { parseWebConfig, type ClaudeConfig, type WebConfig } from "./server/config";
 import type { HealthHandlerDeps } from "./server/health-handler";
@@ -87,6 +98,15 @@ const articleWriterFor = ({ writer }: WebConfig["seo"]) =>
     ? new SeoArticleWriter(claudeClient(writer))
     : new TemplateArticleWriter();
 
+const socialWriterFor = ({ writer }: WebConfig["social"]) =>
+  writer.kind === "claude" ? new SocialPostWriter(claudeClient(writer)) : new TemplatePostWriter();
+
+const zernioOptionsFor = ({ zernio }: WebConfig["social"]) => ({
+  apiKey: zernio.apiKey,
+  clock: container.clock,
+  ...(zernio.baseUrl === null ? {} : { baseUrl: zernio.baseUrl }),
+});
+
 const keywordProviderFor = ({ keywords }: WebConfig["seo"]) =>
   keywords.kind === "dataforseo"
     ? new DataForSeoKeywordProvider({
@@ -101,6 +121,7 @@ const build = (config: WebConfig) => {
   const repositories = createPostgresRepositories(createDatabase(config.databaseUrl));
   const network = { allowPrivateNetwork: config.allowPrivateNetwork };
   const cipher = new AesGcmTokenCipher(config.tokenEncryptionKey);
+  const zernio = zernioOptionsFor(config.social);
   const deps = {
     ...repositories,
     ...billing,
@@ -111,12 +132,16 @@ const build = (config: WebConfig) => {
     keywords: keywordProviderFor(config.seo),
     cipher,
     blogVerifier: new WordPressConnectionVerifier(network),
-    // One provider per channel; step 7 registers X and LinkedIn here.
+    socialWriter: socialWriterFor(config.social),
+    linker: new ZernioAccountLinker(zernio),
+    // One provider per channel: adding a channel means registering its provider here.
     publishers: new PublisherRegistry([
       new WordPressPublisherProvider(repositories.channelConnections, cipher, {
         ...network,
         clock: container.clock,
       }),
+      new ZernioPublisherProvider("x", repositories.socialProfiles, zernio),
+      new ZernioPublisherProvider("linkedin", repositories.socialProfiles, zernio),
     ]),
     clock: container.clock,
     ids: new UuidIdGenerator(),
@@ -148,6 +173,13 @@ const build = (config: WebConfig) => {
     publishContentItem: new PublishContentItem(deps),
     getSeoOverview: new GetSeoOverview(deps),
     getContentItem: new GetContentItem(deps),
+    connectSocial: new ConnectSocial(deps),
+    refreshSocialLinks: new RefreshSocialLinks(deps),
+    draftSocialWeek: new DraftSocialWeek(deps),
+    schedulePost: new SchedulePost(deps),
+    unschedulePost: new UnschedulePost(deps),
+    getInbox: new GetInbox(deps),
+    getSocialOverview: new GetSocialOverview(deps),
   };
 };
 

@@ -62,3 +62,38 @@ export const connectWordPress = async (page: Page, password = wordpress().passwo
   await page.getByLabel("Application Password").fill(password);
   await page.getByRole("button", { name: /Connect blog|Reconnect blog/ }).click();
 };
+
+/** The local Zernio stub started by scripts/e2e.mjs. */
+export const zernioStub = () => {
+  const url = process.env.E2E_ZERNIO_URL;
+  if (!url) throw new Error("Run E2E through `pnpm test:e2e`");
+  return url;
+};
+
+/** Signs up with an approved brief, then opens the product's Social page. */
+export const onSocialPage = async (page: Page) => {
+  await onBriefPage(page);
+  await draftBrief(page);
+  await page.getByRole("button", { name: "Approve brief" }).click();
+  await expect(page.getByTestId("brief-status")).toHaveText("Approved");
+  await page.goto(page.url().replace(/\/brief$/, "/social"));
+  await expect(page.getByRole("heading", { name: "Social", exact: true })).toBeVisible();
+};
+
+/** Drafts the week's posts and waits for all five. */
+export const draftSocialWeek = async (page: Page) => {
+  await page.getByRole("button", { name: "Draft this week's posts" }).click();
+  await expect(page.getByRole("list", { name: "Posts" }).getByRole("listitem")).toHaveCount(5);
+};
+
+/** Opens the first X post waiting in the inbox. */
+export const openFirstXPostFromInbox = async (page: Page) => {
+  await page.goto("/app/inbox");
+  const xPost = page
+    .getByRole("list", { name: "Waiting for approval" })
+    .getByRole("listitem")
+    .filter({ has: page.getByText("X", { exact: true }) })
+    .first();
+  await xPost.getByRole("link", { name: "Open" }).click();
+  await expect(page.getByLabel("X post")).toBeVisible();
+};

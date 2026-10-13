@@ -3,6 +3,7 @@ import type {
   ChannelConnection,
   Email,
   Session,
+  SocialProfile,
   Subscription,
   User,
   UserId,
@@ -72,6 +73,10 @@ export interface TaskRepository extends Repository<TaskId, Task> {
 
 export interface ContentItemRepository extends Repository<ContentItemId, ContentItem> {
   listByStatus(status: ContentItemStatus): Promise<readonly ContentItem[]>;
+  listByStatusForProducts(
+    status: ContentItemStatus,
+    productIds: readonly ProductId[],
+  ): Promise<readonly ContentItem[]>;
   /** Newest first. */
   listByProduct(productId: ProductId): Promise<readonly ContentItem[]>;
   /** Items of these products created at or after `since`, for monthly plan limits. */
@@ -85,4 +90,10 @@ export interface ChannelConnectionRepository {
   ): Promise<ChannelConnection | undefined>;
   /** Inserts or replaces the connection for the same product and channel. */
   save(connection: ChannelConnection): Promise<void>;
+}
+
+export interface SocialProfileRepository {
+  findByProduct(productId: ProductId): Promise<SocialProfile | undefined>;
+  /** Inserts or replaces the profile of the same product. */
+  save(profile: SocialProfile): Promise<void>;
 }

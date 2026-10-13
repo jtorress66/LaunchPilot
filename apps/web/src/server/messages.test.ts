@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { draftFailureMessage, fieldFor, keywordFailureMessage } from "./messages";
+import {
+  draftFailureMessage,
+  fieldFor,
+  keywordFailureMessage,
+  publishFailureMessage,
+  socialFailureMessage,
+} from "./messages";
 
 describe("fieldFor", () => {
   it.each([
@@ -51,5 +57,31 @@ describe("keywordFailureMessage", () => {
     expect(keywordFailureMessage({ code: "brief_not_approved", message: "Approve it" })).toBe(
       "Approve it",
     );
+  });
+});
+
+describe("socialFailureMessage", () => {
+  it("keeps provider details out of an outage message", () => {
+    expect(
+      socialFailureMessage({ code: "unavailable", message: "Zernio is unavailable (HTTP 503)" }),
+    ).toBe("Social accounts are unavailable right now. Try again in a minute.");
+  });
+
+  it("explains a refusal and passes other errors through", () => {
+    expect(socialFailureMessage({ code: "rejected", message: "x" })).toBe(
+      "The social account service refused the request. Check the Zernio settings.",
+    );
+    expect(socialFailureMessage({ code: "product_not_found", message: "Missing" })).toBe("Missing");
+  });
+});
+
+describe("publishFailureMessage", () => {
+  it("tells the founder what to do", () => {
+    expect(publishFailureMessage({ code: "unavailable", message: "HTTP 502" })).toBe(
+      "The channel is unavailable right now. Try again in a minute.",
+    );
+    expect(
+      publishFailureMessage({ code: "not_connected", message: "Link your X account first" }),
+    ).toBe("Link your X account first");
   });
 });

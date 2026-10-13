@@ -18,3 +18,5 @@ export * from "./billing-webhook-verifier.contract";
 export * from "./brief-drafter.contract";
 export * from "./blog-connection-verifier.contract";
 export * from "./publisher-provider.contract";
+export * from "./social-account-linker.contract";
+export * from "./social-profile-repository.contract";

@@ -5,9 +5,12 @@ import { Logo } from "../logo";
 export function AppHeader({
   workspaceName,
   email,
+  inboxCount,
 }: {
   readonly workspaceName: string;
   readonly email: string;
+  /** Items waiting for the founder's approval. */
+  readonly inboxCount: number;
 }) {
   return (
     <header className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
@@ -23,6 +26,12 @@ export function AppHeader({
               className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             >
               Dashboard
+            </Link>
+            <Link
+              href="/app/inbox"
+              className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+            >
+              Inbox{inboxCount > 0 ? ` (${String(inboxCount)})` : ""}
             </Link>
             <Link
               href="/app/billing"

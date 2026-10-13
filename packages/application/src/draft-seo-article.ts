@@ -1,9 +1,7 @@
 import {
   andThen,
-  checkCanCreateContent,
   contentItemId,
   createContentItem,
-  startOfUtcMonth,
   transition,
   transitionTask,
   type ContentItem,
@@ -24,7 +22,7 @@ import type {
   TaskRepository,
 } from "@launchpilot/ports";
 import { loadApprovedBrief } from "./approved-brief";
-import { currentPlan } from "./current-plan";
+import { checkContentAllowance } from "./content-allowance";
 import type { UseCaseError } from "./errors";
 import { loadOwnedTask } from "./owned-content";
 
@@ -58,12 +56,7 @@ export class DraftSeoArticle {
     if (!brief.ok) return brief;
 
     const now = this.deps.clock.now();
-    const products = await this.deps.products.listByWorkspace(input.workspace.id);
-    const used = await this.deps.contentItems.countCreatedSince(
-      products.map((p) => p.id),
-      startOfUtcMonth(now),
-    );
-    const allowed = checkCanCreateContent(await currentPlan(this.deps, input.workspace), used);
+    const allowed = await checkContentAllowance(this.deps, input.workspace);
     if (!allowed.ok) return allowed;
 
     const draft = await this.deps.writer.draft({
