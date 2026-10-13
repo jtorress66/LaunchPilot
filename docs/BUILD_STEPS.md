@@ -12,7 +12,7 @@ Place this file at `docs/BUILD_STEPS.md`. Work on one step at a time. Tick a ste
 | 4 | Auth, workspaces, billing | Sign-up/login, workspaces, products, Stripe subscriptions and plan limits | E2E: sign up → create product → buy plan (Stripe test mode) | [x] |
 | 5 | Onboarding and Product Brief | Crawler adapter, brief agent, brief editor UI | E2E: paste URL → brief drafted → edited → approved | [x] |
 | 6 | SEO module | Keyword provider, content plan, article writer, CMS publisher | E2E: article drafted → approved → published to a test blog | [x] |
-| 7 | Social module | Calendar, social agent, approval inbox, publisher registry (X, LinkedIn via unified API) | E2E: post approved → published to a sandbox account | [ ] |
+| 7 | Social module | Calendar, social agent, approval inbox, publisher registry (X, LinkedIn via unified API) | E2E: post approved → published to a sandbox account | [x] |
 | 8 | Launch module | Directory database, launch kit generator, submission tracker | Launch kit generated for a sample product; tracker statuses update | [ ] |
 | 9 | Analytics | Search Console + GA4/Plausible sources, analyst agent, weekly report | Report built correctly from recorded API data | [ ] |
 | 10 | Orchestration | Strategist + reviewer agents, weekly loop jobs | Full-loop E2E test passes; evals meet thresholds | [ ] |
