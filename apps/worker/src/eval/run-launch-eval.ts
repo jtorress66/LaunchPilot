@@ -32,7 +32,7 @@ for (const file of files) {
   const score = scoreKit(c, await writer.draft({ brief: c.brief, product: c.product }));
   scores.push(score);
   console.log(
-    `${mark(score.passed)} ${score.name.padEnd(20)} limits ${mark(score.withinLimits)}  brief facts only ${mark(score.citesOnlyBriefFacts)}  no invented claims ${mark(score.noForbiddenClaims)}  no hype ${mark(score.noHype)}  Show HN title ${mark(score.showHnTitle)}  all communities ${mark(score.allCommunities)}${score.error ? `  error: ${score.error}` : ""}`,
+    `${mark(score.passed)} ${score.name.padEnd(20)} limits ${mark(score.withinLimits)}  brief facts only ${mark(score.citesOnlyBriefFacts)}  no invented claims ${mark(score.noForbiddenClaims)}  no hype ${mark(score.noHype)}  Show HN title ${mark(score.showHnTitle)}  all communities ${mark(score.allCommunities)}${score.forbiddenFound.length > 0 ? `  found: ${score.forbiddenFound.join(", ")}` : ""}${score.error ? `  error: ${score.error}` : ""}`,
   );
 }
 

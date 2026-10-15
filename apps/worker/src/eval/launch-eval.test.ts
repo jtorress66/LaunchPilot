@@ -48,8 +48,20 @@ describe("scoreKit", () => {
       noHype: true,
       showHnTitle: true,
       allCommunities: true,
+      forbiddenFound: [],
       passed: true,
     });
+  });
+
+  it("names the forbidden claims a kit makes", () => {
+    const listing = {
+      ...kit().listing,
+      longDescription: "SOC 2 ready, loved by 10,000 customers.",
+    };
+    expect(scoreKit(evalCase, ok(kit({ listing }))).forbiddenFound).toEqual([
+      "SOC 2",
+      "10,000 customers",
+    ]);
   });
 
   const base = kit();
@@ -133,5 +145,12 @@ describe("parseLaunchEvalCase", () => {
       value: evalCase,
     });
     expect(parseLaunchEvalCase({ name: "x", product: { name: "X", url: "nope" } }).ok).toBe(false);
+  });
+
+  it("rejects a forbidden claim the brief itself makes, since a faithful kit would fail it", () => {
+    expect(parseLaunchEvalCase({ ...evalCase, forbidden: ["gdpr"] })).toEqual({
+      ok: false,
+      error: 'Forbidden claim "gdpr" appears in the brief',
+    });
   });
 });

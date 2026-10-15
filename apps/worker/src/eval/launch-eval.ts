@@ -20,11 +20,27 @@ const launchEvalCaseSchema = z.object({
 
 export type LaunchEvalCase = z.infer<typeof launchEvalCaseSchema>;
 
+const briefText = ({ brief }: LaunchEvalCase) =>
+  [
+    brief.audience,
+    brief.problem,
+    brief.solution,
+    brief.tone,
+    ...brief.differentiators,
+    ...brief.facts,
+  ]
+    .join("\n")
+    .toLowerCase();
+
 export const parseLaunchEvalCase = (json: unknown): Result<LaunchEvalCase, string> => {
   const parsed = launchEvalCaseSchema.safeParse(json);
-  return parsed.success
+  if (!parsed.success) return err(parsed.error.issues[0]?.message ?? "Invalid launch eval case");
+  // A claim the brief makes is one a faithful kit may repeat, so it cannot be forbidden.
+  const text = briefText(parsed.data);
+  const inBrief = parsed.data.forbidden.find((claim) => text.includes(claim.toLowerCase()));
+  return inBrief === undefined
     ? ok(parsed.data)
-    : err(parsed.error.issues[0]?.message ?? "Invalid launch eval case");
+    : err(`Forbidden claim "${inBrief}" appears in the brief`);
 };
 
 /** Launch-day hype the prompt forbids; the kit must read like a founder, not an ad. */
@@ -50,6 +66,8 @@ export interface KitScore {
   readonly noHype: boolean;
   readonly showHnTitle: boolean;
   readonly allCommunities: boolean;
+  /** The forbidden claims the kit makes, so a failure says what to look for. */
+  readonly forbiddenFound: readonly string[];
   readonly passed: boolean;
   readonly error: string | undefined;
 }
@@ -83,6 +101,7 @@ export const scoreKit = (
       noHype: false,
       showHnTitle: false,
       allCommunities: false,
+      forbiddenFound: [],
       passed: false,
       error: `${result.error.code}: ${result.error.message}`,
     };
@@ -92,7 +111,8 @@ export const scoreKit = (
   const showHn = kit.community.find((c) => c.channel === "hackernews");
   const withinLimits = validateListing(kit.listing).ok;
   const citesOnlyBriefFacts = kit.citedFacts.every((fact) => evalCase.brief.facts.includes(fact));
-  const noForbiddenClaims = evalCase.forbidden.every((c) => !text.includes(c.toLowerCase()));
+  const forbiddenFound = evalCase.forbidden.filter((c) => text.includes(c.toLowerCase()));
+  const noForbiddenClaims = forbiddenFound.length === 0;
   const noHype = HYPE.every((word) => !text.includes(word));
   const showHnTitle =
     showHn !== undefined &&
@@ -110,6 +130,7 @@ export const scoreKit = (
     noHype,
     showHnTitle,
     allCommunities,
+    forbiddenFound,
     passed:
       withinLimits &&
       citesOnlyBriefFacts &&

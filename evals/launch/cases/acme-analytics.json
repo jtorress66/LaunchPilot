@@ -4,7 +4,7 @@
     "name": "Acme",
     "url": "https://acme.dev"
   },
-  "forbidden": ["SOC 2", "HIPAA", "Fortune 500", "customers trust", "% of", "revenue", "10x"],
+  "forbidden": ["SOC 2", "HIPAA", "Fortune 500", "customers trust", "% of", "10x"],
   "brief": {
     "audience": "Founders of small SaaS companies who want simple, privacy-friendly website analytics",
     "problem": "Founders waste hours in bloated dashboards that track everything but answer nothing",
