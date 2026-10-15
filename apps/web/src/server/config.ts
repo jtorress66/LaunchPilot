@@ -23,6 +23,7 @@ export type KeywordProviderConfig =
   | { readonly kind: "offline" };
 
 export type SocialWriterConfig = ClaudeConfig | { readonly kind: "template" };
+export type LaunchWriterConfig = ClaudeConfig | { readonly kind: "template" };
 
 export interface ZernioConfig {
   /** Never logged. */
@@ -41,6 +42,7 @@ export interface WebConfig {
   readonly brief: { readonly drafter: BriefDrafterConfig };
   readonly seo: { readonly keywords: KeywordProviderConfig; readonly writer: ArticleWriterConfig };
   readonly social: { readonly writer: SocialWriterConfig; readonly zernio: ZernioConfig };
+  readonly launch: { readonly writer: LaunchWriterConfig };
 }
 
 const KEY_MESSAGE =
@@ -76,6 +78,7 @@ const shared = {
   DATAFORSEO_BASE_URL: z.string().url("DATAFORSEO_BASE_URL must be an absolute URL").optional(),
   ALLOW_PRIVATE_NETWORK: z.enum(["true", "false"]).default("false"),
   SOCIAL_WRITER: z.enum(["claude", "template"]).default("claude"),
+  LAUNCH_WRITER: z.enum(["claude", "template"]).default("claude"),
   ZERNIO_API_KEY: required("ZERNIO_API_KEY"),
   ZERNIO_BASE_URL: z.string().url("ZERNIO_BASE_URL must be an absolute URL").optional(),
 };
@@ -107,6 +110,7 @@ const devOnlySettings: readonly [string, (c: Env) => boolean][] = [
   ["ARTICLE_WRITER=template", (c) => c.ARTICLE_WRITER === "template"],
   ["KEYWORD_PROVIDER=offline", (c) => c.KEYWORD_PROVIDER === "offline"],
   ["SOCIAL_WRITER=template", (c) => c.SOCIAL_WRITER === "template"],
+  ["LAUNCH_WRITER=template", (c) => c.LAUNCH_WRITER === "template"],
   ["ALLOW_PRIVATE_NETWORK", (c) => c.ALLOW_PRIVATE_NETWORK === "true"],
 ];
 
@@ -140,10 +144,13 @@ export const parseWebConfig = (
   }
   const ai = claude(c);
   const needsClaude =
-    c.BRIEF_DRAFTER === "claude" || c.ARTICLE_WRITER === "claude" || c.SOCIAL_WRITER === "claude";
+    c.BRIEF_DRAFTER === "claude" ||
+    c.ARTICLE_WRITER === "claude" ||
+    c.SOCIAL_WRITER === "claude" ||
+    c.LAUNCH_WRITER === "claude";
   if (needsClaude && !ai) {
     return err(
-      "ANTHROPIC_API_KEY is required when BRIEF_DRAFTER, ARTICLE_WRITER or SOCIAL_WRITER is claude",
+      "ANTHROPIC_API_KEY is required when BRIEF_DRAFTER, ARTICLE_WRITER, SOCIAL_WRITER or LAUNCH_WRITER is claude",
     );
   }
   const keywords = keywordsFor(c);
@@ -172,5 +179,6 @@ export const parseWebConfig = (
       writer: c.SOCIAL_WRITER === "claude" && ai ? ai : { kind: "template" },
       zernio: { apiKey: c.ZERNIO_API_KEY, baseUrl: c.ZERNIO_BASE_URL ?? null },
     },
+    launch: { writer: c.LAUNCH_WRITER === "claude" && ai ? ai : { kind: "template" } },
   });
 };

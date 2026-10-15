@@ -115,3 +115,43 @@ export const scheduleForm = z
   .transform(({ publishAt, tzOffset }) => ({
     publishAt: new Date(Date.parse(`${publishAt}:00Z`) + tzOffset * 60_000),
   }));
+
+/** The launch kit editor. Lengths match the domain's listing limits; counts are checked there. */
+export const launchKitForm = z.object({
+  name: text("Enter the product name", 60),
+  tagline: text("Enter a tagline", 60),
+  shortDescription: text("Enter a short description", 160),
+  longDescription: text("Enter a long description", 1000),
+  features: lines(6, 120).refine((items) => items.length >= 3, "List 3 to 6 key features"),
+  categories: lines(3, 40).refine((items) => items.length >= 1, "List 1 to 3 categories"),
+  makerComment: text("Enter the maker's first comment", 1000),
+});
+
+export const liveForm = z.object({ listingUrl: text("Paste the address of your listing", 2048) });
+
+export const rejectForm = z.object({ reason: text("Say why it was rejected", 500) });
+
+export interface DirectoryFilter {
+  readonly kind?: "launch_platform" | "directory" | "community";
+  readonly pricing?: "free" | "freemium" | "paid";
+  readonly topic?: string;
+}
+
+const kinds = ["launch_platform", "directory", "community"] as const;
+const pricings = ["free", "freemium", "paid"] as const;
+
+/** Directory filters from the query string. Free directories by default; "all" lifts that. */
+export const parseDirectoryFilter = (
+  query: Readonly<Record<string, string | undefined>>,
+): DirectoryFilter => {
+  const kind = kinds.find((k) => k === query.kind);
+  const pricing =
+    query.pricing === "all" ? undefined : (pricings.find((p) => p === query.pricing) ?? "free");
+  const topic =
+    query.topic !== undefined && /^[a-z0-9-]{1,40}$/.test(query.topic) ? query.topic : undefined;
+  return {
+    ...(kind ? { kind } : {}),
+    ...(pricing ? { pricing } : {}),
+    ...(topic ? { topic } : {}),
+  };
+};
