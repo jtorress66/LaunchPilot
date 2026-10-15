@@ -97,3 +97,27 @@ export const openFirstXPostFromInbox = async (page: Page) => {
   await xPost.getByRole("link", { name: "Open" }).click();
   await expect(page.getByLabel("X post")).toBeVisible();
 };
+
+/** Signs up with an approved brief, then opens the product's Launch page. */
+export const onLaunchPage = async (page: Page) => {
+  await onBriefPage(page);
+  await draftBrief(page);
+  await page.getByRole("button", { name: "Approve brief" }).click();
+  await expect(page.getByTestId("brief-status")).toHaveText("Approved");
+  await page.goto(page.url().replace(/\/brief$/, "/launch"));
+  await expect(page.getByRole("heading", { name: "Launch", exact: true })).toBeVisible();
+};
+
+export const generateLaunchKit = async (page: Page) => {
+  await page.getByRole("button", { name: "Generate launch kit" }).click();
+  await expect(page.getByTestId("kit-status")).toHaveText("Waiting for your approval");
+};
+
+export const approveLaunchKit = async (page: Page) => {
+  await page.getByRole("button", { name: "Approve launch kit" }).click();
+  await expect(page.getByTestId("kit-status")).toHaveText("Approved");
+};
+
+/** One directory's row on the tracker. */
+export const trackerRow = (page: Page, name: string) =>
+  page.getByRole("list", { name: "Submissions" }).getByRole("listitem", { name, exact: true });

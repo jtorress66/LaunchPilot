@@ -2,7 +2,7 @@
 
 import { productId, submissionId, type SubmissionEvent } from "@launchpilot/domain";
 import { revalidatePath } from "next/cache";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getAppContainer } from "../../container";
 import {
   launchKitForm,
@@ -17,7 +17,6 @@ import { idParam } from "./params";
 
 export interface LaunchActionState {
   readonly errors?: FieldErrors;
-  readonly saved?: boolean;
 }
 
 const launchPath = (id: string) => `/app/products/${id}/launch`;
@@ -53,7 +52,7 @@ export async function saveLaunchKitAction(
   });
   if (!result.ok) return formError(result.error.message);
   done(id);
-  return { saved: true };
+  redirect(`${launchPath(id)}?saved=1`);
 }
 
 export async function approveLaunchKitAction(id: string): Promise<LaunchActionState> {

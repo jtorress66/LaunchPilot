@@ -79,6 +79,7 @@ export default async function LaunchPage({ params, searchParams }: LaunchPagePro
             productId={product.id}
             listing={kit.listing}
             status={kit.status}
+            justSaved={query.saved === "1"}
           />
         ) : null}
       </section>

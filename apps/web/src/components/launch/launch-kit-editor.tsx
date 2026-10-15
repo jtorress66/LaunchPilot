@@ -55,10 +55,12 @@ export function LaunchKitEditor({
   productId,
   listing,
   status,
+  justSaved = false,
 }: {
   readonly productId: string;
   readonly listing: Listing;
   readonly status: LaunchKitStatus;
+  readonly justSaved?: boolean;
 }) {
   const [saveState, save] = useActionState<LaunchActionState, FormData>(
     saveLaunchKitAction.bind(null, productId),
@@ -114,7 +116,7 @@ export function LaunchKitEditor({
           <div className="w-40">
             <SubmitButton pending="Saving…">Save kit</SubmitButton>
           </div>
-          {saveState.saved && !dirty ? (
+          {justSaved && !dirty && status === "draft" ? (
             <p role="status" className="text-sm text-emerald-700 dark:text-emerald-400">
               Saved. Approve it again before submitting.
             </p>
