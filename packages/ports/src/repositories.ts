@@ -4,6 +4,10 @@ import type {
   Email,
   Session,
   SocialProfile,
+  Directory,
+  LaunchKit,
+  Submission,
+  SubmissionId,
   Subscription,
   User,
   UserId,
@@ -96,4 +100,28 @@ export interface SocialProfileRepository {
   findByProduct(productId: ProductId): Promise<SocialProfile | undefined>;
   /** Inserts or replaces the profile of the same product. */
   save(profile: SocialProfile): Promise<void>;
+}
+
+/** The curated directory database. Read-only for the app; it is synced from data. */
+export interface DirectoryCatalog {
+  list(): Promise<readonly Directory[]>;
+  findBySlug(slug: string): Promise<Directory | undefined>;
+}
+
+export interface LaunchKitRepository {
+  findLatestForProduct(productId: ProductId): Promise<LaunchKit | undefined>;
+  /** Inserts or replaces the kit with the same id. */
+  save(kit: LaunchKit): Promise<void>;
+}
+
+export interface SubmissionRepository {
+  findById(id: SubmissionId): Promise<Submission | undefined>;
+  findByProductAndDirectory(
+    productId: ProductId,
+    directorySlug: string,
+  ): Promise<Submission | undefined>;
+  /** Ordered by directory slug. */
+  listByProduct(productId: ProductId): Promise<readonly Submission[]>;
+  /** Inserts or replaces the submission with the same id. */
+  save(submission: Submission): Promise<void>;
 }

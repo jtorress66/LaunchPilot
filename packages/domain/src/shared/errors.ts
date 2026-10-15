@@ -10,7 +10,9 @@ export type DomainErrorCode =
   | "invalid_email"
   | "weak_password"
   | "plan_limit_reached"
-  | "plan_not_purchasable";
+  | "plan_not_purchasable"
+  | "launch_kit_not_approved"
+  | "community_draft_not_approved";
 
 export interface DomainError {
   readonly code: DomainErrorCode;

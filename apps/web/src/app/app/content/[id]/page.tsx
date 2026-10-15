@@ -1,9 +1,16 @@
-import { contentItemId, socialChannels, type SocialChannel } from "@launchpilot/domain";
+import {
+  communityChannels,
+  contentItemId,
+  socialChannels,
+  type CommunityChannel,
+  type SocialChannel,
+} from "@launchpilot/domain";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArticleEditor } from "../../../../components/content/article-editor";
 import { ContentStatusBadge } from "../../../../components/content/content-status-badge";
+import { CommunityPostEditor } from "../../../../components/content/community-post-editor";
 import { PostEditor } from "../../../../components/content/post-editor";
 import { channelName } from "../../../../components/social/channel-name";
 import { LocalTime } from "../../../../components/social/local-time";
@@ -15,6 +22,8 @@ export const metadata: Metadata = { title: "Content — LaunchPilot" };
 
 const socialChannel = (channel: string): SocialChannel | undefined =>
   socialChannels.find((c) => c === channel);
+const communityChannel = (channel: string): CommunityChannel | undefined =>
+  communityChannels.find((c) => c === channel);
 
 interface ContentPageProps {
   readonly params: Promise<{ id: string }>;
@@ -31,7 +40,9 @@ export default async function ContentPage({ params, searchParams }: ContentPageP
   if (!result.ok) notFound();
   const { item, task, product } = result.value;
   const social = socialChannel(item.channel);
-  const section = social ? "social" : "seo";
+  const community = communityChannel(item.channel);
+  const section = social ? "social" : community ? "launch" : "seo";
+  const sectionName = social ? "Social" : community ? "Launch" : "SEO";
 
   return (
     <div className="space-y-8">
@@ -41,7 +52,7 @@ export default async function ContentPage({ params, searchParams }: ContentPageP
             href={`/app/products/${product.id}/${section}`}
             className="text-sm text-slate-500 hover:underline"
           >
-            {product.name} · {social ? "Social" : "SEO"}
+            {product.name} · {sectionName}
           </Link>
           <h1 className="text-2xl font-bold tracking-tight">{item.title}</h1>
           {task.seo ? (
@@ -84,7 +95,17 @@ export default async function ContentPage({ params, searchParams }: ContentPageP
         </p>
       ) : null}
 
-      {social ? (
+      {community ? (
+        <CommunityPostEditor
+          key={item.version}
+          itemId={item.id}
+          channel={community}
+          title={item.title}
+          body={item.body}
+          status={item.status}
+          justSaved={saved === "1"}
+        />
+      ) : social ? (
         <PostEditor
           key={item.version}
           itemId={item.id}

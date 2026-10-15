@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   articleForm,
+  launchKitForm,
+  liveForm,
+  parseDirectoryFilter,
+  rejectForm,
   blogConnectionForm,
   briefForm,
   parseForm,
@@ -188,6 +192,58 @@ describe("post and schedule forms", () => {
     expect(parseForm(scheduleForm, form(entries))).toEqual({
       ok: false,
       error: { [field]: message },
+    });
+  });
+});
+
+describe("launch forms", () => {
+  const kit = {
+    name: "Acme Analytics",
+    tagline: "Analytics in one weekly email",
+    shortDescription: "Five numbers, every Monday.",
+    longDescription: "Acme sends five numbers.",
+    features: "No cookies\n\nSetup in two minutes\nWeekly email",
+    categories: "Analytics\nSaaS",
+    makerComment: "Hi everyone!",
+  };
+
+  it("reads the kit editor, one feature or category per line", () => {
+    expect(parseForm(launchKitForm, form(kit))).toEqual({
+      ok: true,
+      value: {
+        ...kit,
+        features: ["No cookies", "Setup in two minutes", "Weekly email"],
+        categories: ["Analytics", "SaaS"],
+      },
+    });
+  });
+
+  it("names the field that is too long", () => {
+    expect(parseForm(launchKitForm, form({ ...kit, tagline: "a".repeat(61) }))).toEqual({
+      ok: false,
+      error: { tagline: "Use at most 60 characters" },
+    });
+  });
+
+  it("needs a listing URL to mark a submission live and a reason to reject it", () => {
+    expect(parseForm(liveForm, form({ listingUrl: " " }))).toEqual({
+      ok: false,
+      error: { listingUrl: "Paste the address of your listing" },
+    });
+    expect(parseForm(rejectForm, form({ reason: "" }))).toEqual({
+      ok: false,
+      error: { reason: "Say why it was rejected" },
+    });
+  });
+
+  it("reads directory filters from the query string, free by default", () => {
+    expect(parseDirectoryFilter({})).toEqual({ pricing: "free" });
+    expect(parseDirectoryFilter({ kind: "community", pricing: "all", topic: "ai" })).toEqual({
+      kind: "community",
+      topic: "ai",
+    });
+    expect(parseDirectoryFilter({ kind: "nonsense", pricing: "paid" })).toEqual({
+      pricing: "paid",
     });
   });
 });

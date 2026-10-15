@@ -6,6 +6,11 @@ import { PostgresContentItemRepository } from "./repositories/postgres-content-i
 import { PostgresProductRepository } from "./repositories/postgres-product-repository";
 import { PostgresSessionRepository } from "./repositories/postgres-session-repository";
 import { PostgresSocialProfileRepository } from "./repositories/postgres-social-profile-repository";
+import {
+  PostgresDirectoryCatalog,
+  PostgresLaunchKitRepository,
+  PostgresSubmissionRepository,
+} from "./repositories/postgres-launch-repositories";
 import { PostgresSubscriptionRepository } from "./repositories/postgres-subscription-repository";
 import { PostgresUserRepository } from "./repositories/postgres-user-repository";
 import { PostgresTaskRepository } from "./repositories/postgres-task-repository";
@@ -15,7 +20,13 @@ import type { Database } from "./schema";
 export type { Database } from "./schema";
 export { createDatabase } from "./database";
 export { migrateDown, migrateToLatest, type MigrationOutcome } from "./migrate";
+export { syncDirectories, type DirectorySyncOutcome } from "./sync-directories";
+export { loadSeedDirectories } from "./seeds/load-seed";
+export { parseSeedDirectories } from "./seeds/parse-seed";
 export {
+  PostgresDirectoryCatalog,
+  PostgresLaunchKitRepository,
+  PostgresSubmissionRepository,
   PostgresBriefRepository,
   PostgresCampaignRepository,
   PostgresChannelConnectionRepository,
@@ -42,4 +53,7 @@ export const createPostgresRepositories = (db: Kysely<Database>) => ({
   contentItems: new PostgresContentItemRepository(db),
   channelConnections: new PostgresChannelConnectionRepository(db),
   socialProfiles: new PostgresSocialProfileRepository(db),
+  directories: new PostgresDirectoryCatalog(db),
+  launchKits: new PostgresLaunchKitRepository(db),
+  submissions: new PostgresSubmissionRepository(db),
 });

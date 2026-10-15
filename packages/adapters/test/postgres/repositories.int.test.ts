@@ -6,13 +6,16 @@ import {
   describeProductRepositoryContract,
   describeSessionRepositoryContract,
   describeSocialProfileRepositoryContract,
+  describeDirectoryCatalogContract,
+  describeLaunchKitRepositoryContract,
+  describeSubmissionRepositoryContract,
   describeSubscriptionRepositoryContract,
   describeUserRepositoryContract,
   describeTaskRepositoryContract,
   describeWorkspaceRepositoryContract,
 } from "@launchpilot/testing/contracts";
 import { contentItemId, taskId, workspaceId } from "@launchpilot/domain";
-import { aContentItem, aTask } from "@launchpilot/testing";
+import { aContentItem, aDirectory, aTask } from "@launchpilot/testing";
 import { afterAll, describe, expect, it } from "vitest";
 import {
   createPostgresRepositories,
@@ -23,6 +26,10 @@ import {
   PostgresProductRepository,
   PostgresSessionRepository,
   PostgresSocialProfileRepository,
+  PostgresDirectoryCatalog,
+  PostgresLaunchKitRepository,
+  PostgresSubmissionRepository,
+  syncDirectories,
   PostgresSubscriptionRepository,
   PostgresUserRepository,
   PostgresTaskRepository,
@@ -91,6 +98,26 @@ describeSocialProfileRepositoryContract("PostgresSocialProfileRepository", async
   return new PostgresSocialProfileRepository(db);
 });
 
+describeDirectoryCatalogContract("PostgresDirectoryCatalog", async (directories) => {
+  await resetWith(db, "none");
+  await syncDirectories(db, directories);
+  return new PostgresDirectoryCatalog(db);
+});
+
+describeLaunchKitRepositoryContract("PostgresLaunchKitRepository", async () => {
+  await resetWith(db, "products");
+  return new PostgresLaunchKitRepository(db);
+});
+
+describeSubmissionRepositoryContract("PostgresSubmissionRepository", async () => {
+  await resetWith(db, "products");
+  await syncDirectories(db, [
+    aDirectory(),
+    aDirectory({ slug: "product-hunt", name: "Product Hunt", channel: "producthunt" }),
+  ]);
+  return new PostgresSubmissionRepository(db);
+});
+
 describe("PostgresContentItemRepository", () => {
   it("lists due items earliest publish time first", async () => {
     await resetWith(db, "tasks");
@@ -135,9 +162,12 @@ describe("createPostgresRepositories", () => {
       "campaigns",
       "channelConnections",
       "contentItems",
+      "directories",
+      "launchKits",
       "products",
       "sessions",
       "socialProfiles",
+      "submissions",
       "subscriptions",
       "tasks",
       "users",

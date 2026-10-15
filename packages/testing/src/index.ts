@@ -21,3 +21,4 @@ export * from "./fixtures/accounts";
 export { FakeBlogConnectionVerifier } from "./fakes/fake-blog-connection-verifier";
 export { FakePublisherProvider } from "./fakes/fake-publisher-provider";
 export { FakeSocialAccountLinker } from "./fakes/fake-social-account-linker";
+export { FakeLaunchKitDrafter } from "./fakes/fake-launch-kit-drafter";

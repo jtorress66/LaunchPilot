@@ -27,3 +27,7 @@ export * from "./connections/channel-connection";
 export * from "./social/post-angles";
 export * from "./social/social-profile";
 export * from "./calendar/calendar";
+export * from "./launch/directory";
+export * from "./launch/launch-kit";
+export * from "./launch/fit-listing";
+export * from "./launch/submission";
