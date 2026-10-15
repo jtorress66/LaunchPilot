@@ -12,6 +12,8 @@ export type ContentItemId = Brand<string, "ContentItemId">;
 export type UserId = Brand<string, "UserId">;
 export type ChannelConnectionId = Brand<string, "ChannelConnectionId">;
 export type SocialProfileId = Brand<string, "SocialProfileId">;
+export type LaunchKitId = Brand<string, "LaunchKitId">;
+export type SubmissionId = Brand<string, "SubmissionId">;
 
 /** Ids come from the IdGenerator port or storage, so an empty one is a programmer error. */
 const nonEmptyId = (value: string): string => {
@@ -28,3 +30,5 @@ export const contentItemId = (value: string) => nonEmptyId(value) as ContentItem
 export const userId = (value: string) => nonEmptyId(value) as UserId;
 export const channelConnectionId = (value: string) => nonEmptyId(value) as ChannelConnectionId;
 export const socialProfileId = (value: string) => nonEmptyId(value) as SocialProfileId;
+export const launchKitId = (value: string) => nonEmptyId(value) as LaunchKitId;
+export const submissionId = (value: string) => nonEmptyId(value) as SubmissionId;
