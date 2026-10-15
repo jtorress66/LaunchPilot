@@ -1,5 +1,10 @@
 import { PublishDueContent, PublisherRegistry } from "@launchpilot/application";
-import { BriefAgent, SeoArticleWriter, SocialPostWriter } from "@launchpilot/agents";
+import {
+  BriefAgent,
+  LaunchKitWriter,
+  SeoArticleWriter,
+  SocialPostWriter,
+} from "@launchpilot/agents";
 import {
   AesGcmTokenCipher,
   createPostgresRepositories,
@@ -79,6 +84,12 @@ export const createKeywordProvider = ({
 export const createSocialEvalWriter = ({ apiKey, model }: EvalConfig) => {
   const meter = new MeteredLlmClient(new ClaudeLlmClient({ apiKey, model }));
   return { writer: new SocialPostWriter(meter), meter };
+};
+
+/** The launch kit writer on real Claude, metered for the launch-kit eval. */
+export const createLaunchEvalWriter = ({ apiKey, model }: EvalConfig) => {
+  const meter = new MeteredLlmClient(new ClaudeLlmClient({ apiKey, model }));
+  return { writer: new LaunchKitWriter(meter), meter };
 };
 
 const zernioOptions = ({ apiKey, baseUrl }: ZernioConfig) => ({

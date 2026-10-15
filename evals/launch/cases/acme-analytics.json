@@ -1,0 +1,21 @@
+{
+  "name": "acme-analytics",
+  "product": {
+    "name": "Acme",
+    "url": "https://acme.dev"
+  },
+  "forbidden": ["SOC 2", "HIPAA", "Fortune 500", "customers trust", "% of", "revenue", "10x"],
+  "brief": {
+    "audience": "Founders of small SaaS companies who want simple, privacy-friendly website analytics",
+    "problem": "Founders waste hours in bloated dashboards that track everything but answer nothing",
+    "solution": "Acme shows the five numbers that matter in one weekly email, without cookies",
+    "differentiators": ["No cookie banners needed", "Setup takes two minutes with one script tag"],
+    "tone": "Plain, calm and practical",
+    "facts": [
+      "Free 14-day trial, no credit card required",
+      "Starter is $9 per month for up to 100k pageviews",
+      "GDPR compliant and hosted in the EU",
+      "Integrates with Stripe to show revenue per traffic source"
+    ]
+  }
+}
