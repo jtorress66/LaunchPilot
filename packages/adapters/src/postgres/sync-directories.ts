@@ -19,11 +19,10 @@ export const syncDirectories = (
   db.transaction().execute(async (trx) => {
     for (const directory of directories) {
       const row = directoryMapper.toRow(directory);
-      const { slug: _slug, ...changes } = row;
       await trx
         .insertInto("directories")
         .values(row)
-        .onConflict((conflict) => conflict.column("slug").doUpdateSet(changes))
+        .onConflict((conflict) => conflict.column("slug").doUpdateSet(row))
         .execute();
     }
     const wanted = directories.map((d) => d.slug);
