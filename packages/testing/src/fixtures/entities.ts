@@ -5,6 +5,9 @@ import {
   createBlogConnection,
   createContentItem,
   createProduct,
+  createLaunchKit,
+  createSubmission,
+  parseDirectory,
   createSocialProfile,
   createTask,
   createWorkspace,
@@ -28,6 +31,11 @@ import {
   type ProductId,
   type PublishableContentItem,
   type Result,
+  type Directory,
+  type DirectoryInput,
+  type LaunchKit,
+  type Listing,
+  type Submission,
   type SocialProfile,
   type SocialProfileId,
   type Task,
@@ -40,7 +48,9 @@ import {
   channelConnectionId,
   contentItemId,
   productId,
+  launchKitId,
   socialProfileId,
+  submissionId,
   taskId,
   userId,
   workspaceId,
@@ -232,3 +242,55 @@ export const aSocialProfile = (
       now: fixtureNow,
     }),
   );
+
+export const aListing = (overrides: Partial<Listing> = {}): Listing => ({
+  name: "Acme Analytics",
+  tagline: "Privacy-friendly analytics in one weekly email",
+  shortDescription: "The five numbers that matter, every Monday, without cookies.",
+  longDescription:
+    "Acme Analytics sends solo SaaS founders a weekly email with the five numbers that matter.",
+  features: ["No cookies", "Setup in two minutes", "Weekly insights email"],
+  categories: ["Analytics", "SaaS"],
+  makerComment: "Hi everyone! We built Acme because dashboards were eating our week.",
+  ...overrides,
+});
+
+export const aDirectory = (overrides: Partial<DirectoryInput> = {}): Directory =>
+  unwrap(
+    parseDirectory({
+      slug: "betalist",
+      name: "BetaList",
+      kind: "launch_platform",
+      channel: "directory",
+      homepageUrl: "https://betalist.com",
+      submitUrl: "https://betalist.com/submit",
+      pricing: "free",
+      priceNote: null,
+      topics: ["startups"],
+      limits: { tagline: 60 },
+      checkedAt: "2026-10-15",
+      ...overrides,
+    }),
+  );
+
+export const aLaunchKit = (
+  overrides: Partial<{ id: string; productId: ProductId; listing: Listing }> = {},
+): LaunchKit =>
+  unwrap(
+    createLaunchKit({
+      id: launchKitId(overrides.id ?? "kit_1"),
+      productId: overrides.productId ?? productId("prod_1"),
+      listing: overrides.listing ?? aListing(),
+      now: fixtureNow,
+    }),
+  );
+
+export const aSubmission = (
+  overrides: Partial<{ id: string; productId: ProductId; directorySlug: string }> = {},
+): Submission =>
+  createSubmission({
+    id: submissionId(overrides.id ?? "sub_1"),
+    productId: overrides.productId ?? productId("prod_1"),
+    directorySlug: overrides.directorySlug ?? "betalist",
+    now: fixtureNow,
+  });

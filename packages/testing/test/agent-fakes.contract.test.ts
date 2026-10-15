@@ -3,6 +3,7 @@ import {
   describeCampaignPlannerContract,
   describeContentDrafterContract,
   describeContentReviewerContract,
+  describeLaunchKitDrafterContract,
   describeLlmClientContract,
 } from "../contracts";
 import {
@@ -10,6 +11,7 @@ import {
   FakeCampaignPlanner,
   FakeContentDrafter,
   FakeContentReviewer,
+  FakeLaunchKitDrafter,
   FakeLlmClient,
 } from "../src";
 
@@ -65,6 +67,16 @@ describeBriefDrafterContract("FakeBriefDrafter", () => {
     givenFailure: () => {
       drafter.failNext({ code: "unavailable", ...outage });
       return undefined;
+    },
+  };
+});
+
+describeLaunchKitDrafterContract("FakeLaunchKitDrafter", () => {
+  const drafter = new FakeLaunchKitDrafter();
+  return {
+    drafter,
+    givenFailure: () => {
+      drafter.failNext({ code: "unavailable", message: "Busy", retryable: true });
     },
   };
 });
