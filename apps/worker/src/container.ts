@@ -14,6 +14,8 @@ import {
   createStripeClient,
   ensureStripePrices,
   migrateToLatest,
+  loadSeedDirectories,
+  syncDirectories,
   SystemClock,
 } from "@launchpilot/adapters";
 import type { DatabaseConfig, PublisherConfig, StripeSetupConfig, ZernioConfig } from "./config";
@@ -30,11 +32,19 @@ export const container = {
   },
 } satisfies HeartbeatDeps;
 
-/** Opens a single connection, applies pending migrations and closes it again. */
+/**
+ * Opens a single connection, applies pending migrations, syncs the curated directory catalogue
+ * and closes the connection again.
+ */
 export const runMigrations = async ({ connectionString }: DatabaseConfig) => {
   const db = createDatabase(connectionString, 1);
   try {
-    return await migrateToLatest(db);
+    const migrated = await migrateToLatest(db);
+    if (!migrated.ok) return migrated;
+    const seed = loadSeedDirectories();
+    if (!seed.ok) return seed;
+    const directories = await syncDirectories(db, seed.value);
+    return { ok: true as const, value: { ...migrated.value, directories } };
   } finally {
     await db.destroy();
   }
