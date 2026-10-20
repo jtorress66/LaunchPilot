@@ -36,5 +36,7 @@ export async function runAutopilotNowAction(rawId: string): Promise<AutopilotAct
   if (!result.ok) return { error: result.error.message };
   revalidatePath(analyticsPath(id));
   revalidatePath("/app", "layout");
+  const { outcome } = result.value;
+  if (outcome.kind !== "completed") return { error: outcome.reason };
   redirect(`${analyticsPath(id)}?autopilot=ran#autopilot`);
 }
