@@ -58,6 +58,10 @@ describe("parseWebConfig", () => {
           google: null,
           analyst: { kind: "claude", apiKey: "sk-ant-test-key", model: "claude-opus-5-5" },
         },
+        autopilot: {
+          strategist: { kind: "claude", apiKey: "sk-ant-test-key", model: "claude-opus-5-5" },
+          reviewer: { kind: "claude", apiKey: "sk-ant-test-key", model: "claude-opus-5-5" },
+        },
       },
     });
   });
@@ -132,7 +136,7 @@ describe("parseWebConfig AI settings", () => {
     expect(parseWebConfig({ ...stripe, ANTHROPIC_API_KEY: undefined })).toEqual({
       ok: false,
       error:
-        "ANTHROPIC_API_KEY is required when BRIEF_DRAFTER, ARTICLE_WRITER, SOCIAL_WRITER, LAUNCH_WRITER or ANALYST is claude",
+        "ANTHROPIC_API_KEY is required when BRIEF_DRAFTER, ARTICLE_WRITER, SOCIAL_WRITER, LAUNCH_WRITER, ANALYST, STRATEGIST or REVIEWER is claude",
     });
   });
 
@@ -149,6 +153,8 @@ describe("parseWebConfig AI settings", () => {
         SOCIAL_WRITER: "template",
         LAUNCH_WRITER: "template",
         ANALYST: "template",
+        STRATEGIST: "template",
+        REVIEWER: "template",
         ALLOW_PRIVATE_NETWORK: "true",
       }),
     ).toMatchObject({
@@ -233,7 +239,7 @@ describe("parseWebConfig social settings", () => {
     ).toEqual({
       ok: false,
       error:
-        "ANTHROPIC_API_KEY is required when BRIEF_DRAFTER, ARTICLE_WRITER, SOCIAL_WRITER, LAUNCH_WRITER or ANALYST is claude",
+        "ANTHROPIC_API_KEY is required when BRIEF_DRAFTER, ARTICLE_WRITER, SOCIAL_WRITER, LAUNCH_WRITER, ANALYST, STRATEGIST or REVIEWER is claude",
     });
   });
 });
@@ -297,5 +303,22 @@ describe("parseWebConfig analytics settings", () => {
       ok: false,
       error: "GOOGLE_API_BASE_URL is only allowed when APP_ENV is development or test",
     });
+  });
+});
+
+describe("parseWebConfig autopilot settings", () => {
+  it("plans and reviews with the offline templates only in development and test", () => {
+    expect(
+      parseWebConfig({ ...local, STRATEGIST: "template", REVIEWER: "template" }),
+    ).toMatchObject({
+      ok: true,
+      value: { autopilot: { strategist: { kind: "template" }, reviewer: { kind: "template" } } },
+    });
+    for (const setting of ["STRATEGIST", "REVIEWER"]) {
+      expect(parseWebConfig({ ...stripe, [setting]: "template" })).toEqual({
+        ok: false,
+        error: `${setting}=template is only allowed when APP_ENV is development or test`,
+      });
+    }
   });
 });

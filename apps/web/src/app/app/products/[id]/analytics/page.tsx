@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BuildReportButton } from "../../../../../components/analytics/build-report-button";
+import { AutopilotCard } from "../../../../../components/autopilot/autopilot-card";
 import { DisconnectButton } from "../../../../../components/analytics/disconnect-button";
 import { GooglePropertiesForm } from "../../../../../components/analytics/google-properties-form";
 import { PlausibleConnectForm } from "../../../../../components/analytics/plausible-connect-form";
@@ -19,7 +20,7 @@ const card =
 
 interface AnalyticsPageProps {
   readonly params: Promise<{ id: string }>;
-  readonly searchParams: Promise<{ google?: string; plausible?: string }>;
+  readonly searchParams: Promise<{ google?: string; plausible?: string; autopilot?: string }>;
 }
 
 const googleNotices: Partial<Record<string, string>> = {
@@ -46,8 +47,11 @@ export default async function AnalyticsPage({ params, searchParams }: AnalyticsP
   const id = idParam(raw);
   const { workspace } = await requireUser();
   const app = getAppContainer();
-  const overview = await app.analytics.getOverview.execute({ workspace, productId: productId(id) });
-  if (!overview.ok) notFound();
+  const [overview, autopilot] = await Promise.all([
+    app.analytics.getOverview.execute({ workspace, productId: productId(id) }),
+    app.getAutopilotStatus.execute({ workspace, productId: productId(id) }),
+  ]);
+  if (!overview.ok || !autopilot.ok) notFound();
   const { product, google, plausible, reports, latest } = overview.value;
   const properties =
     google && app.analytics.google
@@ -79,6 +83,15 @@ export default async function AnalyticsPage({ params, searchParams }: AnalyticsP
         <Notice tone={query.google === "unconfigured" ? "error" : "ok"} text={googleNotice} />
       ) : null}
       {query.plausible === "connected" ? <Notice tone="ok" text="Plausible is connected." /> : null}
+      {query.autopilot === "ran" ? (
+        <Notice tone="ok" text="This week's run is done. Review the drafts in your Inbox." />
+      ) : null}
+
+      <AutopilotCard
+        productId={product.id}
+        enabledSince={autopilot.value.enabledSince}
+        latest={autopilot.value.latest}
+      />
 
       <div className="grid gap-8 lg:grid-cols-[1fr_22rem]">
         <section aria-labelledby="report" className={card}>

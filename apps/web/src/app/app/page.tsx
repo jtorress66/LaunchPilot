@@ -115,6 +115,12 @@ export default async function DashboardPage() {
                     >
                       Analytics
                     </Link>
+                    <Link
+                      href={`/app/products/${product.id}/analytics#autopilot`}
+                      className="text-sm font-semibold text-brand-600 hover:underline dark:text-brand-400"
+                    >
+                      {product.autopilotSince ? "Autopilot on" : "Autopilot"}
+                    </Link>
                   </div>
                 </li>
               ))}
