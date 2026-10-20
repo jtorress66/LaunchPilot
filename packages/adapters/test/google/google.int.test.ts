@@ -426,3 +426,140 @@ describe("Ga4Source", () => {
     });
   });
 });
+
+describe("Google failure paths", () => {
+  const exchange = () =>
+    new GoogleOAuthAuthorizer(options).exchangeCode({
+      code: "4/recorded-code",
+      redirectUrl: "https://app.test/cb",
+    });
+
+  it.each([
+    ["a server error", HttpResponse.json(serverError, { status: 500 }), "unavailable"],
+    [
+      "an id token without an email",
+      HttpResponse.json({ ...tokenExchange, id_token: "a.e30.c" }),
+      "unavailable",
+    ],
+    [
+      "an id token that is not a JWT",
+      HttpResponse.json({ ...tokenExchange, id_token: "garbage" }),
+      "unavailable",
+    ],
+  ] as const)("reports %s during sign-in as %s", async (_case, response, code) => {
+    server.use(http.post(TOKEN, () => response));
+    expect(await exchange()).toMatchObject({ ok: false, error: { code } });
+  });
+
+  it("reports a token endpoint outage during a report as unavailable and retryable", async () => {
+    server.use(http.post(TOKEN, () => HttpResponse.json(serverError, { status: 503 })));
+    expect(await new Ga4Source(await connectedRepo(), cipher, options).fetch(week)).toMatchObject({
+      ok: false,
+      error: { code: "unavailable", retryable: true },
+    });
+  });
+
+  it("follows the GA4 account list across pages", async () => {
+    tokenEndpoint();
+    const pageTokens: (string | null)[] = [];
+    server.use(
+      http.get(`${GSC}/sites`, () => HttpResponse.json({})),
+      http.get(`${ADMIN}/accountSummaries`, ({ request }) => {
+        const token = new URL(request.url).searchParams.get("pageToken");
+        pageTokens.push(token);
+        return HttpResponse.json(
+          token === null ? { ...accountSummaries, nextPageToken: "page-2" } : accountSummaries,
+        );
+      }),
+    );
+    const result = await new GooglePropertyLister(options).list(REFRESH);
+    expect(pageTokens).toEqual([null, "page-2"]);
+    expect(result.ok && result.value.searchConsoleSites).toEqual([]);
+    expect(result.ok && result.value.ga4Properties).toHaveLength(2);
+  });
+
+  it.each([
+    ["Search Console", `${GSC}/sites`],
+    ["Analytics Admin", `${ADMIN}/accountSummaries`],
+  ] as const)("reports a %s failure while listing properties", async (_name, failing) => {
+    tokenEndpoint();
+    server.use(
+      http.get(`${GSC}/sites`, () =>
+        failing.endsWith("/sites")
+          ? HttpResponse.json(serverError, { status: 500 })
+          : HttpResponse.json(sites),
+      ),
+      http.get(`${ADMIN}/accountSummaries`, () =>
+        failing.endsWith("Summaries") ? HttpResponse.error() : HttpResponse.json(accountSummaries),
+      ),
+    );
+    expect(await new GooglePropertyLister(options).list(REFRESH)).toMatchObject({
+      ok: false,
+      error: { code: "unavailable" },
+    });
+  });
+
+  it("reports an expired access token mid-report as invalid_credentials", async () => {
+    tokenEndpoint();
+    server.use(
+      http.post(
+        `${GSC}/sites/:site/searchAnalytics/query`,
+        () => new HttpResponse("nope", { status: 401 }),
+      ),
+    );
+    expect(
+      await new SearchConsoleSource(await connectedRepo(), cipher, options).fetch(week),
+    ).toMatchObject({ ok: false, error: { code: "invalid_credentials", retryable: false } });
+  });
+
+  it("reports a failed top-queries call even when the totals worked", async () => {
+    tokenEndpoint();
+    server.use(
+      http.post(`${GSC}/sites/:site/searchAnalytics/query`, async ({ request }) => {
+        const body = (await request.json()) as { dimensions?: string[] };
+        return body.dimensions
+          ? HttpResponse.json(serverError, { status: 429 })
+          : HttpResponse.json(gscTotalsW42);
+      }),
+    );
+    expect(
+      await new SearchConsoleSource(await connectedRepo(), cipher, options).fetch(week),
+    ).toMatchObject({ ok: false, error: { code: "unavailable", retryable: true } });
+  });
+
+  it("reports GA4 failures on either call, and skips page rows without a path", async () => {
+    tokenEndpoint();
+    server.use(
+      http.post(`${DATA}/properties/:report`, async ({ request }) => {
+        const body = (await request.json()) as { dimensions?: unknown[] };
+        return body.dimensions ? HttpResponse.error() : HttpResponse.json(ga4TotalsW42);
+      }),
+    );
+    const source = new Ga4Source(await connectedRepo(), cipher, options);
+    expect(await source.fetch(week)).toMatchObject({ ok: false, error: { code: "unavailable" } });
+
+    server.use(
+      http.post(`${DATA}/properties/:report`, async ({ request }) => {
+        const body = (await request.json()) as { dimensions?: unknown[] };
+        return HttpResponse.json(
+          body.dimensions
+            ? { rows: [{ dimensionValues: [{ value: "" }], metricValues: [{ value: "9" }] }] }
+            : { rows: [] },
+        );
+      }),
+    );
+    const empty = await source.fetch(week);
+    expect(empty.ok && empty.value).toMatchObject({
+      values: { visitors: 0, pageviews: 0 },
+      topPages: [],
+    });
+
+    server.use(
+      http.post(`${DATA}/properties/:report`, () => new HttpResponse("<html>", { status: 502 })),
+    );
+    expect(await source.fetch(week)).toMatchObject({
+      ok: false,
+      error: { code: "unavailable", message: "Google property did not answer (HTTP 502)" },
+    });
+  });
+});

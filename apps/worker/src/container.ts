@@ -110,6 +110,12 @@ export const createSocialEvalWriter = ({ apiKey, model }: EvalConfig) => {
   return { writer: new SocialPostWriter(meter), meter };
 };
 
+/** The analyst on real Claude, metered for the analyst eval. */
+export const createAnalystEvalAgent = ({ apiKey, model }: EvalConfig) => {
+  const meter = new MeteredLlmClient(new ClaudeLlmClient({ apiKey, model }));
+  return { analyst: new AnalystAgent(meter), meter };
+};
+
 /** The launch kit writer on real Claude, metered for the launch-kit eval. */
 export const createLaunchEvalWriter = ({ apiKey, model }: EvalConfig) => {
   const meter = new MeteredLlmClient(new ClaudeLlmClient({ apiKey, model }));

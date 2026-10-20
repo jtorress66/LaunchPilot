@@ -196,3 +196,77 @@ describe("PlausibleStatsVerifier", () => {
     ).toMatchObject({ ok: false, error: { code: "blocked" } });
   });
 });
+
+describe("Plausible failure paths", () => {
+  const source = async () => new PlausibleSource(await connectedRepo(), cipher, network);
+  const verify = (siteId = SITE) =>
+    new PlausibleStatsVerifier(network).verify({ baseUrl, siteId, apiKey: KEY });
+
+  it.each([
+    ["a 401 that names the site", { status: 401, body: siteNotFound }, "no_access", false],
+    ["a 401 that is not JSON", { status: 401, body: "nope" }, "invalid_credentials", false],
+    ["a 404", { status: 404, body: {} }, "no_access", false],
+    ["a rate limit", { status: 429, body: {} }, "unavailable", true],
+    [
+      "a 200 that is not the expected shape",
+      { status: 200, body: { results: "x" } },
+      "unavailable",
+      false,
+    ],
+  ] as const)("reports %s during a report as %s", async (_case, response, code, retryable) => {
+    plausible.handler = () => response;
+    expect(await (await source()).fetch(week)).toMatchObject({
+      ok: false,
+      error: { code, retryable },
+    });
+  });
+
+  it("reports a failed top-pages query even when the totals worked", async () => {
+    plausible.handler = (q) =>
+      q.dimensions?.length ? { status: 500, body: {} } : { status: 200, body: totalsW42 };
+    expect(await (await source()).fetch(week)).toMatchObject({
+      ok: false,
+      error: { code: "unavailable" },
+    });
+  });
+
+  it("reports a Plausible that cannot be reached", async () => {
+    const repo = await connectedRepo();
+    const connection = await repo.find(productId("prod_1"), "plausible");
+    if (!connection) throw new Error("fixture missing");
+    await repo.save({ ...connection, baseUrl: "http://127.0.0.1:9/" });
+    expect(await new PlausibleSource(repo, cipher, network).fetch(week)).toMatchObject({
+      ok: false,
+      error: { code: "unavailable", message: "Plausible could not be reached", retryable: true },
+    });
+  });
+
+  it("skips page rows without a path", async () => {
+    plausible.handler = (q) => ({
+      status: 200,
+      body: q.dimensions?.length
+        ? { results: [{ metrics: [5], dimensions: [""] }] }
+        : { results: [] },
+    });
+    const result = await (await source()).fetch(week);
+    expect(result.ok && result.value).toMatchObject({
+      values: { visitors: 0, pageviews: 0 },
+      topPages: [],
+    });
+  });
+
+  it("explains an unreachable or failing Plausible while connecting", async () => {
+    plausible.handler = () => ({ status: 500, body: {} });
+    expect(await verify()).toMatchObject({
+      ok: false,
+      error: { code: "unreachable", retryable: true },
+    });
+    expect(
+      await new PlausibleStatsVerifier(network).verify({
+        baseUrl: "http://127.0.0.1:9/",
+        siteId: SITE,
+        apiKey: KEY,
+      }),
+    ).toMatchObject({ ok: false, error: { code: "unreachable" } });
+  });
+});

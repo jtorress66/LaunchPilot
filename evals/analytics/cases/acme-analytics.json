@@ -1,0 +1,197 @@
+{
+  "name": "acme-analytics",
+  "product": {
+    "name": "Acme Analytics"
+  },
+  "forbidden": ["signups", "sign-ups", "conversion", "because of", "due to", "thanks to", "launch"],
+  "summaryMentions": ["search clicks", "clicks"],
+  "brief": {
+    "audience": "Founders of small SaaS companies who want simple, privacy-friendly website analytics",
+    "problem": "Founders waste hours in bloated dashboards that track everything but answer nothing",
+    "solution": "Acme shows the five numbers that matter in one weekly email, without cookies",
+    "differentiators": ["No cookie banners needed", "Setup takes two minutes with one script tag"],
+    "tone": "Plain, calm and practical",
+    "facts": [
+      "Free 14-day trial, no credit card required",
+      "Starter is $9 per month for up to 100k pageviews",
+      "GDPR compliant and hosted in the EU",
+      "Integrates with Stripe to show revenue per traffic source"
+    ]
+  },
+  "week": {
+    "start": "2026-10-12T00:00:00.000Z",
+    "end": "2026-10-19T00:00:00.000Z"
+  },
+  "results": [
+    {
+      "source": "search_console",
+      "outcome": {
+        "kind": "ok",
+        "current": {
+          "source": "search_console",
+          "from": "2026-10-12T00:00:00.000Z",
+          "to": "2026-10-19T00:00:00.000Z",
+          "values": {
+            "search_clicks": 182,
+            "search_impressions": 6240,
+            "search_ctr": 0.029166666666666667,
+            "search_position": 17.43
+          },
+          "topPages": [],
+          "topQueries": [
+            {
+              "query": "cookieless analytics",
+              "clicks": 41,
+              "impressions": 820,
+              "position": 4.2
+            },
+            {
+              "query": "privacy friendly analytics",
+              "clicks": 27,
+              "impressions": 1110,
+              "position": 8.7
+            },
+            {
+              "query": "gdpr analytics tool",
+              "clicks": 19,
+              "impressions": 640,
+              "position": 6.1
+            },
+            {
+              "query": "plausible alternative",
+              "clicks": 12,
+              "impressions": 930,
+              "position": 11.4
+            }
+          ]
+        },
+        "previous": {
+          "source": "search_console",
+          "from": "2026-10-05T00:00:00.000Z",
+          "to": "2026-10-12T00:00:00.000Z",
+          "values": {
+            "search_clicks": 151,
+            "search_impressions": 5980,
+            "search_ctr": 0.025250836120401337,
+            "search_position": 18.9
+          },
+          "topPages": [],
+          "topQueries": [
+            {
+              "query": "cookieless analytics",
+              "clicks": 33,
+              "impressions": 760,
+              "position": 5.0
+            },
+            {
+              "query": "privacy friendly analytics",
+              "clicks": 22,
+              "impressions": 1050,
+              "position": 9.3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "source": "ga4",
+      "outcome": {
+        "kind": "ok",
+        "current": {
+          "source": "ga4",
+          "from": "2026-10-12T00:00:00.000Z",
+          "to": "2026-10-19T00:00:00.000Z",
+          "values": {
+            "visitors": 1432,
+            "pageviews": 3876
+          },
+          "topPages": [
+            {
+              "url": "/",
+              "visitors": 812
+            },
+            {
+              "url": "/pricing",
+              "visitors": 233
+            },
+            {
+              "url": "/blog/cookieless-analytics",
+              "visitors": 198
+            },
+            {
+              "url": "/docs/setup",
+              "visitors": 87
+            }
+          ],
+          "topQueries": []
+        },
+        "previous": {
+          "source": "ga4",
+          "from": "2026-10-05T00:00:00.000Z",
+          "to": "2026-10-12T00:00:00.000Z",
+          "values": {
+            "visitors": 1265,
+            "pageviews": 3502
+          },
+          "topPages": [
+            {
+              "url": "/",
+              "visitors": 744
+            },
+            {
+              "url": "/pricing",
+              "visitors": 201
+            }
+          ],
+          "topQueries": []
+        }
+      }
+    },
+    {
+      "source": "plausible",
+      "outcome": {
+        "kind": "ok",
+        "current": {
+          "source": "plausible",
+          "from": "2026-10-12T00:00:00.000Z",
+          "to": "2026-10-19T00:00:00.000Z",
+          "values": {
+            "visitors": 1388,
+            "pageviews": 3790
+          },
+          "topPages": [
+            {
+              "url": "/",
+              "visitors": 790
+            },
+            {
+              "url": "/pricing",
+              "visitors": 221
+            },
+            {
+              "url": "/blog/cookieless-analytics",
+              "visitors": 205
+            }
+          ],
+          "topQueries": []
+        },
+        "previous": {
+          "source": "plausible",
+          "from": "2026-10-05T00:00:00.000Z",
+          "to": "2026-10-12T00:00:00.000Z",
+          "values": {
+            "visitors": 1210,
+            "pageviews": 3420
+          },
+          "topPages": [
+            {
+              "url": "/",
+              "visitors": 701
+            }
+          ],
+          "topQueries": []
+        }
+      }
+    }
+  ]
+}

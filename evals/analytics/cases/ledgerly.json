@@ -1,0 +1,98 @@
+{
+  "name": "ledgerly",
+  "product": {
+    "name": "Ledgerly"
+  },
+  "forbidden": [
+    "signups",
+    "sign-ups",
+    "revenue",
+    "conversion",
+    "because of",
+    "due to",
+    "thanks to",
+    "launch",
+    "tax season"
+  ],
+  "summaryMentions": ["visitors"],
+  "brief": {
+    "audience": "Freelancers in the US, UK and Canada who do their own bookkeeping",
+    "problem": "Freelancers lose evenings every quarter matching receipts to bank transactions",
+    "solution": "Ledgerly sorts bank transactions into income and expenses automatically and matches receipts you snap with your phone",
+    "differentiators": [
+      "Shows what to set aside for taxes every time you get paid",
+      "Read-only bank connection"
+    ],
+    "tone": "Friendly and reassuring",
+    "facts": [
+      "Free for 30 days, then $12 per month",
+      "Connects to your bank with read-only access through Plaid",
+      "Exports everything to CSV or sends it to your accountant in one click"
+    ]
+  },
+  "week": {
+    "start": "2026-10-12T00:00:00.000Z",
+    "end": "2026-10-19T00:00:00.000Z"
+  },
+  "results": [
+    {
+      "source": "search_console",
+      "outcome": {
+        "kind": "failed",
+        "reason": "Google access was revoked or expired: connect Google again"
+      }
+    },
+    {
+      "source": "ga4",
+      "outcome": {
+        "kind": "not_connected"
+      }
+    },
+    {
+      "source": "plausible",
+      "outcome": {
+        "kind": "ok",
+        "current": {
+          "source": "plausible",
+          "from": "2026-10-12T00:00:00.000Z",
+          "to": "2026-10-19T00:00:00.000Z",
+          "values": {
+            "visitors": 640,
+            "pageviews": 1502
+          },
+          "topPages": [
+            {
+              "url": "/",
+              "visitors": 402
+            },
+            {
+              "url": "/pricing",
+              "visitors": 96
+            },
+            {
+              "url": "/blog/quarterly-taxes-freelancers",
+              "visitors": 88
+            }
+          ],
+          "topQueries": []
+        },
+        "previous": {
+          "source": "plausible",
+          "from": "2026-10-05T00:00:00.000Z",
+          "to": "2026-10-12T00:00:00.000Z",
+          "values": {
+            "visitors": 821,
+            "pageviews": 1710
+          },
+          "topPages": [
+            {
+              "url": "/",
+              "visitors": 530
+            }
+          ],
+          "topQueries": []
+        }
+      }
+    }
+  ]
+}
