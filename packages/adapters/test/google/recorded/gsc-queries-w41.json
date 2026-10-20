@@ -1,0 +1,19 @@
+{
+  "rows": [
+    {
+      "keys": ["cookieless analytics"],
+      "clicks": 33,
+      "impressions": 760,
+      "ctr": 0.04342105263157895,
+      "position": 5.0
+    },
+    {
+      "keys": ["privacy friendly analytics"],
+      "clicks": 22,
+      "impressions": 1050,
+      "ctr": 0.02095238095238095,
+      "position": 9.3
+    }
+  ],
+  "responseAggregationType": "byProperty"
+}

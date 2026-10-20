@@ -156,6 +156,31 @@ export interface SubmissionRow {
   updated_at: Date;
 }
 
+export interface AnalyticsConnectionRow {
+  id: string;
+  product_id: string;
+  provider: string;
+  encrypted_secret: string;
+  account_email: string | null;
+  search_console_site: string | null;
+  ga4_property_id: string | null;
+  site_id: string | null;
+  base_url: string | null;
+  connected_at: Date;
+}
+
+export interface WeeklyReportRow {
+  id: string;
+  product_id: string;
+  week_key: string;
+  week_start: Date;
+  week_end: Date;
+  /** jsonb: metrics, top pages and queries, sources and notes; text on the way in. */
+  report: string;
+  notes_error: string | null;
+  built_at: Date;
+}
+
 export interface Database {
   users: UserRow;
   sessions: SessionRow;
@@ -171,4 +196,6 @@ export interface Database {
   directories: DirectoryRow;
   launch_kits: LaunchKitRow;
   submissions: SubmissionRow;
+  analytics_connections: AnalyticsConnectionRow;
+  weekly_reports: WeeklyReportRow;
 }

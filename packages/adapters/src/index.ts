@@ -41,3 +41,11 @@ export {
   type ZernioChangeAssessment,
   type ZernioChangelogEntry,
 } from "./zernio/changelog";
+export type { GoogleOptions, GoogleUrls } from "./google/api";
+export { GoogleOAuthAuthorizer } from "./google/google-oauth-authorizer";
+export { GooglePropertyLister } from "./google/google-property-lister";
+export { SearchConsoleSource } from "./google/search-console-source";
+export { Ga4Source } from "./google/ga4-source";
+export type { PlausibleNetwork } from "./plausible/stats-api";
+export { PlausibleSource } from "./plausible/plausible-source";
+export { PlausibleStatsVerifier } from "./plausible/plausible-stats-verifier";

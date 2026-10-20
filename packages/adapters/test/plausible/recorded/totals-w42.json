@@ -1,0 +1,22 @@
+{
+  "results": [
+    {
+      "metrics": [1388, 3790],
+      "dimensions": []
+    }
+  ],
+  "meta": {},
+  "query": {
+    "site_id": "acme.dev",
+    "metrics": ["visitors", "pageviews"],
+    "date_range": ["2026-10-12T00:00:00+00:00", "2026-10-18T23:59:59+00:00"],
+    "filters": [],
+    "dimensions": [],
+    "order_by": [],
+    "include": {},
+    "pagination": {
+      "limit": 10,
+      "offset": 0
+    }
+  }
+}

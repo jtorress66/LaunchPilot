@@ -1,0 +1,17 @@
+{
+  "accountSummaries": [
+    {
+      "name": "accountSummaries/301234567",
+      "account": "accounts/301234567",
+      "displayName": "Acme",
+      "propertySummaries": [
+        {
+          "property": "properties/412345678",
+          "displayName": "acme.dev - GA4",
+          "propertyType": "PROPERTY_TYPE_ORDINARY",
+          "parent": "accounts/301234567"
+        }
+      ]
+    }
+  ]
+}

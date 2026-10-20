@@ -1,0 +1,17 @@
+{
+  "metricHeaders": [
+    {
+      "name": "activeUsers",
+      "type": "TYPE_INTEGER"
+    },
+    {
+      "name": "screenPageViews",
+      "type": "TYPE_INTEGER"
+    }
+  ],
+  "metadata": {
+    "currencyCode": "USD",
+    "timeZone": "Etc/UTC"
+  },
+  "kind": "analyticsData#runReport"
+}

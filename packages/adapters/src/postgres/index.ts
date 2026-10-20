@@ -15,6 +15,10 @@ import { PostgresSubscriptionRepository } from "./repositories/postgres-subscrip
 import { PostgresUserRepository } from "./repositories/postgres-user-repository";
 import { PostgresTaskRepository } from "./repositories/postgres-task-repository";
 import { PostgresWorkspaceRepository } from "./repositories/postgres-workspace-repository";
+import {
+  PostgresAnalyticsConnectionRepository,
+  PostgresWeeklyReportRepository,
+} from "./repositories/postgres-analytics-repositories";
 import type { Database } from "./schema";
 
 export type { Database } from "./schema";
@@ -24,6 +28,8 @@ export { syncDirectories, type DirectorySyncOutcome } from "./sync-directories";
 export { loadSeedDirectories } from "./seeds/load-seed";
 export { parseSeedDirectories } from "./seeds/parse-seed";
 export {
+  PostgresAnalyticsConnectionRepository,
+  PostgresWeeklyReportRepository,
   PostgresDirectoryCatalog,
   PostgresLaunchKitRepository,
   PostgresSubmissionRepository,
@@ -56,4 +62,6 @@ export const createPostgresRepositories = (db: Kysely<Database>) => ({
   directories: new PostgresDirectoryCatalog(db),
   launchKits: new PostgresLaunchKitRepository(db),
   submissions: new PostgresSubmissionRepository(db),
+  analyticsConnections: new PostgresAnalyticsConnectionRepository(db),
+  weeklyReports: new PostgresWeeklyReportRepository(db),
 });

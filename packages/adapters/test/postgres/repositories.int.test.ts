@@ -10,6 +10,8 @@ import {
   describeLaunchKitRepositoryContract,
   describeSubmissionRepositoryContract,
   describeSubscriptionRepositoryContract,
+  describeAnalyticsConnectionRepositoryContract,
+  describeWeeklyReportRepositoryContract,
   describeUserRepositoryContract,
   describeTaskRepositoryContract,
   describeWorkspaceRepositoryContract,
@@ -31,6 +33,8 @@ import {
   PostgresSubmissionRepository,
   syncDirectories,
   PostgresSubscriptionRepository,
+  PostgresAnalyticsConnectionRepository,
+  PostgresWeeklyReportRepository,
   PostgresUserRepository,
   PostgresTaskRepository,
   PostgresWorkspaceRepository,
@@ -118,6 +122,16 @@ describeSubmissionRepositoryContract("PostgresSubmissionRepository", async () =>
   return new PostgresSubmissionRepository(db);
 });
 
+describeAnalyticsConnectionRepositoryContract("PostgresAnalyticsConnectionRepository", async () => {
+  await resetWith(db, "products");
+  return new PostgresAnalyticsConnectionRepository(db);
+});
+
+describeWeeklyReportRepositoryContract("PostgresWeeklyReportRepository", async () => {
+  await resetWith(db, "products");
+  return new PostgresWeeklyReportRepository(db);
+});
+
 describe("PostgresContentItemRepository", () => {
   it("lists due items earliest publish time first", async () => {
     await resetWith(db, "tasks");
@@ -158,6 +172,7 @@ describe("createPostgresRepositories", () => {
     expect(await repos.contentItems.findById(item.id)).toEqual(item);
     expect(await repos.workspaces.findById(workspaceId("ws_1"))).toBeDefined();
     expect(Object.keys(repos).sort()).toEqual([
+      "analyticsConnections",
       "briefs",
       "campaigns",
       "channelConnections",
@@ -171,6 +186,7 @@ describe("createPostgresRepositories", () => {
       "subscriptions",
       "tasks",
       "users",
+      "weeklyReports",
       "workspaces",
     ]);
   });

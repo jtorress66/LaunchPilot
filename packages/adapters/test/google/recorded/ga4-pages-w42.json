@@ -1,0 +1,69 @@
+{
+  "dimensionHeaders": [
+    {
+      "name": "pagePath"
+    }
+  ],
+  "metricHeaders": [
+    {
+      "name": "activeUsers",
+      "type": "TYPE_INTEGER"
+    }
+  ],
+  "rows": [
+    {
+      "dimensionValues": [
+        {
+          "value": "/"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "812"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "/pricing"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "233"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "/blog/cookieless-analytics"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "198"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "/docs/setup"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "87"
+        }
+      ]
+    }
+  ],
+  "rowCount": 4,
+  "metadata": {
+    "currencyCode": "USD",
+    "timeZone": "Etc/UTC"
+  },
+  "kind": "analyticsData#runReport"
+}

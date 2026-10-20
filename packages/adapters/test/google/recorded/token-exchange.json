@@ -1,0 +1,8 @@
+{
+  "access_token": "ya29.recorded-access-token",
+  "expires_in": 3599,
+  "refresh_token": "1//recorded-refresh-token",
+  "scope": "openid https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/webmasters.readonly https://www.googleapis.com/auth/analytics.readonly",
+  "token_type": "Bearer",
+  "id_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InJlY29yZGVkIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiJyZWNvcmRlZC1jbGllbnQuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiJyZWNvcmRlZC1jbGllbnQuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTAyNDg0OTU5MjEyMzg5ODY0MjAiLCJlbWFpbCI6ImZvdW5kZXJAYWNtZS5kZXYiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaWF0IjoxNzYwOTQ3MjAwLCJleHAiOjE3NjA5NTA4MDB9.recorded-signature"
+}

@@ -1,0 +1,33 @@
+{
+  "rows": [
+    {
+      "keys": ["cookieless analytics"],
+      "clicks": 41,
+      "impressions": 820,
+      "ctr": 0.05,
+      "position": 4.2
+    },
+    {
+      "keys": ["privacy friendly analytics"],
+      "clicks": 27,
+      "impressions": 1110,
+      "ctr": 0.024324324324324326,
+      "position": 8.7
+    },
+    {
+      "keys": ["gdpr analytics tool"],
+      "clicks": 19,
+      "impressions": 640,
+      "ctr": 0.0296875,
+      "position": 6.1
+    },
+    {
+      "keys": ["plausible alternative"],
+      "clicks": 12,
+      "impressions": 930,
+      "ctr": 0.012903225806451613,
+      "position": 11.4
+    }
+  ],
+  "responseAggregationType": "byProperty"
+}
