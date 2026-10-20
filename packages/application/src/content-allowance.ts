@@ -1,5 +1,6 @@
 import {
   checkCanCreateContent,
+  plans,
   startOfUtcMonth,
   type DomainError,
   type Result,
@@ -30,4 +31,23 @@ export const checkContentAllowance = async (
     startOfUtcMonth(deps.clock.now()),
   );
   return checkCanCreateContent(await currentPlan(deps, workspace), used + needed - 1);
+};
+
+/** How many more content items the workspace's plan allows this month (never negative). */
+export const remainingContentAllowance = async (
+  deps: {
+    readonly products: ProductRepository;
+    readonly contentItems: ContentItemRepository;
+    readonly subscriptions: SubscriptionRepository;
+    readonly clock: Clock;
+  },
+  workspace: Workspace,
+): Promise<number> => {
+  const products = await deps.products.listByWorkspace(workspace.id);
+  const used = await deps.contentItems.countCreatedSince(
+    products.map((p) => p.id),
+    startOfUtcMonth(deps.clock.now()),
+  );
+  const plan = await currentPlan(deps, workspace);
+  return Math.max(0, plans[plan].limits.contentItemsPerMonth - used);
 };

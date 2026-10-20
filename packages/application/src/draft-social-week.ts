@@ -32,6 +32,7 @@ import type {
   TaskRepository,
 } from "@launchpilot/ports";
 import { loadApprovedBrief } from "./approved-brief";
+import { latestArticle } from "./latest-article";
 import { checkContentAllowance } from "./content-allowance";
 import type { UseCaseError } from "./errors";
 import { loadOwnedProduct } from "./owned-product";
@@ -44,16 +45,6 @@ export interface SocialWeek {
   /** True when the plan's monthly allowance ran out before every post was drafted. */
   readonly stoppedAtLimit: boolean;
 }
-
-/** The newest published blog article, which the week's first posts promote. */
-const latestArticle = (items: readonly ContentItem[]) => {
-  const article = items
-    .filter((i) => i.channel === "blog" && i.publication !== null)
-    .sort((a, b) => (b.publication?.at.getTime() ?? 0) - (a.publication?.at.getTime() ?? 0))[0];
-  return article?.publication
-    ? { title: article.title, url: article.publication.externalUrl }
-    : undefined;
-};
 
 /**
  * Has the social writer draft a week of X and LinkedIn posts from the approved brief and
