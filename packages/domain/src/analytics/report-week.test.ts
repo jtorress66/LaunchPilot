@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lastCompleteWeek, parseWeekKey, previousWeek, weekKey } from "./report-week";
+import { describeWeek, lastCompleteWeek, parseWeekKey, previousWeek, weekKey } from "./report-week";
 
 const week = (start: string, end: string) => ({ start: new Date(start), end: new Date(end) });
 
@@ -56,5 +56,13 @@ describe("parseWeekKey", () => {
 
   it.each(["2026-42", "2026-W00", "2026-W54", "2027-W53", "abcd-W01"])("rejects %s", (key) => {
     expect(parseWeekKey(key).ok).toBe(false);
+  });
+});
+
+describe("describeWeek", () => {
+  it("names the first and last day of the week", () => {
+    expect(describeWeek(week("2025-12-29T00:00:00.000Z", "2026-01-05T00:00:00.000Z"))).toBe(
+      "29 Dec 2025 to 4 Jan 2026",
+    );
   });
 });

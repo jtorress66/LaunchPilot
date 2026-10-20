@@ -11,6 +11,15 @@ export const metricNames = [
 ] as const;
 export type MetricName = (typeof metricNames)[number];
 
+export const metricLabels: Readonly<Record<MetricName, string>> = {
+  visitors: "Visitors",
+  pageviews: "Pageviews",
+  search_clicks: "Search clicks",
+  search_impressions: "Search impressions",
+  search_ctr: "Search CTR",
+  search_position: "Search position",
+};
+
 export interface PageRow {
   /** A path such as `/pricing`, or a full URL when the source reports one. */
   readonly url: string;

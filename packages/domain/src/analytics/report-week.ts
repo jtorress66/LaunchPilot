@@ -54,3 +54,14 @@ export const parseWeekKey = (key: string): Result<ReportWeek, DomainError> => {
   const week = weekFrom(new Date(firstIsoMonday(year).getTime() + (number - 1) * WEEK));
   return number >= 1 && weekKey(week) === key ? ok(week) : invalid;
 };
+
+const dayMonthYear = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC",
+});
+
+/** The week for people: `29 Dec 2025 to 4 Jan 2026`. */
+export const describeWeek = (week: ReportWeek): string =>
+  `${dayMonthYear.format(week.start)} to ${dayMonthYear.format(new Date(week.end.getTime() - DAY))}`;
