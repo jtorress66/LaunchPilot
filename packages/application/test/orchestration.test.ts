@@ -1,7 +1,9 @@
 import { contentItemId, type Product, type User, type Workspace } from "@launchpilot/domain";
 import { aContentItem, aWeeklyReport } from "@launchpilot/testing";
 import { describe, expect, it } from "vitest";
+import { FakeContentDrafter } from "@launchpilot/testing";
 import {
+  DrafterRegistry,
   ApproveBrief,
   CreateProduct,
   GenerateBrief,
@@ -231,6 +233,29 @@ describe("RunWeeklyLoop", () => {
     expect((await ranOk(s)).outcome).toMatchObject({
       summary: { planned: 1, dropped: 1, drafted: 1 },
     });
+  });
+});
+
+describe("DrafterRegistry", () => {
+  it("refuses two writers for one channel", () => {
+    const drafter = new FakeContentDrafter();
+    expect(
+      () =>
+        new DrafterRegistry([
+          { channel: "x", drafter },
+          { channel: "x", drafter },
+        ]),
+    ).toThrow(/exactly one drafter/);
+  });
+
+  it("counts a task as failed when no writer is registered for its channel", async () => {
+    const s = await setUp();
+    const onlyBlog = new DrafterRegistry([{ channel: "blog", drafter: s.world.writer }]);
+    const run = await new RunAutopilotNow({
+      ...s.world,
+      loop: new RunWeeklyLoop({ ...s.world, drafters: onlyBlog }),
+    }).execute({ workspace: s.workspace, productId: s.product.id });
+    expect(run.ok && run.value.outcome).toMatchObject({ summary: { drafted: 2, failed: 5 } });
   });
 });
 
