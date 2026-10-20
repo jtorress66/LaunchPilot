@@ -1,4 +1,11 @@
 import {
+  FakeAnalyticsPropertyLister,
+  FakeGoogleAuthorizer,
+  FakeMetricsSource,
+  FakePlausibleSiteVerifier,
+  FakeWeeklyReportAnalyst,
+  InMemoryAnalyticsConnectionRepository,
+  InMemoryWeeklyReportRepository,
   FakeBlogConnectionVerifier,
   FakeContentDrafter,
   FakeKeywordProvider,
@@ -30,7 +37,7 @@ import {
   SequentialIdGenerator,
   SequentialTokenGenerator,
 } from "@launchpilot/testing";
-import { PublisherRegistry, SignUp } from "../src";
+import { MetricsSourceRegistry, PublisherRegistry, SignUp } from "../src";
 
 /** Every port a use case may need, backed by in-memory fakes. */
 export const makeWorld = () => {
@@ -38,6 +45,9 @@ export const makeWorld = () => {
   const blogPublisher = new FakePublisherProvider("blog", clock);
   const xPublisher = new FakePublisherProvider("x", clock);
   const linkedinPublisher = new FakePublisherProvider("linkedin", clock);
+  const searchConsole = new FakeMetricsSource("search_console");
+  const ga4 = new FakeMetricsSource("ga4");
+  const plausible = new FakeMetricsSource("plausible");
   return {
     clock,
     ids: new SequentialIdGenerator(),
@@ -72,6 +82,16 @@ export const makeWorld = () => {
     launchWriter: new FakeLaunchKitDrafter(),
     launchKits: new InMemoryLaunchKitRepository(),
     submissions: new InMemorySubmissionRepository(),
+    googleAuth: new FakeGoogleAuthorizer(),
+    propertyLister: new FakeAnalyticsPropertyLister(),
+    plausibleVerifier: new FakePlausibleSiteVerifier(),
+    analyticsConnections: new InMemoryAnalyticsConnectionRepository(),
+    weeklyReports: new InMemoryWeeklyReportRepository(),
+    searchConsole,
+    ga4,
+    plausible,
+    metricsSources: new MetricsSourceRegistry([searchConsole, ga4, plausible]),
+    analyst: new FakeWeeklyReportAnalyst(),
     directories: new InMemoryDirectoryCatalog([
       aDirectory({
         slug: "product-hunt",

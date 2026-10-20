@@ -1,6 +1,7 @@
 import { productId, workspaceId } from "@launchpilot/domain";
-import { aBrief, aContentItem, aProduct } from "@launchpilot/testing";
+import { aBrief, aContentItem, aGoogleConnection, aProduct } from "@launchpilot/testing";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { analyticsConnectionMapper } from "../../src/postgres/mappers/analytics-mappers";
 import { briefMapper } from "../../src/postgres/mappers/brief-mapper";
 import { contentItemMapper } from "../../src/postgres/mappers/content-item-mapper";
 import { productMapper } from "../../src/postgres/mappers/product-mapper";
@@ -68,5 +69,15 @@ describe("database safety constraints", () => {
       aProduct({ id: productId("prod_9"), workspaceId: workspaceId("ws_missing") }),
     );
     await expect(db.insertInto("products").values(row).execute()).rejects.toThrow(/foreign key/);
+  });
+
+  it.each([
+    ["a Google connection without its account", { account_email: null }, /provider_check/],
+    ["a connection without its secret", { encrypted_secret: "" }, /secret_check/],
+  ])("refuses %s", async (_case, override, constraint) => {
+    const row = { ...analyticsConnectionMapper.toRow(aGoogleConnection()), ...override };
+    await expect(db.insertInto("analytics_connections").values(row).execute()).rejects.toThrow(
+      constraint,
+    );
   });
 });

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  analyticsFailureMessage,
   draftFailureMessage,
   fieldFor,
   keywordFailureMessage,
@@ -83,5 +84,30 @@ describe("publishFailureMessage", () => {
     expect(
       publishFailureMessage({ code: "not_connected", message: "Link your X account first" }),
     ).toBe("Link your X account first");
+  });
+});
+
+describe("analyticsFailureMessage", () => {
+  it.each([
+    ["invalid_grant", "The Google sign-in expired. Try connecting again."],
+    ["denied", "Google access was not granted."],
+    [
+      "missing_scope",
+      "Allow LaunchPilot to see Search Console or Analytics data to connect Google.",
+    ],
+    ["oauth_state_mismatch", "The Google sign-in could not be checked. Try connecting again."],
+    ["invalid_credentials", "The key was rejected. Check it and try again."],
+    ["site_not_found", "No site with that domain was found for this key."],
+    ["unreachable", "The analytics service could not be reached. Try again in a minute."],
+    ["unavailable", "The analytics service could not be reached. Try again in a minute."],
+    ["blocked", "That address cannot be used."],
+  ])("explains %s", (code, message) => {
+    expect(analyticsFailureMessage({ code, message: "internal detail" })).toBe(message);
+  });
+
+  it("keeps the use case's own message for anything else", () => {
+    expect(
+      analyticsFailureMessage({ code: "analytics_not_connected", message: "Connect first" }),
+    ).toBe("Connect first");
   });
 });

@@ -1,5 +1,5 @@
 // `pnpm test:e2e`: disposable Postgres and a real WordPress blog (Testcontainers) + migrations
-// + a local fixture website, DataForSEO and Zernio stubs + Playwright with local billing and offline AI.
+// + a local fixture website, DataForSEO, Zernio and Google/Plausible stubs + Playwright with local billing and offline AI.
 // Extra arguments are passed to Playwright, e.g. `pnpm test:e2e --project=desktop`.
 import { randomBytes } from "node:crypto";
 import { spawn } from "node:child_process";
@@ -7,6 +7,7 @@ import { readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { join } from "node:path";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
+import { startAnalyticsStub } from "./e2e-analytics.mjs";
 import { startZernioStub } from "./e2e-zernio.mjs";
 import { startWordPress } from "./e2e-wordpress.mjs";
 
@@ -49,6 +50,7 @@ const run = (command, args, env) =>
 
 const site = await startFixtureSite();
 const zernio = await startZernioStub();
+const analytics = await startAnalyticsStub();
 const [container, wordpress] = await Promise.all([
   new PostgreSqlContainer("postgres:16-alpine").start(),
   startWordPress(),
@@ -74,6 +76,7 @@ try {
     E2E_SITE_URL: `http://127.0.0.1:${SITE_PORT}/`,
     ...wordpress.env,
     ...zernio.env,
+    ...analytics.env,
   };
   status = await run("pnpm", ["--silent", "db:migrate"], env);
   if (status === 0)
@@ -82,5 +85,6 @@ try {
   await Promise.all([container.stop(), wordpress.stop()]);
   site.close();
   await zernio.stop();
+  await analytics.stop();
 }
 process.exit(status);

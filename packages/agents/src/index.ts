@@ -12,3 +12,6 @@ export { SOCIAL_SYSTEM_PROMPT } from "./social/prompt";
 export { LaunchKitWriter } from "./launch/launch-kit-writer";
 export { TemplateLaunchKitWriter } from "./launch/template-launch-kit-writer";
 export { LAUNCH_SYSTEM_PROMPT } from "./launch/prompt";
+export { AnalystAgent } from "./analytics/analyst-agent";
+export { TemplateAnalyst } from "./analytics/template-analyst";
+export { ANALYST_SYSTEM_PROMPT } from "./analytics/prompt";

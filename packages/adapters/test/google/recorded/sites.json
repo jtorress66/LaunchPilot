@@ -1,0 +1,16 @@
+{
+  "siteEntry": [
+    {
+      "siteUrl": "sc-domain:acme.dev",
+      "permissionLevel": "siteOwner"
+    },
+    {
+      "siteUrl": "https://blog.acme.dev/",
+      "permissionLevel": "siteFullUser"
+    },
+    {
+      "siteUrl": "https://old.acme.dev/",
+      "permissionLevel": "siteUnverifiedUser"
+    }
+  ]
+}

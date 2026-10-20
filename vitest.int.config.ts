@@ -24,6 +24,8 @@ export default defineConfig({
         "packages/adapters/src/wordpress/rest.ts",
         "packages/adapters/src/dataforseo/dataforseo-keyword-provider.ts",
         "packages/adapters/src/zernio/**/*.ts",
+        "packages/adapters/src/google/**/*.ts",
+        "packages/adapters/src/plausible/**/*.ts",
       ],
       exclude: ["**/*.test.ts"],
       thresholds: { lines: 90, functions: 90, branches: 90, statements: 90 },

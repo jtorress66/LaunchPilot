@@ -1,4 +1,6 @@
 import type {
+  AnalyticsConnection,
+  AnalyticsProvider,
   Channel,
   ChannelConnection,
   Email,
@@ -22,6 +24,7 @@ import type {
   ProductId,
   Task,
   TaskId,
+  WeeklyReport,
   Workspace,
   WorkspaceId,
 } from "@launchpilot/domain";
@@ -124,4 +127,26 @@ export interface SubmissionRepository {
   listByProduct(productId: ProductId): Promise<readonly Submission[]>;
   /** Inserts or replaces the submission with the same id. */
   save(submission: Submission): Promise<void>;
+}
+
+export interface AnalyticsConnectionRepository {
+  find<P extends AnalyticsProvider>(
+    productId: ProductId,
+    provider: P,
+  ): Promise<Extract<AnalyticsConnection, { provider: P }> | undefined>;
+  /** Ordered by provider. */
+  listByProduct(productId: ProductId): Promise<readonly AnalyticsConnection[]>;
+  /** Products with at least one connection, ordered by id: the weekly job's work list. */
+  listConnectedProductIds(): Promise<readonly ProductId[]>;
+  /** Inserts or replaces the connection for the same product and provider. */
+  save(connection: AnalyticsConnection): Promise<void>;
+  delete(productId: ProductId, provider: AnalyticsProvider): Promise<void>;
+}
+
+export interface WeeklyReportRepository {
+  findByProductAndWeek(productId: ProductId, weekKey: string): Promise<WeeklyReport | undefined>;
+  /** Newest week first. */
+  listByProduct(productId: ProductId): Promise<readonly WeeklyReport[]>;
+  /** Inserts or replaces the report for the same product and week. */
+  save(report: WeeklyReport): Promise<void>;
 }

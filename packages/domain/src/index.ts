@@ -31,3 +31,8 @@ export * from "./launch/directory";
 export * from "./launch/launch-kit";
 export * from "./launch/fit-listing";
 export * from "./launch/submission";
+export * from "./analytics/metrics";
+export * from "./analytics/report-week";
+export * from "./analytics/analytics-connection";
+export * from "./analytics/weekly-report";
+export * from "./analytics/report-numbers";

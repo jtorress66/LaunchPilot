@@ -1,5 +1,4 @@
-import type { BriefContent, Channel, Result, TaskKind } from "@launchpilot/domain";
-import type { MetricsSnapshot } from "./metrics-source";
+import type { BriefContent, Channel, MetricsSnapshot, Result, TaskKind } from "@launchpilot/domain";
 import type { PortError } from "./port-error";
 
 export interface PlanRequest {

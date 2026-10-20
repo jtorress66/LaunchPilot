@@ -1,0 +1,30 @@
+{
+  "results": [
+    {
+      "metrics": [790],
+      "dimensions": ["/"]
+    },
+    {
+      "metrics": [221],
+      "dimensions": ["/pricing"]
+    },
+    {
+      "metrics": [205],
+      "dimensions": ["/blog/cookieless-analytics"]
+    }
+  ],
+  "meta": {},
+  "query": {
+    "site_id": "acme.dev",
+    "metrics": ["visitors"],
+    "date_range": ["2026-10-12T00:00:00+00:00", "2026-10-18T23:59:59+00:00"],
+    "filters": [],
+    "dimensions": ["event:page"],
+    "order_by": [["visitors", "desc"]],
+    "include": {},
+    "pagination": {
+      "limit": 10,
+      "offset": 0
+    }
+  }
+}

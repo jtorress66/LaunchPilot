@@ -1,4 +1,7 @@
 import type {
+  AnalyticsConnection,
+  AnalyticsProvider,
+  WeeklyReport,
   Channel,
   ChannelConnection,
   SocialProfile,
@@ -41,6 +44,8 @@ import type {
   UserRepository,
   TaskRepository,
   WorkspaceRepository,
+  AnalyticsConnectionRepository,
+  WeeklyReportRepository,
 } from "@launchpilot/ports";
 import { InMemoryStore } from "./in-memory-store";
 
@@ -283,6 +288,66 @@ export class InMemorySubmissionRepository implements SubmissionRepository {
 
   save(submission: Submission): Promise<void> {
     this.store.put(submission);
+    return Promise.resolve();
+  }
+}
+
+export class InMemoryAnalyticsConnectionRepository implements AnalyticsConnectionRepository {
+  private readonly store = new InMemoryStore<string, AnalyticsConnection>(
+    (c) => `${c.productId}:${c.provider}`,
+  );
+
+  find<P extends AnalyticsProvider>(
+    productId: ProductId,
+    provider: P,
+  ): Promise<Extract<AnalyticsConnection, { provider: P }> | undefined> {
+    const found = this.store.get(`${productId}:${provider}`);
+    return Promise.resolve(found as Extract<AnalyticsConnection, { provider: P }> | undefined);
+  }
+
+  listByProduct(productId: ProductId): Promise<readonly AnalyticsConnection[]> {
+    return Promise.resolve(
+      this.store
+        .filter((c) => c.productId === productId)
+        .sort((a, b) => a.provider.localeCompare(b.provider)),
+    );
+  }
+
+  listConnectedProductIds(): Promise<readonly ProductId[]> {
+    const ids = new Set(this.store.filter(() => true).map((c) => c.productId));
+    return Promise.resolve([...ids].sort());
+  }
+
+  save(connection: AnalyticsConnection): Promise<void> {
+    this.store.put(connection);
+    return Promise.resolve();
+  }
+
+  delete(productId: ProductId, provider: AnalyticsProvider): Promise<void> {
+    this.store.delete(`${productId}:${provider}`);
+    return Promise.resolve();
+  }
+}
+
+export class InMemoryWeeklyReportRepository implements WeeklyReportRepository {
+  private readonly store = new InMemoryStore<string, WeeklyReport>(
+    (r) => `${r.productId}:${r.weekKey}`,
+  );
+
+  findByProductAndWeek(productId: ProductId, weekKey: string): Promise<WeeklyReport | undefined> {
+    return Promise.resolve(this.store.get(`${productId}:${weekKey}`));
+  }
+
+  listByProduct(productId: ProductId): Promise<readonly WeeklyReport[]> {
+    return Promise.resolve(
+      this.store
+        .filter((r) => r.productId === productId)
+        .sort((a, b) => b.week.start.getTime() - a.week.start.getTime()),
+    );
+  }
+
+  save(report: WeeklyReport): Promise<void> {
+    this.store.put(report);
     return Promise.resolve();
   }
 }

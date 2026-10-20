@@ -155,3 +155,22 @@ export const parseDirectoryFilter = (
     ...(topic ? { topic } : {}),
   };
 };
+
+/** An empty select or input means "none". */
+const optional = (max: number) =>
+  z
+    .string()
+    .max(max, `Use at most ${max} characters`)
+    .default("")
+    .transform((value) => (value.trim() === "" ? null : value.trim()));
+
+export const plausibleForm = z.object({
+  siteId: text("Enter the domain Plausible shows for your site", 253),
+  apiKey: text("Paste a Stats API key", 500),
+  baseUrl: optional(2048),
+});
+
+export const analyticsPropertiesForm = z.object({
+  searchConsoleSite: optional(2048),
+  ga4PropertyId: optional(40),
+});

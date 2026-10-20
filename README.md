@@ -239,6 +239,58 @@ changes. The details (submit URL, pricing, limits) were gathered from public sea
 may drift: re-check an entry and update its `checkedAt` when you edit it. Product Hunt's 60-character
 tagline limit comes from third-party guides, not from Product Hunt's own documentation.
 
+### Analytics module
+
+The product's **Analytics** page connects read-only sources and shows the weekly report.
+
+1. **Connect Google.** One sign-in covers Search Console and Google Analytics 4. LaunchPilot asks
+   Google for read-only access (`webmasters.readonly`, `analytics.readonly`, plus `openid email`
+   to name the account). The refresh token is encrypted at rest and never logged. The OAuth
+   `state` is kept in a short-lived httpOnly cookie and checked on the way back. The founder then
+   picks a Search Console property and a GA4 property from the lists Google returns. Either can be
+   left empty.
+2. **Connect Plausible.** Site domain plus a Stats API key (Plausible → Settings → API keys).
+   LaunchPilot checks both with one small query before storing the key, encrypted. A self-hosted
+   Plausible address is accepted; it goes through the same SSRF guard as founder blog URLs.
+3. **Weekly report.** Weeks run Monday 00:00 to Monday 00:00 UTC. The worker builds last week's
+   report for every connected product from Monday 06:00 UTC (and catches up on later runs), at
+   most 20 per run. **Build report now** rebuilds the latest complete week in place. Each report
+   shows:
+   - visitors and pageviews (GA4 is preferred when both GA4 and Plausible answer)
+   - search clicks, impressions, CTR and average position (from Search Console)
+   - each figure's change against the week before, as an arrow, a signed percentage and a
+     better/worse label (a lower position is better)
+   - the top 10 pages and the top 10 search queries
+   - a status line per source: ok, not connected, or failed with the reason
+   - the analyst's notes: a short summary, highlights and 1 to 3 suggestions for next week
+
+   A source that fails does not block the report; it is built from the sources that answered.
+   The analyst (Claude, or the offline template analyst in dev and test) may state only numbers
+   that are in the report and facts from the approved brief; a note with any other number gets
+   one rewrite and is otherwise dropped, and the report is saved without notes.
+
+Sources report in their own time zones (Search Console uses Pacific time, GA4 and Plausible the
+property's or site's time zone), so a "week" is the same seven calendar dates in each source.
+
+**Google Cloud setup** (once per deployment):
+
+1. In [Google Cloud console](https://console.cloud.google.com/) create a project, then enable the
+   **Google Search Console API**, **Google Analytics Data API** and **Google Analytics Admin API**.
+2. **APIs & Services → OAuth consent screen:** user type External, add the scopes
+   `.../auth/webmasters.readonly` and `.../auth/analytics.readonly`. While the app is in
+   **Testing**, only the test users you list can connect, and Google expires their refresh tokens
+   after 7 days; publish the app (Google reviews these scopes) before real founders use it.
+3. **Credentials → Create credentials → OAuth client ID → Web application.** Authorised redirect
+   URI: `${APP_URL}/api/google/callback` (e.g. `http://localhost:3000/api/google/callback`).
+4. Put the client ID and secret in `.env` as `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, for
+   both the web app and the worker. Without them, the Analytics page offers Plausible only.
+
+**Recorded data:** the adapters' tests, the step 9 gate test
+(`apps/worker/test/weekly-report.int.test.ts`) and the E2E stand-in (`scripts/e2e-analytics.mjs`)
+replay the same responses in `packages/adapters/test/google/recorded` and `.../plausible/recorded`.
+They were written from Google's and Plausible's documented response shapes, because those APIs are
+not reachable from the build sandbox; re-record them from a real account when one is available.
+
 ### LLM evals
 
 `pnpm eval` drafts a brief with real Claude for each recorded site in `evals/brief/sites/*.json`.
@@ -258,11 +310,17 @@ Then comes the **social-post** suite: the social writer drafts the X and LinkedI
 avoid the "forbidden" claims, use at most 2 hashtags on X (3 on LinkedIn), and include the link when
 the angle has one.
 
-Last comes the **launch-kit** suite: the launch writer drafts one kit per recorded brief in
+Then comes the **launch-kit** suite: the launch writer drafts one kit per recorded brief in
 `evals/launch/cases/*.json`. Each kit must keep every listing field within its limit, cite only
 brief facts, avoid the "forbidden" claims and hype words ("revolutionary", "#1", …), give the
 Show HN post a title that starts "Show HN:" within 80 characters, and include all three community
 posts.
+
+Last comes the **analyst** suite: the analyst writes notes on each recorded week in
+`evals/analytics/cases/*.json` (one full week from all three sources, one with a failed source and
+falling visitors). The notes must state only numbers that are in the report, cite only brief facts,
+avoid the "forbidden" claims (invented causes such as "thanks to", signups, revenue) and hype, give
+1 to 3 suggestions, and name the week's biggest change in the summary.
 
 The thresholds are 100% for every suite. Below them, the command exits non-zero. It also prints
 token usage and an estimated cost: a few cents per run. Run it whenever a prompt in
@@ -342,32 +400,37 @@ The rule is enforced twice: by ESLint `no-restricted-imports` per layer, and by
 
 ### Environment variables
 
-| Variable                | Default           | Used by                                                                             |
-| ----------------------- | ----------------- | ----------------------------------------------------------------------------------- |
-| `DATABASE_URL`          | none              | web, worker, `pnpm db:migrate` (must be `postgres://…`)                             |
-| `APP_URL`               | none              | web: absolute base URL for redirects and cookies (Secure when https)                |
-| `APP_ENV`               | `production`      | web: `development`, `test` or `production`                                          |
-| `BILLING_PROVIDER`      | none              | web: `local` or `stripe`                                                            |
-| `LOCAL_BILLING_SECRET`  | none              | web with local billing: at least 16 characters                                      |
-| `STRIPE_SECRET_KEY`     | none              | web with Stripe billing, `pnpm stripe:setup`                                        |
-| `STRIPE_WEBHOOK_SECRET` | none              | web with Stripe billing (`whsec_…`)                                                 |
-| `BRIEF_DRAFTER`         | `claude`          | web: `claude` or `extractive` (development and test only)                           |
-| `ARTICLE_WRITER`        | `claude`          | web: `claude` or `template` (development and test only)                             |
-| `ANTHROPIC_API_KEY`     | none              | web when Claude drafts, `pnpm eval`. Never logged                                   |
-| `ANTHROPIC_MODEL`       | `claude-opus-5-5` | web, `pnpm eval`: the Claude model for briefs and articles                          |
-| `TOKEN_ENCRYPTION_KEY`  | none              | web, worker: 32 random bytes, base64 (`openssl rand -base64 32`)                    |
-| `KEYWORD_PROVIDER`      | `dataforseo`      | web: `dataforseo` or `offline` (development and test only)                          |
-| `DATAFORSEO_LOGIN`      | none              | web with DataForSEO, `pnpm smoke:keywords`                                          |
-| `DATAFORSEO_PASSWORD`   | none              | web with DataForSEO, `pnpm smoke:keywords`. Never logged                            |
-| `DATAFORSEO_BASE_URL`   | DataForSEO API    | web: another base URL, for tests                                                    |
-| `ALLOW_PRIVATE_NETWORK` | `false`           | web: `true` lets the crawler and publishers reach localhost/LAN (dev and test only) |
-| `APP_VERSION`           | `0.1.0`           | web, worker health reports                                                          |
-| `HEARTBEAT_INTERVAL_MS` | `60000`           | worker                                                                              |
-| `SOCIAL_WRITER`         | `claude`          | web: `claude` or `template` (development and test only)                             |
-| `LAUNCH_WRITER`         | `claude`          | web: `claude` or `template` (development and test only)                             |
-| `ZERNIO_API_KEY`        | none              | web, worker, `pnpm smoke:social`. Never logged                                      |
-| `ZERNIO_BASE_URL`       | Zernio API        | web, worker: another base URL, for tests                                            |
-| `PUBLISH_INTERVAL_MS`   | `60000`           | worker: how often scheduled posts are published (at least 5000)                     |
+| Variable                | Default           | Used by                                                                               |
+| ----------------------- | ----------------- | ------------------------------------------------------------------------------------- |
+| `DATABASE_URL`          | none              | web, worker, `pnpm db:migrate` (must be `postgres://…`)                               |
+| `APP_URL`               | none              | web: absolute base URL for redirects and cookies (Secure when https)                  |
+| `APP_ENV`               | `production`      | web: `development`, `test` or `production`                                            |
+| `BILLING_PROVIDER`      | none              | web: `local` or `stripe`                                                              |
+| `LOCAL_BILLING_SECRET`  | none              | web with local billing: at least 16 characters                                        |
+| `STRIPE_SECRET_KEY`     | none              | web with Stripe billing, `pnpm stripe:setup`                                          |
+| `STRIPE_WEBHOOK_SECRET` | none              | web with Stripe billing (`whsec_…`)                                                   |
+| `BRIEF_DRAFTER`         | `claude`          | web: `claude` or `extractive` (development and test only)                             |
+| `ARTICLE_WRITER`        | `claude`          | web: `claude` or `template` (development and test only)                               |
+| `ANTHROPIC_API_KEY`     | none              | web when Claude drafts, worker when `ANALYST=claude`, `pnpm eval`. Never logged       |
+| `ANTHROPIC_MODEL`       | `claude-opus-5-5` | web, `pnpm eval`: the Claude model for briefs and articles                            |
+| `TOKEN_ENCRYPTION_KEY`  | none              | web, worker: 32 random bytes, base64 (`openssl rand -base64 32`)                      |
+| `KEYWORD_PROVIDER`      | `dataforseo`      | web: `dataforseo` or `offline` (development and test only)                            |
+| `DATAFORSEO_LOGIN`      | none              | web with DataForSEO, `pnpm smoke:keywords`                                            |
+| `DATAFORSEO_PASSWORD`   | none              | web with DataForSEO, `pnpm smoke:keywords`. Never logged                              |
+| `DATAFORSEO_BASE_URL`   | DataForSEO API    | web: another base URL, for tests                                                      |
+| `ALLOW_PRIVATE_NETWORK` | `false`           | web: `true` lets the crawler and publishers reach localhost/LAN (dev and test only)   |
+| `APP_VERSION`           | `0.1.0`           | web, worker health reports                                                            |
+| `HEARTBEAT_INTERVAL_MS` | `60000`           | worker                                                                                |
+| `SOCIAL_WRITER`         | `claude`          | web: `claude` or `template` (development and test only)                               |
+| `LAUNCH_WRITER`         | `claude`          | web: `claude` or `template` (development and test only)                               |
+| `ZERNIO_API_KEY`        | none              | web, worker, `pnpm smoke:social`. Never logged                                        |
+| `ZERNIO_BASE_URL`       | Zernio API        | web, worker: another base URL, for tests                                              |
+| `PUBLISH_INTERVAL_MS`   | `60000`           | worker: how often scheduled posts are published (at least 5000)                       |
+| `GOOGLE_CLIENT_ID`      | none              | web, worker: Google OAuth client (with the secret, or neither: then no Google)        |
+| `GOOGLE_CLIENT_SECRET`  | none              | web, worker. Never logged                                                             |
+| `GOOGLE_API_BASE_URL`   | Google APIs       | web, worker: one local stand-in for every Google endpoint (development and test only) |
+| `ANALYST`               | `claude`          | web, worker: `claude` or `template` (development and test only)                       |
+| `REPORT_INTERVAL_MS`    | `3600000`         | worker: how often it checks for due weekly reports (at least 60000)                   |
 
 All configuration is validated with Zod when the app first handles a request; an invalid value
 fails fast with a message naming the variable.

@@ -54,6 +54,10 @@ describe("parseWebConfig", () => {
         launch: {
           writer: { kind: "claude", apiKey: "sk-ant-test-key", model: "claude-opus-5-5" },
         },
+        analytics: {
+          google: null,
+          analyst: { kind: "claude", apiKey: "sk-ant-test-key", model: "claude-opus-5-5" },
+        },
       },
     });
   });
@@ -128,7 +132,7 @@ describe("parseWebConfig AI settings", () => {
     expect(parseWebConfig({ ...stripe, ANTHROPIC_API_KEY: undefined })).toEqual({
       ok: false,
       error:
-        "ANTHROPIC_API_KEY is required when BRIEF_DRAFTER, ARTICLE_WRITER, SOCIAL_WRITER or LAUNCH_WRITER is claude",
+        "ANTHROPIC_API_KEY is required when BRIEF_DRAFTER, ARTICLE_WRITER, SOCIAL_WRITER, LAUNCH_WRITER or ANALYST is claude",
     });
   });
 
@@ -144,6 +148,7 @@ describe("parseWebConfig AI settings", () => {
         KEYWORD_PROVIDER: "offline",
         SOCIAL_WRITER: "template",
         LAUNCH_WRITER: "template",
+        ANALYST: "template",
         ALLOW_PRIVATE_NETWORK: "true",
       }),
     ).toMatchObject({
@@ -228,7 +233,7 @@ describe("parseWebConfig social settings", () => {
     ).toEqual({
       ok: false,
       error:
-        "ANTHROPIC_API_KEY is required when BRIEF_DRAFTER, ARTICLE_WRITER, SOCIAL_WRITER or LAUNCH_WRITER is claude",
+        "ANTHROPIC_API_KEY is required when BRIEF_DRAFTER, ARTICLE_WRITER, SOCIAL_WRITER, LAUNCH_WRITER or ANALYST is claude",
     });
   });
 });
@@ -244,5 +249,53 @@ describe("parseWebConfig launch settings", () => {
       error: "LAUNCH_WRITER=template is only allowed when APP_ENV is development or test",
     });
     expect(parseWebConfig({ ...local, LAUNCH_WRITER: "gpt" }).ok).toBe(false);
+  });
+});
+
+describe("parseWebConfig analytics settings", () => {
+  const google = {
+    GOOGLE_CLIENT_ID: "id.apps.googleusercontent.com",
+    GOOGLE_CLIENT_SECRET: "gsec",
+  };
+
+  it("connects Google when both OAuth client settings are present", () => {
+    expect(parseWebConfig({ ...local, ...google })).toMatchObject({
+      ok: true,
+      value: {
+        analytics: {
+          google: { clientId: google.GOOGLE_CLIENT_ID, clientSecret: "gsec", baseUrl: null },
+        },
+      },
+    });
+    expect(parseWebConfig({ ...local, GOOGLE_CLIENT_ID: "only-id" })).toEqual({
+      ok: false,
+      error: "Set both GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET, or neither",
+    });
+  });
+
+  it("allows the template analyst and a Google stand-in only in development and test", () => {
+    expect(
+      parseWebConfig({
+        ...local,
+        ...google,
+        ANALYST: "template",
+        GOOGLE_API_BASE_URL: "http://127.0.0.1:4030",
+      }),
+    ).toMatchObject({
+      ok: true,
+      value: {
+        analytics: { google: { baseUrl: "http://127.0.0.1:4030" }, analyst: { kind: "template" } },
+      },
+    });
+    expect(parseWebConfig({ ...stripe, ANALYST: "template" })).toEqual({
+      ok: false,
+      error: "ANALYST=template is only allowed when APP_ENV is development or test",
+    });
+    expect(
+      parseWebConfig({ ...stripe, ...google, GOOGLE_API_BASE_URL: "http://127.0.0.1:4030" }),
+    ).toEqual({
+      ok: false,
+      error: "GOOGLE_API_BASE_URL is only allowed when APP_ENV is development or test",
+    });
   });
 });
