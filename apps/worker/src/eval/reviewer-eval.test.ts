@@ -160,7 +160,9 @@ describe("the recorded reviewer cases", () => {
       expect(labels).toEqual(new Set(["pass", "needs_changes"]));
       for (const draft of recorded.value.drafts) {
         const result = await reviewer.review(reviewRequestOf(recorded.value, draft));
-        expect(scoreReview(recorded.value, draft, result), draft.label).toMatchObject({
+        const score = scoreReview(recorded.value, draft, result);
+        expect({ name: score.name, passed: score.passed }).toEqual({
+          name: score.name,
           passed: true,
         });
       }

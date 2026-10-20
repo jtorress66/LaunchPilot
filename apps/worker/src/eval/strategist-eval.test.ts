@@ -224,7 +224,7 @@ describe("the recorded strategist cases", () => {
         recordedRequest,
         await strategist.plan(recordedRequest),
       );
-      expect(score, file).toMatchObject({ passed: true });
+      expect({ file, passed: score.passed }).toEqual({ file, passed: true });
     }
   });
 });
