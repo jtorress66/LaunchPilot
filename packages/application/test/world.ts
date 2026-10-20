@@ -4,6 +4,11 @@ import {
   FakeKeywordProvider,
   FakePublisherProvider,
   FakeSocialAccountLinker,
+  FakeLaunchKitDrafter,
+  InMemoryDirectoryCatalog,
+  InMemoryLaunchKitRepository,
+  InMemorySubmissionRepository,
+  aDirectory,
   FakeTokenCipher,
   InMemorySocialProfileRepository,
   InMemoryCampaignRepository,
@@ -64,6 +69,26 @@ export const makeWorld = () => {
     publishers: new PublisherRegistry([blogPublisher, xPublisher, linkedinPublisher]),
     socialProfiles: new InMemorySocialProfileRepository(),
     linker: new FakeSocialAccountLinker(),
+    launchWriter: new FakeLaunchKitDrafter(),
+    launchKits: new InMemoryLaunchKitRepository(),
+    submissions: new InMemorySubmissionRepository(),
+    directories: new InMemoryDirectoryCatalog([
+      aDirectory({
+        slug: "product-hunt",
+        name: "Product Hunt",
+        channel: "producthunt",
+        limits: { tagline: 60 },
+      }),
+      aDirectory({ slug: "betalist", name: "BetaList", limits: { tagline: 20 } }),
+      aDirectory({ slug: "g2", name: "G2", kind: "directory", pricing: "paid", limits: {} }),
+      aDirectory({
+        slug: "show-hn",
+        name: "Show HN",
+        kind: "community",
+        channel: "hackernews",
+        limits: {},
+      }),
+    ]),
   };
 };
 

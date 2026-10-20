@@ -2,6 +2,10 @@ import type {
   Channel,
   ChannelConnection,
   SocialProfile,
+  Directory,
+  LaunchKit,
+  Submission,
+  SubmissionId,
   Email,
   Session,
   Subscription,
@@ -26,6 +30,9 @@ import type {
   CampaignRepository,
   ChannelConnectionRepository,
   SocialProfileRepository,
+  DirectoryCatalog,
+  LaunchKitRepository,
+  SubmissionRepository,
   ContentItemRepository,
   ProductRepository,
   Repository,
@@ -213,6 +220,69 @@ export class InMemorySocialProfileRepository implements SocialProfileRepository 
 
   save(profile: SocialProfile): Promise<void> {
     this.store.put(profile);
+    return Promise.resolve();
+  }
+}
+
+export class InMemoryDirectoryCatalog implements DirectoryCatalog {
+  private readonly store = new InMemoryStore<string, Directory>((d) => d.slug);
+
+  constructor(directories: readonly Directory[] = []) {
+    for (const directory of directories) this.store.put(directory);
+  }
+
+  list(): Promise<readonly Directory[]> {
+    return Promise.resolve(this.store.filter(() => true));
+  }
+
+  findBySlug(slug: string): Promise<Directory | undefined> {
+    return Promise.resolve(this.store.get(slug));
+  }
+}
+
+export class InMemoryLaunchKitRepository implements LaunchKitRepository {
+  private readonly store = new InMemoryStore<string, LaunchKit>((kit) => kit.id);
+
+  findLatestForProduct(productId: ProductId): Promise<LaunchKit | undefined> {
+    return Promise.resolve(
+      this.store
+        .filter((kit) => kit.productId === productId)
+        .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0],
+    );
+  }
+
+  save(kit: LaunchKit): Promise<void> {
+    this.store.put(kit);
+    return Promise.resolve();
+  }
+}
+
+export class InMemorySubmissionRepository implements SubmissionRepository {
+  private readonly store = new InMemoryStore<SubmissionId, Submission>((s) => s.id);
+
+  findById(id: SubmissionId): Promise<Submission | undefined> {
+    return Promise.resolve(this.store.get(id));
+  }
+
+  findByProductAndDirectory(
+    productId: ProductId,
+    directorySlug: string,
+  ): Promise<Submission | undefined> {
+    return Promise.resolve(
+      this.store.filter((s) => s.productId === productId && s.directorySlug === directorySlug)[0],
+    );
+  }
+
+  listByProduct(productId: ProductId): Promise<readonly Submission[]> {
+    return Promise.resolve(
+      this.store
+        .filter((s) => s.productId === productId)
+        .sort((a, b) => a.directorySlug.localeCompare(b.directorySlug)),
+    );
+  }
+
+  save(submission: Submission): Promise<void> {
+    this.store.put(submission);
     return Promise.resolve();
   }
 }

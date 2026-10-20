@@ -16,7 +16,10 @@ export type ApplicationErrorCode =
   | "no_keyword_opportunities"
   | "task_not_found"
   | "content_not_found"
-  | "social_not_connected";
+  | "social_not_connected"
+  | "launch_kit_not_found"
+  | "directory_not_found"
+  | "submission_not_found";
 
 /** What a use case can report: a broken domain rule or an application-level refusal. */
 export type UseCaseError =

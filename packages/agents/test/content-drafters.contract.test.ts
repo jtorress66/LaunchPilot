@@ -1,11 +1,16 @@
 import type { ContentDrafter } from "@launchpilot/ports";
-import { FakeLlmClient } from "@launchpilot/testing";
-import { describeContentDrafterContract } from "@launchpilot/testing/contracts";
+import { aListing, FakeLlmClient } from "@launchpilot/testing";
+import {
+  describeContentDrafterContract,
+  describeLaunchKitDrafterContract,
+} from "@launchpilot/testing/contracts";
 import {
   SeoArticleWriter,
   SocialPostWriter,
   TemplateArticleWriter,
   TemplatePostWriter,
+  LaunchKitWriter,
+  TemplateLaunchKitWriter,
 } from "../src";
 
 describeContentDrafterContract("TemplateArticleWriter", () => {
@@ -87,6 +92,52 @@ describeContentDrafterContract("SocialPostWriter with a scripted model", () => {
   };
   return {
     drafter,
+    givenFailure: () => {
+      outage = true;
+    },
+  };
+});
+
+describeLaunchKitDrafterContract("TemplateLaunchKitWriter", () => {
+  const writer = new TemplateLaunchKitWriter();
+  let failing = false;
+  return {
+    drafter: {
+      // A blank product name is the template writer's only failure.
+      draft: (request) =>
+        writer.draft(
+          failing ? { ...request, product: { ...request.product, name: " " } } : request,
+        ),
+    },
+    givenFailure: () => {
+      failing = true;
+    },
+  };
+});
+
+describeLaunchKitDrafterContract("LaunchKitWriter with a scripted model", () => {
+  const llm = new FakeLlmClient();
+  const writer = new LaunchKitWriter(llm);
+  let outage = false;
+  return {
+    drafter: {
+      draft: (request) => {
+        if (outage) llm.fail({ code: "unavailable", message: "Overloaded", retryable: true });
+        else
+          llm.reply(
+            JSON.stringify({
+              listing: aListing(),
+              community: {
+                hackernews: { title: "Show HN: Acme", body: "Feedback welcome." },
+                reddit: { title: "I built Acme", body: "Free 14-day trial." },
+                indiehackers: { title: "Launching Acme", body: "Our story." },
+              },
+              citedFacts: ["Free 14-day trial", "Trusted by 10,000 teams"],
+            }),
+          );
+        return writer.draft(request);
+      },
+    },
     givenFailure: () => {
       outage = true;
     },

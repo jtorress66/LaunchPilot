@@ -1,5 +1,10 @@
 import { PublishDueContent, PublisherRegistry } from "@launchpilot/application";
-import { BriefAgent, SeoArticleWriter, SocialPostWriter } from "@launchpilot/agents";
+import {
+  BriefAgent,
+  LaunchKitWriter,
+  SeoArticleWriter,
+  SocialPostWriter,
+} from "@launchpilot/agents";
 import {
   AesGcmTokenCipher,
   createPostgresRepositories,
@@ -14,6 +19,8 @@ import {
   createStripeClient,
   ensureStripePrices,
   migrateToLatest,
+  loadSeedDirectories,
+  syncDirectories,
   SystemClock,
 } from "@launchpilot/adapters";
 import type { DatabaseConfig, PublisherConfig, StripeSetupConfig, ZernioConfig } from "./config";
@@ -30,11 +37,19 @@ export const container = {
   },
 } satisfies HeartbeatDeps;
 
-/** Opens a single connection, applies pending migrations and closes it again. */
+/**
+ * Opens a single connection, applies pending migrations, syncs the curated directory catalogue
+ * and closes the connection again.
+ */
 export const runMigrations = async ({ connectionString }: DatabaseConfig) => {
   const db = createDatabase(connectionString, 1);
   try {
-    return await migrateToLatest(db);
+    const migrated = await migrateToLatest(db);
+    if (!migrated.ok) return migrated;
+    const seed = loadSeedDirectories();
+    if (!seed.ok) return seed;
+    const directories = await syncDirectories(db, seed.value);
+    return { ok: true as const, value: { ...migrated.value, directories } };
   } finally {
     await db.destroy();
   }
@@ -69,6 +84,12 @@ export const createKeywordProvider = ({
 export const createSocialEvalWriter = ({ apiKey, model }: EvalConfig) => {
   const meter = new MeteredLlmClient(new ClaudeLlmClient({ apiKey, model }));
   return { writer: new SocialPostWriter(meter), meter };
+};
+
+/** The launch kit writer on real Claude, metered for the launch-kit eval. */
+export const createLaunchEvalWriter = ({ apiKey, model }: EvalConfig) => {
+  const meter = new MeteredLlmClient(new ClaudeLlmClient({ apiKey, model }));
+  return { writer: new LaunchKitWriter(meter), meter };
 };
 
 const zernioOptions = ({ apiKey, baseUrl }: ZernioConfig) => ({

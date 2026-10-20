@@ -1,6 +1,9 @@
 import {
   describeChannelConnectionRepositoryContract,
   describeSocialProfileRepositoryContract,
+  describeDirectoryCatalogContract,
+  describeLaunchKitRepositoryContract,
+  describeSubmissionRepositoryContract,
   describeBriefRepositoryContract,
   describeCampaignRepositoryContract,
   describeContentItemRepositoryContract,
@@ -11,6 +14,9 @@ import {
 import {
   InMemoryChannelConnectionRepository,
   InMemorySocialProfileRepository,
+  InMemoryDirectoryCatalog,
+  InMemoryLaunchKitRepository,
+  InMemorySubmissionRepository,
   InMemoryBriefRepository,
   InMemoryCampaignRepository,
   InMemoryContentItemRepository,
@@ -44,4 +50,16 @@ describeChannelConnectionRepositoryContract(
 describeSocialProfileRepositoryContract(
   "InMemorySocialProfileRepository",
   () => new InMemorySocialProfileRepository(),
+);
+describeDirectoryCatalogContract(
+  "InMemoryDirectoryCatalog",
+  (directories) => new InMemoryDirectoryCatalog(directories),
+);
+describeLaunchKitRepositoryContract(
+  "InMemoryLaunchKitRepository",
+  () => new InMemoryLaunchKitRepository(),
+);
+describeSubmissionRepositoryContract(
+  "InMemorySubmissionRepository",
+  () => new InMemorySubmissionRepository(),
 );

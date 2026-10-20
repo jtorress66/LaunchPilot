@@ -65,6 +65,7 @@ try {
     BRIEF_DRAFTER: "extractive",
     ARTICLE_WRITER: "template",
     SOCIAL_WRITER: "template",
+    LAUNCH_WRITER: "template",
     KEYWORD_PROVIDER: "dataforseo",
     DATAFORSEO_LOGIN: "e2e",
     DATAFORSEO_PASSWORD: "e2e",

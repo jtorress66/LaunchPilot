@@ -20,3 +20,5 @@ export * from "./blog-connection-verifier.contract";
 export * from "./publisher-provider.contract";
 export * from "./social-account-linker.contract";
 export * from "./social-profile-repository.contract";
+export * from "./launch-kit-drafter.contract";
+export * from "./launch-repositories.contract";

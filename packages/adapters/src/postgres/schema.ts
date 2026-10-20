@@ -115,6 +115,47 @@ export interface SubscriptionRow {
   updated_at: Date;
 }
 
+export interface DirectoryRow {
+  slug: string;
+  name: string;
+  kind: string;
+  channel: string;
+  homepage_url: string;
+  submit_url: string;
+  pricing: string;
+  price_note: string | null;
+  /** jsonb: string[]; text on the way in. */
+  topics: string;
+  /** jsonb: { tagline?, shortDescription?, longDescription? }; text on the way in. */
+  limits: string;
+  checked_at: Date;
+}
+
+export interface LaunchKitRow {
+  id: string;
+  product_id: string;
+  version: number;
+  status: string;
+  /** jsonb: Listing; text on the way in. */
+  listing: string;
+  approved_by: string | null;
+  approved_at: Date | null;
+  updated_at: Date;
+}
+
+export interface SubmissionRow {
+  id: string;
+  product_id: string;
+  directory_slug: string;
+  status: string;
+  submitted_at: Date | null;
+  listing_url: string | null;
+  live_at: Date | null;
+  /** jsonb: { reason, at }; text on the way in. */
+  rejection: string | null;
+  updated_at: Date;
+}
+
 export interface Database {
   users: UserRow;
   sessions: SessionRow;
@@ -127,4 +168,7 @@ export interface Database {
   content_items: ContentItemRow;
   channel_connections: ChannelConnectionRow;
   social_profiles: SocialProfileRow;
+  directories: DirectoryRow;
+  launch_kits: LaunchKitRow;
+  submissions: SubmissionRow;
 }

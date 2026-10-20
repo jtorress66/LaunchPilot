@@ -21,7 +21,7 @@ cp .env.example .env               # local defaults: Postgres in Docker, local t
 echo "TOKEN_ENCRYPTION_KEY=$(openssl rand -base64 32)" >> .env   # encrypts blog passwords
 pnpm db:up                         # Postgres 16 via docker compose
 set -a && . ./.env && set +a       # load .env into this shell
-pnpm db:migrate                    # apply pending migrations (safe to re-run)
+pnpm db:migrate                    # apply pending migrations and sync the directory catalogue (safe to re-run)
 pnpm dev                           # web on http://localhost:3000 + worker heartbeat
 ```
 
@@ -199,6 +199,46 @@ webhook, but it needs no key and no deployed endpoint. The workflow opens one Gi
 It never opens the same issue twice. Run it by hand with `pnpm watch:zernio --days 30`, or from the
 Actions tab. Once the app is deployed (step 11), the webhook can replace it.
 
+### Launch module
+
+The product's **Launch** page (it needs an approved brief) has three parts. LaunchPilot never
+submits or posts anything here: the founder submits each listing and community post by hand.
+
+1. **Launch kit.** The launch writer (Claude, or the offline template writer in dev and test)
+   drafts the listing copy:
+   - name and tagline (at most 60 characters each)
+   - short description (160) and long description (1,000)
+   - 3 to 6 key features and 1 to 3 categories
+   - the maker's first comment
+
+   It also drafts three community posts: Show HN (title starts "Show HN:", at most 80
+   characters), Reddit and Indie Hackers. The kit may state only the brief's facts. If a field is
+   too long, the writer asks Claude for one rewrite before giving up. The founder edits each field
+   (with a character counter) and approves the kit. Any later edit sends it back for approval.
+   The community posts are ordinary content items on draft-only channels: they appear in the
+   **Inbox**, are approved there, and their page offers **Copy** and **Open Show HN** (or Reddit /
+   Indie Hackers) instead of Publish. Only the three community posts count against the plan's
+   monthly allowance; the kit itself is not a content item.
+
+2. **Where to launch.** A curated catalogue of 29 launch platforms, directories and communities,
+   filtered by kind and price. Free ones show by default; paid ones are clearly marked with a price
+   note. Each entry shows its topics and the date its details were last checked. **Add to my
+   launch** creates a tracker row.
+3. **Tracker.** One row per directory, with the listing fitted to that directory's limits (a field
+   over the limit gets a warning; text is never cut), a copy button per field and a link to the
+   submit page. Statuses: Planned → Submitted → Live (with the listing URL) or Rejected (with a
+   reason). A row can also be Skipped, and a Rejected or Skipped row can be reopened. **Submitted
+   needs an approved kit**; for a community, it also needs that community's post to be approved. A
+   row still waiting 14 days after submission shows **Follow up**.
+
+**The catalogue** lives in `packages/adapters/src/postgres/seeds/directories.json`. Each entry is
+validated by the domain's `parseDirectory`. `pnpm db:migrate` syncs it into the `directories` table
+after migrating: new and changed entries are upserted, and entries removed from the file are
+deleted unless a submission still tracks them. To add a directory, add a JSON entry; no code
+changes. The details (submit URL, pricing, limits) were gathered from public search results and
+may drift: re-check an entry and update its `checkedAt` when you edit it. Product Hunt's 60-character
+tagline limit comes from third-party guides, not from Product Hunt's own documentation.
+
 ### LLM evals
 
 `pnpm eval` drafts a brief with real Claude for each recorded site in `evals/brief/sites/*.json`.
@@ -213,10 +253,16 @@ It then runs the **seo-article** suite: the SEO writer drafts one article per re
 `evals/seo/cases/*.json`, scored on: cites only brief facts, no "forbidden" claims, the keyword in
 the title or first heading, at least 900 words, and at least 3 sections.
 
-Last comes the **social-post** suite: the social writer drafts the X and LinkedIn angles in
+Then comes the **social-post** suite: the social writer drafts the X and LinkedIn angles in
 `evals/social/cases/*.json`. Each post must stay within its channel's limit, cite only brief facts,
 avoid the "forbidden" claims, use at most 2 hashtags on X (3 on LinkedIn), and include the link when
 the angle has one.
+
+Last comes the **launch-kit** suite: the launch writer drafts one kit per recorded brief in
+`evals/launch/cases/*.json`. Each kit must keep every listing field within its limit, cite only
+brief facts, avoid the "forbidden" claims and hype words ("revolutionary", "#1", …), give the
+Show HN post a title that starts "Show HN:" within 80 characters, and include all three community
+posts.
 
 The thresholds are 100% for every suite. Below them, the command exits non-zero. It also prints
 token usage and an estimated cost: a few cents per run. Run it whenever a prompt in
@@ -234,7 +280,7 @@ repository **Settings → Secrets and variables → Actions → New repository s
 | `pnpm test`           | Unit + contract tests with coverage thresholds (Vitest)                                        |
 | `pnpm test:int`       | Integration tests + repository contracts against real Postgres (Testcontainers), with coverage |
 | `pnpm db:up`          | Start the local Postgres container                                                             |
-| `pnpm db:migrate`     | Apply pending migrations to `DATABASE_URL`                                                     |
+| `pnpm db:migrate`     | Apply pending migrations to `DATABASE_URL`, then sync the directory catalogue                  |
 | `pnpm test:e2e`       | Playwright E2E (desktop + mobile); builds and starts the web app                               |
 | `pnpm typecheck`      | `tsc --noEmit` in every package                                                                |
 | `pnpm lint`           | ESLint, zero warnings allowed                                                                  |
@@ -318,6 +364,7 @@ The rule is enforced twice: by ESLint `no-restricted-imports` per layer, and by
 | `APP_VERSION`           | `0.1.0`           | web, worker health reports                                                          |
 | `HEARTBEAT_INTERVAL_MS` | `60000`           | worker                                                                              |
 | `SOCIAL_WRITER`         | `claude`          | web: `claude` or `template` (development and test only)                             |
+| `LAUNCH_WRITER`         | `claude`          | web: `claude` or `template` (development and test only)                             |
 | `ZERNIO_API_KEY`        | none              | web, worker, `pnpm smoke:social`. Never logged                                      |
 | `ZERNIO_BASE_URL`       | Zernio API        | web, worker: another base URL, for tests                                            |
 | `PUBLISH_INTERVAL_MS`   | `60000`           | worker: how often scheduled posts are published (at least 5000)                     |

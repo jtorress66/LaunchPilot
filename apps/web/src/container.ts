@@ -1,4 +1,11 @@
 import {
+  AddToLaunch,
+  ApproveLaunchKit,
+  GenerateLaunchKit,
+  GetLaunchOverview,
+  ListDirectories,
+  ReviseLaunchKit,
+  UpdateSubmission,
   ApproveContentItem,
   ConnectBlog,
   ConnectSocial,
@@ -31,8 +38,10 @@ import {
 import {
   BriefAgent,
   ExtractiveBriefDrafter,
+  LaunchKitWriter,
   SeoArticleWriter,
   SocialPostWriter,
+  TemplateLaunchKitWriter,
   TemplateArticleWriter,
   TemplatePostWriter,
 } from "@launchpilot/agents";
@@ -101,6 +110,11 @@ const articleWriterFor = ({ writer }: WebConfig["seo"]) =>
 const socialWriterFor = ({ writer }: WebConfig["social"]) =>
   writer.kind === "claude" ? new SocialPostWriter(claudeClient(writer)) : new TemplatePostWriter();
 
+const launchWriterFor = ({ writer }: WebConfig["launch"]) =>
+  writer.kind === "claude"
+    ? new LaunchKitWriter(claudeClient(writer))
+    : new TemplateLaunchKitWriter();
+
 const zernioOptionsFor = ({ zernio }: WebConfig["social"]) => ({
   apiKey: zernio.apiKey,
   clock: container.clock,
@@ -133,6 +147,7 @@ const build = (config: WebConfig) => {
     cipher,
     blogVerifier: new WordPressConnectionVerifier(network),
     socialWriter: socialWriterFor(config.social),
+    launchWriter: launchWriterFor(config.launch),
     linker: new ZernioAccountLinker(zernio),
     // One provider per channel: adding a channel means registering its provider here.
     publishers: new PublisherRegistry([
@@ -180,6 +195,13 @@ const build = (config: WebConfig) => {
     unschedulePost: new UnschedulePost(deps),
     getInbox: new GetInbox(deps),
     getSocialOverview: new GetSocialOverview(deps),
+    generateLaunchKit: new GenerateLaunchKit(deps),
+    reviseLaunchKit: new ReviseLaunchKit(deps),
+    approveLaunchKit: new ApproveLaunchKit(deps),
+    listDirectories: new ListDirectories(deps),
+    addToLaunch: new AddToLaunch(deps),
+    updateSubmission: new UpdateSubmission(deps),
+    getLaunchOverview: new GetLaunchOverview(deps),
   };
 };
 

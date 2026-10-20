@@ -37,7 +37,13 @@ describe("migrations", () => {
     expect(await migrateToLatest(db)).toEqual({
       ok: true,
       value: {
-        applied: ["0001_initial", "0002_accounts_billing", "0003_seo", "0004_social"],
+        applied: [
+          "0001_initial",
+          "0002_accounts_billing",
+          "0003_seo",
+          "0004_social",
+          "0005_launch",
+        ],
       },
     });
     expect(await tables()).toEqual([
@@ -45,9 +51,12 @@ describe("migrations", () => {
       "campaigns",
       "channel_connections",
       "content_items",
+      "directories",
+      "launch_kits",
       "products",
       "sessions",
       "social_profiles",
+      "submissions",
       "subscriptions",
       "tasks",
       "users",
@@ -63,7 +72,13 @@ describe("migrations", () => {
     expect(await migrateDown(db)).toEqual({
       ok: true,
       value: {
-        applied: ["0004_social", "0003_seo", "0002_accounts_billing", "0001_initial"],
+        applied: [
+          "0005_launch",
+          "0004_social",
+          "0003_seo",
+          "0002_accounts_billing",
+          "0001_initial",
+        ],
       },
     });
     expect(await tables()).toEqual([]);
