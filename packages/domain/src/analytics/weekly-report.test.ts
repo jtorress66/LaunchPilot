@@ -180,6 +180,12 @@ describe("analyst notes", () => {
     });
   });
 
+  it("keeps only the notes' own fields", () => {
+    const analysis = { ...notes, citedFacts: ["Free 14-day trial"] };
+    const report = withAnalystNotes(build([searchConsole]), analysis);
+    expect(report.notes).toEqual(notes);
+  });
+
   it("keeps the report when the analyst could not write notes, saying why", () => {
     const report = withoutAnalystNotes(withAnalystNotes(build([searchConsole]), notes), "Busy");
     expect(report).toMatchObject({ notes: null, notesError: "Busy" });

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { parseDatabaseConfig, parsePublisherConfig, parseStripeSetupConfig } from "./config";
+import {
+  parseDatabaseConfig,
+  parsePublisherConfig,
+  parseReportsConfig,
+  parseStripeSetupConfig,
+} from "./config";
 
 describe("parseDatabaseConfig", () => {
   it.each([
@@ -99,5 +104,58 @@ describe("parsePublisherConfig", () => {
   ])("refuses %o", (override, message) => {
     const result = parsePublisherConfig({ ...env, ...override });
     expect(result.ok ? undefined : result.error).toContain(message);
+  });
+});
+
+describe("parseReportsConfig", () => {
+  const google = {
+    GOOGLE_CLIENT_ID: "id.apps.googleusercontent.com",
+    GOOGLE_CLIENT_SECRET: "gsec",
+  };
+  const claude = { ANTHROPIC_API_KEY: "sk-ant-test" };
+
+  it("reads Google, the Claude analyst and an hourly interval by default", () => {
+    expect(parseReportsConfig({ ...google, ...claude })).toEqual({
+      ok: true,
+      value: {
+        intervalMs: 3_600_000,
+        google: {
+          clientId: "id.apps.googleusercontent.com",
+          clientSecret: "gsec",
+          baseUrl: null,
+        },
+        analyst: { kind: "claude", apiKey: "sk-ant-test", model: null },
+      },
+    });
+  });
+
+  it("runs without Google, and with the template analyst and a stub in development", () => {
+    expect(parseReportsConfig({ APP_ENV: "development", ANALYST: "template" })).toMatchObject({
+      ok: true,
+      value: { google: null, analyst: { kind: "template" } },
+    });
+    expect(
+      parseReportsConfig({
+        ...google,
+        APP_ENV: "test",
+        ANALYST: "template",
+        GOOGLE_API_BASE_URL: "http://127.0.0.1:4030",
+        REPORT_INTERVAL_MS: "60000",
+      }),
+    ).toMatchObject({
+      ok: true,
+      value: { intervalMs: 60_000, google: { baseUrl: "http://127.0.0.1:4030" } },
+    });
+  });
+
+  it.each([
+    [{ GOOGLE_CLIENT_SECRET: undefined }, "Set both GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET"],
+    [{ ANTHROPIC_API_KEY: undefined }, "ANTHROPIC_API_KEY is required when ANALYST is claude"],
+    [{ ANALYST: "template" }, "ANALYST=template is only allowed"],
+    [{ GOOGLE_API_BASE_URL: "http://127.0.0.1:4030" }, "GOOGLE_API_BASE_URL is only allowed"],
+    [{ REPORT_INTERVAL_MS: "1000" }, "REPORT_INTERVAL_MS must be at least 60000"],
+  ])("refuses %o", (override, message) => {
+    const result = parseReportsConfig({ ...google, ...claude, ...override });
+    expect(result.ok ? "" : result.error).toContain(message);
   });
 });

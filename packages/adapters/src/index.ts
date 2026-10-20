@@ -41,7 +41,7 @@ export {
   type ZernioChangeAssessment,
   type ZernioChangelogEntry,
 } from "./zernio/changelog";
-export type { GoogleOptions, GoogleUrls } from "./google/api";
+export { googleStubUrls, type GoogleOptions, type GoogleUrls } from "./google/api";
 export { GoogleOAuthAuthorizer } from "./google/google-oauth-authorizer";
 export { GooglePropertyLister } from "./google/google-property-lister";
 export { SearchConsoleSource } from "./google/search-console-source";

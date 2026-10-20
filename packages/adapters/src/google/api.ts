@@ -29,6 +29,18 @@ const defaults: GoogleUrls = {
 
 export const urlsOf = (options: GoogleOptions): GoogleUrls => ({ ...defaults, ...options.urls });
 
+/** Every Google endpoint under one local stand-in (`scripts/e2e-analytics.mjs`). Dev and test only. */
+export const googleStubUrls = (baseUrl: string): GoogleUrls => {
+  const base = baseUrl.replace(/\/$/, "");
+  return {
+    consent: `${base}/o/oauth2/v2/auth`,
+    token: `${base}/token`,
+    searchConsole: `${base}/webmasters/v3`,
+    analyticsData: `${base}/data/v1beta`,
+    analyticsAdmin: `${base}/admin/v1beta`,
+  };
+};
+
 /** Read-only access only; `openid email` names the account the founder signed in with. */
 export const GOOGLE_SCOPES = [
   "openid",

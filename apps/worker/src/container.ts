@@ -1,5 +1,13 @@
-import { PublishDueContent, PublisherRegistry } from "@launchpilot/application";
 import {
+  BuildDueReports,
+  MetricsSourceRegistry,
+  PublishDueContent,
+  PublisherRegistry,
+  WeeklyReportBuilder,
+} from "@launchpilot/application";
+import {
+  AnalystAgent,
+  TemplateAnalyst,
   BriefAgent,
   LaunchKitWriter,
   SeoArticleWriter,
@@ -22,8 +30,24 @@ import {
   loadSeedDirectories,
   syncDirectories,
   SystemClock,
+  DEFAULT_CLAUDE_MODEL,
+  Ga4Source,
+  googleStubUrls,
+  PlausibleSource,
+  SearchConsoleSource,
+  UuidIdGenerator,
+  type GoogleOptions,
 } from "@launchpilot/adapters";
-import type { DatabaseConfig, PublisherConfig, StripeSetupConfig, ZernioConfig } from "./config";
+import type { MetricsSource, TokenCipher } from "@launchpilot/ports";
+import type {
+  AnalystConfig,
+  DatabaseConfig,
+  GoogleConfig,
+  PublisherConfig,
+  ReportsConfig,
+  StripeSetupConfig,
+  ZernioConfig,
+} from "./config";
 import type { EvalConfig } from "./eval/brief-eval";
 import { MeteredLlmClient } from "./eval/metered-llm-client";
 import type { HeartbeatDeps } from "./heartbeat";
@@ -136,5 +160,67 @@ export const findAffectingZernioChanges = async (since: Date) => {
       const { affected, reasons } = assessZernioChange(entry);
       return affected ? [{ ...entry, reasons }] : [];
     }),
+  };
+};
+
+const googleOptions = ({ clientId, clientSecret, baseUrl }: GoogleConfig): GoogleOptions => ({
+  clientId,
+  clientSecret,
+  ...(baseUrl === null ? {} : { urls: googleStubUrls(baseUrl) }),
+});
+
+const analystOf = (config: AnalystConfig) =>
+  config.kind === "claude"
+    ? new AnalystAgent(
+        new ClaudeLlmClient({ apiKey: config.apiKey, model: config.model ?? DEFAULT_CLAUDE_MODEL }),
+      )
+    : new TemplateAnalyst();
+
+/** Every analytics source this deployment can read; Google ones only when Google is configured. */
+const metricsSources = (
+  repositories: ReturnType<typeof createPostgresRepositories>,
+  cipher: TokenCipher,
+  publisher: PublisherConfig,
+  reports: ReportsConfig,
+) => {
+  const sources: MetricsSource[] = [];
+  if (reports.google !== null) {
+    const options = googleOptions(reports.google);
+    sources.push(
+      new SearchConsoleSource(repositories.analyticsConnections, cipher, options),
+      new Ga4Source(repositories.analyticsConnections, cipher, options),
+    );
+  }
+  sources.push(
+    new PlausibleSource(repositories.analyticsConnections, cipher, {
+      allowPrivateNetwork: publisher.allowPrivateNetwork,
+    }),
+  );
+  return new MetricsSourceRegistry(sources);
+};
+
+/** The weekly report job over Postgres, with the real analytics sources and analyst. */
+export const createWeeklyReports = (publisher: PublisherConfig, reports: ReportsConfig) => {
+  const db = createDatabase(publisher.connectionString);
+  const repositories = createPostgresRepositories(db);
+  const cipher = new AesGcmTokenCipher(publisher.tokenEncryptionKey);
+  const builder = new WeeklyReportBuilder({
+    briefs: repositories.briefs,
+    metricsSources: metricsSources(repositories, cipher, publisher, reports),
+    analyst: analystOf(reports.analyst),
+    weeklyReports: repositories.weeklyReports,
+    ids: new UuidIdGenerator(),
+    clock: container.clock,
+  });
+  return {
+    builder,
+    buildDue: new BuildDueReports({
+      products: repositories.products,
+      analyticsConnections: repositories.analyticsConnections,
+      weeklyReports: repositories.weeklyReports,
+      builder,
+      clock: container.clock,
+    }),
+    close: () => db.destroy(),
   };
 };

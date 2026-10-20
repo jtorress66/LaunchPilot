@@ -29,6 +29,7 @@
   "devDependencies": {
     "@launchpilot/testing": "workspace:*",
     "@types/node": "22.20.5",
+    "msw": "2.15.0",
     "vitest": "3.2.7"
   }
 }

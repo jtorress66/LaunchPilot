@@ -139,9 +139,10 @@ export const buildWeeklyReport = (input: {
   };
 };
 
+/** Adds the notes; only their own fields are kept, whatever else the analyst returned. */
 export const withAnalystNotes = (report: WeeklyReport, notes: AnalystNotes): WeeklyReport => ({
   ...report,
-  notes,
+  notes: { summary: notes.summary, highlights: notes.highlights, suggestions: notes.suggestions },
   notesError: null,
 });
 
