@@ -29,3 +29,8 @@ export * from "./generate-launch-kit";
 export * from "./launch-kit-actions";
 export * from "./launch-tracker";
 export * from "./get-launch-overview";
+export * from "./metrics-source-registry";
+export * from "./connect-google";
+export * from "./connect-plausible";
+export * from "./weekly-reports";
+export * from "./get-analytics";

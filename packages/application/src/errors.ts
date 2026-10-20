@@ -19,7 +19,10 @@ export type ApplicationErrorCode =
   | "social_not_connected"
   | "launch_kit_not_found"
   | "directory_not_found"
-  | "submission_not_found";
+  | "submission_not_found"
+  | "analytics_not_connected"
+  | "oauth_state_mismatch"
+  | "report_not_found";
 
 /** What a use case can report: a broken domain rule or an application-level refusal. */
 export type UseCaseError =
