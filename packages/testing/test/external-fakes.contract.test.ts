@@ -7,6 +7,9 @@ import {
   describeMetricsSourceContract,
   describePublisherContract,
   describeSiteCrawlerContract,
+  describeGoogleAuthorizerContract,
+  describeAnalyticsPropertyListerContract,
+  describePlausibleSiteVerifierContract,
 } from "../contracts";
 import {
   FakeBlogConnectionVerifier,
@@ -16,6 +19,9 @@ import {
   FakePublisher,
   FakePublisherProvider,
   FakeSiteCrawler,
+  FakeGoogleAuthorizer,
+  FakeAnalyticsPropertyLister,
+  FakePlausibleSiteVerifier,
 } from "../src";
 import { productId } from "@launchpilot/domain";
 import { isAutoPublishable } from "@launchpilot/domain";
@@ -50,17 +56,36 @@ describeKeywordProviderContract("FakeKeywordProvider", () => {
 });
 
 describeMetricsSourceContract("FakeMetricsSource", () => {
-  const source = new FakeMetricsSource();
+  const source = new FakeMetricsSource("search_console");
   return {
     source,
-    givenValues: (values) => {
+    metrics: ["search_clicks", "search_impressions", "search_ctr", "search_position"],
+    givenWeek: (values) => {
       source.setValues(values);
+    },
+    givenNotConnected: () => {
+      source.disconnect(productId("prod_1"));
     },
     givenFailure: () => {
       source.failNext(outage);
     },
   };
 });
+
+describeGoogleAuthorizerContract("FakeGoogleAuthorizer", () => {
+  const authorizer = new FakeGoogleAuthorizer();
+  return { authorizer, validCode: authorizer.issueCode() };
+});
+
+describeAnalyticsPropertyListerContract("FakeAnalyticsPropertyLister", () => ({
+  lister: new FakeAnalyticsPropertyLister(),
+  validToken: FakeAnalyticsPropertyLister.validToken,
+}));
+
+describePlausibleSiteVerifierContract("FakePlausibleSiteVerifier", () => ({
+  verifier: new FakePlausibleSiteVerifier(),
+  valid: FakePlausibleSiteVerifier.valid,
+}));
 
 for (const channel of channels.filter(isAutoPublishable)) {
   describePublisherContract(`FakePublisher (${channel})`, () => {

@@ -3,6 +3,8 @@ import {
   describeSocialProfileRepositoryContract,
   describeDirectoryCatalogContract,
   describeLaunchKitRepositoryContract,
+  describeAnalyticsConnectionRepositoryContract,
+  describeWeeklyReportRepositoryContract,
   describeSubmissionRepositoryContract,
   describeBriefRepositoryContract,
   describeCampaignRepositoryContract,
@@ -16,6 +18,8 @@ import {
   InMemorySocialProfileRepository,
   InMemoryDirectoryCatalog,
   InMemoryLaunchKitRepository,
+  InMemoryAnalyticsConnectionRepository,
+  InMemoryWeeklyReportRepository,
   InMemorySubmissionRepository,
   InMemoryBriefRepository,
   InMemoryCampaignRepository,
@@ -62,4 +66,13 @@ describeLaunchKitRepositoryContract(
 describeSubmissionRepositoryContract(
   "InMemorySubmissionRepository",
   () => new InMemorySubmissionRepository(),
+);
+
+describeAnalyticsConnectionRepositoryContract(
+  "InMemoryAnalyticsConnectionRepository",
+  () => new InMemoryAnalyticsConnectionRepository(),
+);
+describeWeeklyReportRepositoryContract(
+  "InMemoryWeeklyReportRepository",
+  () => new InMemoryWeeklyReportRepository(),
 );

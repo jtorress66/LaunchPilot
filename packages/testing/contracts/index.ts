@@ -22,3 +22,6 @@ export * from "./social-account-linker.contract";
 export * from "./social-profile-repository.contract";
 export * from "./launch-kit-drafter.contract";
 export * from "./launch-repositories.contract";
+export * from "./analytics-access.contract";
+export * from "./weekly-report-analyst.contract";
+export * from "./analytics-repositories.contract";

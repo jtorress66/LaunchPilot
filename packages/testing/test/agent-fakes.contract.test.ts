@@ -5,6 +5,7 @@ import {
   describeContentReviewerContract,
   describeLaunchKitDrafterContract,
   describeLlmClientContract,
+  describeWeeklyReportAnalystContract,
 } from "../contracts";
 import {
   FakeBriefDrafter,
@@ -13,6 +14,7 @@ import {
   FakeContentReviewer,
   FakeLaunchKitDrafter,
   FakeLlmClient,
+  FakeWeeklyReportAnalyst,
 } from "../src";
 
 const outage = { message: "Simulated outage", retryable: true } as const;
@@ -80,3 +82,5 @@ describeLaunchKitDrafterContract("FakeLaunchKitDrafter", () => {
     },
   };
 });
+
+describeWeeklyReportAnalystContract("FakeWeeklyReportAnalyst", () => new FakeWeeklyReportAnalyst());
