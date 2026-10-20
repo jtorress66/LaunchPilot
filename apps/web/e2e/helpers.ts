@@ -121,3 +121,30 @@ export const approveLaunchKit = async (page: Page) => {
 /** One directory's row on the tracker. */
 export const trackerRow = (page: Page, name: string) =>
   page.getByRole("list", { name: "Submissions" }).getByRole("listitem", { name, exact: true });
+
+/** The local Google and Plausible stand-in started by scripts/e2e.mjs. */
+export const analyticsStub = () => {
+  const url = process.env.E2E_ANALYTICS_URL;
+  if (!url) throw new Error("E2E_ANALYTICS_URL is not set: run `pnpm test:e2e`");
+  return { url, plausibleUrl: `${url}/plausible/` };
+};
+
+/** Signs up, adds the fixture product and opens its Analytics page. */
+export const onAnalyticsPage = async (page: Page) => {
+  await onBriefPage(page);
+  await page.goto(page.url().replace(/\/brief$/, "/analytics"));
+  await expect(page.getByRole("heading", { name: "Analytics", exact: true })).toBeVisible();
+};
+
+/** Connects Plausible with a key unique to this test run, and returns the key. */
+export const connectPlausible = async (page: Page, project: string) => {
+  const key = `plausible-e2e-${project}-${randomUUID().slice(0, 8)}`;
+  await page.getByLabel("Site domain").fill("acme.dev");
+  await page.getByLabel("Stats API key").fill(key);
+  await page.getByLabel("Self-hosted address (optional)").fill(analyticsStub().plausibleUrl);
+  await page.getByRole("button", { name: "Connect Plausible" }).click();
+  await expect(page.getByRole("status")).toHaveText("Plausible is connected.");
+  return key;
+};
+
+export const metricTile = (page: Page, name: string) => page.getByTestId(`metric-${name}`);

@@ -51,3 +51,21 @@ export const publishFailureMessage = (error: { code: string; message: string }):
   error.code === "unavailable"
     ? "The channel is unavailable right now. Try again in a minute."
     : error.message;
+
+const UNREACHABLE = "The analytics service could not be reached. Try again in a minute.";
+
+const analyticsMessages: Partial<Record<string, string>> = {
+  invalid_grant: "The Google sign-in expired. Try connecting again.",
+  denied: "Google access was not granted.",
+  missing_scope: "Allow LaunchPilot to see Search Console or Analytics data to connect Google.",
+  oauth_state_mismatch: "The Google sign-in could not be checked. Try connecting again.",
+  invalid_credentials: "The key was rejected. Check it and try again.",
+  site_not_found: "No site with that domain was found for this key.",
+  unreachable: UNREACHABLE,
+  unavailable: UNREACHABLE,
+  blocked: "That address cannot be used.",
+};
+
+/** What the founder sees when connecting analytics fails. Provider details stay out of the UI. */
+export const analyticsFailureMessage = (error: { code: string; message: string }): string =>
+  analyticsMessages[error.code] ?? error.message;

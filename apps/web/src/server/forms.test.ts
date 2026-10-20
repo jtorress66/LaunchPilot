@@ -3,6 +3,8 @@ import {
   articleForm,
   launchKitForm,
   liveForm,
+  analyticsPropertiesForm,
+  plausibleForm,
   parseDirectoryFilter,
   rejectForm,
   blogConnectionForm,
@@ -244,6 +246,42 @@ describe("launch forms", () => {
     });
     expect(parseDirectoryFilter({ kind: "nonsense", pricing: "paid" })).toEqual({
       pricing: "paid",
+    });
+  });
+});
+
+describe("analytics forms", () => {
+  it("reads a Plausible site and key, with an optional self-hosted address", () => {
+    expect(
+      parseForm(plausibleForm, form({ siteId: " acme.dev ", apiKey: "k", baseUrl: "" })),
+    ).toEqual({
+      ok: true,
+      value: { siteId: " acme.dev ", apiKey: "k", baseUrl: null },
+    });
+    expect(
+      parseForm(
+        plausibleForm,
+        form({ siteId: "acme.dev", apiKey: "k", baseUrl: "https://stats.acme.dev" }),
+      ),
+    ).toMatchObject({ ok: true, value: { baseUrl: "https://stats.acme.dev" } });
+    expect(parseForm(plausibleForm, form({ siteId: "", apiKey: "" }))).toEqual({
+      ok: false,
+      error: {
+        siteId: "Enter the domain Plausible shows for your site",
+        apiKey: "Paste a Stats API key",
+      },
+    });
+  });
+
+  it("reads the chosen Google properties, treating 'none' as no property", () => {
+    expect(
+      parseForm(
+        analyticsPropertiesForm,
+        form({ searchConsoleSite: "sc-domain:acme.dev", ga4PropertyId: "" }),
+      ),
+    ).toEqual({
+      ok: true,
+      value: { searchConsoleSite: "sc-domain:acme.dev", ga4PropertyId: null },
     });
   });
 });

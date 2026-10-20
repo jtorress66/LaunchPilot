@@ -109,6 +109,12 @@ export default async function DashboardPage() {
                     >
                       Launch
                     </Link>
+                    <Link
+                      href={`/app/products/${product.id}/analytics`}
+                      className="text-sm font-semibold text-brand-600 hover:underline dark:text-brand-400"
+                    >
+                      Analytics
+                    </Link>
                   </div>
                 </li>
               ))}

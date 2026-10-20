@@ -25,6 +25,16 @@ export type KeywordProviderConfig =
 export type SocialWriterConfig = ClaudeConfig | { readonly kind: "template" };
 export type LaunchWriterConfig = ClaudeConfig | { readonly kind: "template" };
 
+export type AnalystConfig = ClaudeConfig | { readonly kind: "template" };
+
+export interface GoogleConfig {
+  readonly clientId: string;
+  /** Never logged. */
+  readonly clientSecret: string;
+  /** Development and test only: one local stand-in for every Google endpoint. */
+  readonly baseUrl: string | null;
+}
+
 export interface ZernioConfig {
   /** Never logged. */
   readonly apiKey: string;
@@ -43,6 +53,8 @@ export interface WebConfig {
   readonly seo: { readonly keywords: KeywordProviderConfig; readonly writer: ArticleWriterConfig };
   readonly social: { readonly writer: SocialWriterConfig; readonly zernio: ZernioConfig };
   readonly launch: { readonly writer: LaunchWriterConfig };
+  /** Google is null when GOOGLE_CLIENT_ID is not set: founders can then connect Plausible only. */
+  readonly analytics: { readonly google: GoogleConfig | null; readonly analyst: AnalystConfig };
 }
 
 const KEY_MESSAGE =
@@ -81,6 +93,10 @@ const shared = {
   LAUNCH_WRITER: z.enum(["claude", "template"]).default("claude"),
   ZERNIO_API_KEY: required("ZERNIO_API_KEY"),
   ZERNIO_BASE_URL: z.string().url("ZERNIO_BASE_URL must be an absolute URL").optional(),
+  GOOGLE_CLIENT_ID: z.string().min(1).optional(),
+  GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
+  GOOGLE_API_BASE_URL: z.string().url("GOOGLE_API_BASE_URL must be an absolute URL").optional(),
+  ANALYST: z.enum(["claude", "template"]).default("claude"),
 };
 
 const schema = z.discriminatedUnion("BILLING_PROVIDER", [
@@ -111,6 +127,8 @@ const devOnlySettings: readonly [string, (c: Env) => boolean][] = [
   ["KEYWORD_PROVIDER=offline", (c) => c.KEYWORD_PROVIDER === "offline"],
   ["SOCIAL_WRITER=template", (c) => c.SOCIAL_WRITER === "template"],
   ["LAUNCH_WRITER=template", (c) => c.LAUNCH_WRITER === "template"],
+  ["ANALYST=template", (c) => c.ANALYST === "template"],
+  ["GOOGLE_API_BASE_URL", (c) => c.GOOGLE_API_BASE_URL !== undefined],
   ["ALLOW_PRIVATE_NETWORK", (c) => c.ALLOW_PRIVATE_NETWORK === "true"],
 ];
 
@@ -147,11 +165,15 @@ export const parseWebConfig = (
     c.BRIEF_DRAFTER === "claude" ||
     c.ARTICLE_WRITER === "claude" ||
     c.SOCIAL_WRITER === "claude" ||
-    c.LAUNCH_WRITER === "claude";
+    c.LAUNCH_WRITER === "claude" ||
+    c.ANALYST === "claude";
   if (needsClaude && !ai) {
     return err(
-      "ANTHROPIC_API_KEY is required when BRIEF_DRAFTER, ARTICLE_WRITER, SOCIAL_WRITER or LAUNCH_WRITER is claude",
+      "ANTHROPIC_API_KEY is required when BRIEF_DRAFTER, ARTICLE_WRITER, SOCIAL_WRITER, LAUNCH_WRITER or ANALYST is claude",
     );
+  }
+  if ((c.GOOGLE_CLIENT_ID === undefined) !== (c.GOOGLE_CLIENT_SECRET === undefined)) {
+    return err("Set both GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET, or neither");
   }
   const keywords = keywordsFor(c);
   if (!keywords) {
@@ -180,5 +202,16 @@ export const parseWebConfig = (
       zernio: { apiKey: c.ZERNIO_API_KEY, baseUrl: c.ZERNIO_BASE_URL ?? null },
     },
     launch: { writer: c.LAUNCH_WRITER === "claude" && ai ? ai : { kind: "template" } },
+    analytics: {
+      google:
+        c.GOOGLE_CLIENT_ID === undefined || c.GOOGLE_CLIENT_SECRET === undefined
+          ? null
+          : {
+              clientId: c.GOOGLE_CLIENT_ID,
+              clientSecret: c.GOOGLE_CLIENT_SECRET,
+              baseUrl: c.GOOGLE_API_BASE_URL ?? null,
+            },
+      analyst: c.ANALYST === "claude" && ai ? ai : { kind: "template" },
+    },
   });
 };

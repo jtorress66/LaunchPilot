@@ -34,8 +34,21 @@ import {
   SignUp,
   StartCheckout,
   UpdateBrief,
+  ChooseAnalyticsProperties,
+  CompleteGoogleConnect,
+  ConnectPlausible,
+  DisconnectAnalytics,
+  GenerateWeeklyReport,
+  GetAnalyticsOverview,
+  GetWeeklyReport,
+  ListAnalyticsProperties,
+  MetricsSourceRegistry,
+  StartGoogleConnect,
+  WeeklyReportBuilder,
 } from "@launchpilot/application";
 import {
+  AnalystAgent,
+  TemplateAnalyst,
   BriefAgent,
   ExtractiveBriefDrafter,
   LaunchKitWriter,
@@ -67,8 +80,22 @@ import {
   UuidIdGenerator,
   ZernioAccountLinker,
   ZernioPublisherProvider,
+  Ga4Source,
+  GoogleOAuthAuthorizer,
+  GooglePropertyLister,
+  googleStubUrls,
+  PlausibleSource,
+  PlausibleStatsVerifier,
+  SearchConsoleSource,
+  type GoogleOptions,
 } from "@launchpilot/adapters";
-import { parseWebConfig, type ClaudeConfig, type WebConfig } from "./server/config";
+import type { MetricsSource } from "@launchpilot/ports";
+import {
+  parseWebConfig,
+  type ClaudeConfig,
+  type GoogleConfig,
+  type WebConfig,
+} from "./server/config";
 import type { HealthHandlerDeps } from "./server/health-handler";
 
 /** Composition root: the only place in the web app where concrete adapters are created. */
@@ -129,6 +156,78 @@ const keywordProviderFor = ({ keywords }: WebConfig["seo"]) =>
         ...(keywords.baseUrl === null ? {} : { baseUrl: keywords.baseUrl }),
       })
     : new SeedKeywordProvider();
+
+const analystFor = ({ analyst }: WebConfig["analytics"]) =>
+  analyst.kind === "claude" ? new AnalystAgent(claudeClient(analyst)) : new TemplateAnalyst();
+
+const googleOptionsFor = ({ clientId, clientSecret, baseUrl }: GoogleConfig): GoogleOptions => ({
+  clientId,
+  clientSecret,
+  ...(baseUrl === null ? {} : { urls: googleStubUrls(baseUrl) }),
+});
+
+type Repositories = ReturnType<typeof createPostgresRepositories>;
+
+/**
+ * Analytics wiring. Google's sources and connect flow exist only when an OAuth client is
+ * configured; Plausible always does. A new source is one more registration here.
+ */
+const analyticsFor = (
+  config: WebConfig,
+  repositories: Repositories,
+  cipher: AesGcmTokenCipher,
+  base: {
+    readonly clock: SystemClock;
+    readonly ids: UuidIdGenerator;
+    readonly tokens: RandomTokenGenerator;
+  },
+) => {
+  const google = config.analytics.google && googleOptionsFor(config.analytics.google);
+  const sources: MetricsSource[] = [];
+  if (google) {
+    sources.push(
+      new SearchConsoleSource(repositories.analyticsConnections, cipher, google),
+      new Ga4Source(repositories.analyticsConnections, cipher, google),
+    );
+  }
+  sources.push(
+    new PlausibleSource(repositories.analyticsConnections, cipher, {
+      allowPrivateNetwork: config.allowPrivateNetwork,
+    }),
+  );
+  const deps = {
+    ...repositories,
+    ...base,
+    cipher,
+    appUrl: config.appUrl,
+    plausibleVerifier: new PlausibleStatsVerifier({
+      allowPrivateNetwork: config.allowPrivateNetwork,
+    }),
+  };
+  const builder = new WeeklyReportBuilder({
+    ...deps,
+    metricsSources: new MetricsSourceRegistry(sources),
+    analyst: analystFor(config.analytics),
+  });
+  const googleDeps = google && {
+    ...deps,
+    googleAuth: new GoogleOAuthAuthorizer(google),
+    propertyLister: new GooglePropertyLister(google),
+  };
+  return {
+    google: googleDeps && {
+      start: new StartGoogleConnect(googleDeps),
+      complete: new CompleteGoogleConnect(googleDeps),
+      listProperties: new ListAnalyticsProperties(googleDeps),
+      chooseProperties: new ChooseAnalyticsProperties(googleDeps),
+    },
+    connectPlausible: new ConnectPlausible(deps),
+    disconnect: new DisconnectAnalytics(deps),
+    generateReport: new GenerateWeeklyReport({ ...deps, builder }),
+    getOverview: new GetAnalyticsOverview(deps),
+    getReport: new GetWeeklyReport(deps),
+  };
+};
 
 const build = (config: WebConfig) => {
   const billing = billingFor(config);
@@ -202,6 +301,7 @@ const build = (config: WebConfig) => {
     addToLaunch: new AddToLaunch(deps),
     updateSubmission: new UpdateSubmission(deps),
     getLaunchOverview: new GetLaunchOverview(deps),
+    analytics: analyticsFor(config, repositories, cipher, deps),
   };
 };
 
