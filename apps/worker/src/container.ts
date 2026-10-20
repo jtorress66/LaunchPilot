@@ -127,6 +127,18 @@ export const createAnalystEvalAgent = ({ apiKey, model }: EvalConfig) => {
   return { analyst: new AnalystAgent(meter), meter };
 };
 
+/** The strategist on real Claude, metered for the strategist eval. */
+export const createStrategistEvalAgent = ({ apiKey, model }: EvalConfig) => {
+  const meter = new MeteredLlmClient(new ClaudeLlmClient({ apiKey, model }));
+  return { strategist: new StrategistAgent(meter), meter };
+};
+
+/** The reviewer on real Claude, metered for the reviewer eval. */
+export const createReviewerEvalAgent = ({ apiKey, model }: EvalConfig) => {
+  const meter = new MeteredLlmClient(new ClaudeLlmClient({ apiKey, model }));
+  return { reviewer: new ReviewerAgent(meter), meter };
+};
+
 /** The launch kit writer on real Claude, metered for the launch-kit eval. */
 export const createLaunchEvalWriter = ({ apiKey, model }: EvalConfig) => {
   const meter = new MeteredLlmClient(new ClaudeLlmClient({ apiKey, model }));
