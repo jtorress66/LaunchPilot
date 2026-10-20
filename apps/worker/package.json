@@ -16,6 +16,8 @@
     "eval:social": "tsx src/eval/run-social-eval.ts",
     "eval:launch": "tsx src/eval/run-launch-eval.ts",
     "eval:analyst": "tsx src/eval/run-analyst-eval.ts",
+    "eval:strategist": "tsx src/eval/run-strategist-eval.ts",
+    "eval:reviewer": "tsx src/eval/run-reviewer-eval.ts",
     "watch:zernio": "tsx src/watch/zernio-changelog.ts"
   },
   "dependencies": {

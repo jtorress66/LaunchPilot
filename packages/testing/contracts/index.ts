@@ -25,3 +25,4 @@ export * from "./launch-repositories.contract";
 export * from "./analytics-access.contract";
 export * from "./weekly-report-analyst.contract";
 export * from "./analytics-repositories.contract";
+export * from "./autopilot-run-repository.contract";

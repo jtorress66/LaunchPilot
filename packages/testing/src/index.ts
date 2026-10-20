@@ -25,3 +25,4 @@ export { FakeLaunchKitDrafter } from "./fakes/fake-launch-kit-drafter";
 export * from "./fakes/fake-analytics-access";
 export { FakeWeeklyReportAnalyst } from "./fakes/fake-weekly-report-analyst";
 export * from "./fixtures/analytics";
+export * from "./fixtures/orchestration";

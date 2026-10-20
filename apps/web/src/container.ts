@@ -34,6 +34,11 @@ import {
   SignUp,
   StartCheckout,
   UpdateBrief,
+  DrafterRegistry,
+  GetAutopilotStatus,
+  RunAutopilotNow,
+  RunWeeklyLoop,
+  SetAutopilot,
   ChooseAnalyticsProperties,
   CompleteGoogleConnect,
   ConnectPlausible,
@@ -47,6 +52,10 @@ import {
   WeeklyReportBuilder,
 } from "@launchpilot/application";
 import {
+  ReviewerAgent,
+  StrategistAgent,
+  TemplateReviewer,
+  TemplateStrategist,
   AnalystAgent,
   TemplateAnalyst,
   BriefAgent,
@@ -229,6 +238,14 @@ const analyticsFor = (
   };
 };
 
+const strategistFor = ({ strategist }: WebConfig["autopilot"]) =>
+  strategist.kind === "claude"
+    ? new StrategistAgent(claudeClient(strategist))
+    : new TemplateStrategist();
+
+const reviewerFor = ({ reviewer }: WebConfig["autopilot"]) =>
+  reviewer.kind === "claude" ? new ReviewerAgent(claudeClient(reviewer)) : new TemplateReviewer();
+
 const build = (config: WebConfig) => {
   const billing = billingFor(config);
   const repositories = createPostgresRepositories(createDatabase(config.databaseUrl));
@@ -263,6 +280,17 @@ const build = (config: WebConfig) => {
     hasher: new ScryptPasswordHasher(),
     appUrl: config.appUrl,
   };
+  // The weekly loop drafts with the same writers as the SEO and Social pages: one per channel.
+  const loop = new RunWeeklyLoop({
+    ...deps,
+    planner: strategistFor(config.autopilot),
+    reviewer: reviewerFor(config.autopilot),
+    drafters: new DrafterRegistry([
+      { channel: "blog", drafter: deps.writer },
+      { channel: "x", drafter: deps.socialWriter },
+      { channel: "linkedin", drafter: deps.socialWriter },
+    ]),
+  });
   return {
     appUrl: config.appUrl,
     webhookSignatureHeader: billing.webhookSignatureHeader,
@@ -302,6 +330,9 @@ const build = (config: WebConfig) => {
     updateSubmission: new UpdateSubmission(deps),
     getLaunchOverview: new GetLaunchOverview(deps),
     analytics: analyticsFor(config, repositories, cipher, deps),
+    setAutopilot: new SetAutopilot(deps),
+    runAutopilotNow: new RunAutopilotNow({ ...deps, loop }),
+    getAutopilotStatus: new GetAutopilotStatus(deps),
   };
 };
 

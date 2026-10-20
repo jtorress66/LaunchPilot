@@ -28,6 +28,19 @@ export function describeContentReviewerContract(
       expect(hasBlocker && result.value.decision === "pass").toBe(false);
     });
 
+    it("blocks a body over the channel's limit, and a missing required link", async () => {
+      const { reviewer } = await make();
+      for (const draft of [
+        { ...request, channel: "x" as const, body: "a".repeat(281) },
+        { ...request, link: "https://acme.dev/blog/guide" },
+      ]) {
+        const result = await reviewer.review(draft);
+        if (!result.ok) throw new Error(result.error.message);
+        expect(result.value.decision).toBe("needs_changes");
+        expect(result.value.issues.some((i) => i.severity === "blocker")).toBe(true);
+      }
+    });
+
     it("reports a failure as a ReviewError result instead of throwing", async () => {
       const harness = await make();
       await harness.givenFailure();

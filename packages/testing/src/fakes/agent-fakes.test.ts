@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { aBriefContent } from "../fixtures/entities";
+import { aPlanRequest } from "../fixtures/orchestration";
 import { FakeCampaignPlanner } from "./fake-campaign-planner";
 import { FakeContentDrafter } from "./fake-content-drafter";
 import { FakeContentReviewer } from "./fake-content-reviewer";
@@ -35,9 +36,21 @@ describe("agent fakes", () => {
     const planner = new FakeCampaignPlanner();
     const plan = { name: "Scripted", goal: "Goal", tasks: [] };
     planner.respondWith(plan);
-    expect(await planner.plan({ brief, weekStarting: new Date() })).toEqual({
+    expect(await planner.plan(aPlanRequest({ brief }))).toEqual({ ok: true, value: plan });
+  });
+
+  it("FakeContentReviewer answers scripted verdicts once each, then its default", async () => {
+    const reviewer = new FakeContentReviewer();
+    const needsChanges = {
+      decision: "needs_changes" as const,
+      issues: [{ severity: "suggestion" as const, message: "Shorter" }],
+    };
+    reviewer.respondOnce(needsChanges);
+    const request = { brief, channel: "x" as const, title: "T", body: "B" };
+    expect(await reviewer.review(request)).toEqual({ ok: true, value: needsChanges });
+    expect(await reviewer.review(request)).toEqual({
       ok: true,
-      value: plan,
+      value: { decision: "pass", issues: [] },
     });
   });
 });

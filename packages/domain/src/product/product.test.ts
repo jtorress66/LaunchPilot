@@ -21,6 +21,7 @@ describe("product", () => {
         name: "Acme Analytics",
         url: "https://acme.dev/",
         createdAt: now,
+        autopilotSince: null,
       },
     });
   });

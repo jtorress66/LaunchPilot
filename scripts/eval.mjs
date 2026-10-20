@@ -8,6 +8,8 @@ const suites = [
   ["--filter", "@launchpilot/worker", "eval:social"],
   ["--filter", "@launchpilot/worker", "eval:launch"],
   ["--filter", "@launchpilot/worker", "eval:analyst"],
+  ["--filter", "@launchpilot/worker", "eval:strategist"],
+  ["--filter", "@launchpilot/worker", "eval:reviewer"],
 ];
 for (const suite of suites) {
   const { status } = spawnSync("pnpm", ["--silent", ...suite], { stdio: "inherit" });

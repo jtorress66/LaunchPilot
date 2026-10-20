@@ -1,4 +1,5 @@
 import { isAutoPublishable, maxLengthOf, type Channel } from "../channels/channel";
+import type { AgentReview } from "../orchestration/agent-review";
 import { andThen, err, map, ok, type Result } from "../result";
 import type { Actor } from "../shared/actor";
 import { domainError, type DomainError } from "../shared/errors";
@@ -41,6 +42,8 @@ export interface ContentItem {
   readonly failure: { readonly reason: string; readonly at: Date } | null;
   /** Failed automatic publish attempts since the item was last scheduled. */
   readonly publishAttempts: number;
+  /** The reviewer agent's verdict on this revision; null for founder-written or edited items. */
+  readonly agentReview: AgentReview | null;
 }
 
 /** A founder-approved item on an API channel. The Publisher port accepts nothing else. */
@@ -139,6 +142,7 @@ const handlers: { readonly [K in EventType]: Handler<K> } = {
         rejection: null,
         failure: null,
         publishAttempts: 0,
+        agentReview: null,
       })),
     ),
   schedule: (_item, event, { now }) =>
@@ -156,6 +160,7 @@ const handlers: { readonly [K in EventType]: Handler<K> } = {
       publishAt,
       failure: null,
       publishAttempts: 0,
+      agentReview: null,
     })),
   archive: () => ok({}),
 };
@@ -198,6 +203,7 @@ export const createContentItem = (input: {
       publication: null,
       failure: null,
       publishAttempts: 0,
+      agentReview: null,
     })),
   );
 

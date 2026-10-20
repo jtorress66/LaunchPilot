@@ -36,3 +36,7 @@ export * from "./analytics/report-week";
 export * from "./analytics/analytics-connection";
 export * from "./analytics/weekly-report";
 export * from "./analytics/report-numbers";
+export * from "./orchestration/week-plan";
+export * from "./orchestration/agent-review";
+export * from "./orchestration/autopilot";
+export * from "./orchestration/autopilot-run";

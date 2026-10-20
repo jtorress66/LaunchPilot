@@ -291,6 +291,39 @@ replay the same responses in `packages/adapters/test/google/recorded` and `.../p
 They were written from Google's and Plausible's documented response shapes, because those APIs are
 not reachable from the build sandbox; re-record them from a real account when one is available.
 
+### Orchestration (weekly autopilot)
+
+The **Weekly autopilot** card on the product's Analytics page (linked from the dashboard) runs the
+whole loop: **report → plan → draft → review → Inbox**. It is off until the founder turns it on.
+
+1. **When it runs.** Every Monday from 07:00 UTC (after the 06:00 weekly reports) the worker runs
+   this week's loop for every product with the autopilot on, at most 10 per check. **Run this week
+   now** runs it on demand. A week runs once per product: a completed week is never re-run, while a
+   skipped week (for example, no approved brief yet) can be retried with **Run this week now**.
+2. **Plan.** The strategist reads the approved brief, last week's report (if there is one), the
+   remaining monthly content allowance and the candidates LaunchPilot offers: up to 6 ranked
+   keyword opportunities researched from last week's top searches and the brief, and brief-derived
+   angles for X and LinkedIn. LaunchPilot then checks the plan: SEO articles go only to the blog
+   and posts only to X or LinkedIn (launch and community work stays with the founder), every task
+   must use an offered keyword or angle, no repeats, at most 2 articles, 3 X posts and 2 LinkedIn
+   posts a week, and articles first within the allowance. Any other task is dropped with a reason.
+   A rationale may cite only figures from the report or the keyword research.
+3. **Draft and review.** The article writer drafts each article and the social writer each post.
+   The reviewer then checks each draft. It blocks, without asking the model:
+   - over-length text
+   - a missing required link
+   - hype words
+   - figures the brief does not state
+
+   With Claude it also flags claims the brief does not support, tone and clarity. A draft with a
+   blocker gets one rewrite with the reviewer's notes, then a second review.
+
+4. **Inbox.** Every draft lands **in review** with the reviewer's verdict ("Reviewer: passes", or
+   the issues it found). The reviewer only recommends: the founder approves and publishes exactly
+   as before, and nothing is published without that approval. One failed draft does not stop the
+   rest of the week; the card shows the run's summary (drafts waiting, rewritten after review,
+   failed, stopped at the plan's monthly limit).
+
 ### LLM evals
 
 `pnpm eval` drafts a brief with real Claude for each recorded site in `evals/brief/sites/*.json`.
@@ -316,11 +349,21 @@ brief facts, avoid the "forbidden" claims and hype words ("revolutionary", "#1",
 Show HN post a title that starts "Show HN:" within 80 characters, and include all three community
 posts.
 
-Last comes the **analyst** suite: the analyst writes notes on each recorded week in
+Then comes the **analyst** suite: the analyst writes notes on each recorded week in
 `evals/analytics/cases/*.json` (one full week from all three sources, one with a failed source and
 falling visitors). The notes must state only numbers that are in the report, cite only brief facts,
 avoid the "forbidden" claims (invented causes such as "thanks to", signups, revenue) and hype, give
 1 to 3 suggestions, and name the week's biggest change in the summary.
+
+Then comes the **strategist** suite: the strategist plans each recorded week in
+`evals/strategy/cases/*.json` (one with last week's report, one first week with no report). Each
+plan must use only offered keywords and angles on plannable channels, stay within the allowance
+and the weekly channel caps, state only figures from the report, the keyword research or the brief,
+have a goal, avoid hype, and mix articles and posts.
+
+Last comes the **reviewer** suite: the reviewer checks hand-labelled drafts in
+`evals/review/cases/*.json` (3 good; 4 bad: an invented fact, over length, hype, a missing link).
+Its verdict must match every label, and a held-back draft must name at least one blocker.
 
 The thresholds are 100% for every suite. Below them, the command exits non-zero. It also prints
 token usage and an estimated cost: a few cents per run. Run it whenever a prompt in
@@ -410,18 +453,18 @@ The rule is enforced twice: by ESLint `no-restricted-imports` per layer, and by
 | `STRIPE_SECRET_KEY`     | none              | web with Stripe billing, `pnpm stripe:setup`                                          |
 | `STRIPE_WEBHOOK_SECRET` | none              | web with Stripe billing (`whsec_…`)                                                   |
 | `BRIEF_DRAFTER`         | `claude`          | web: `claude` or `extractive` (development and test only)                             |
-| `ARTICLE_WRITER`        | `claude`          | web: `claude` or `template` (development and test only)                               |
-| `ANTHROPIC_API_KEY`     | none              | web when Claude drafts, worker when `ANALYST=claude`, `pnpm eval`. Never logged       |
+| `ARTICLE_WRITER`        | `claude`          | web, worker (autopilot): `claude` or `template` (development and test only)           |
+| `ANTHROPIC_API_KEY`     | none              | web when Claude drafts, worker when an agent uses Claude, `pnpm eval`. Never logged   |
 | `ANTHROPIC_MODEL`       | `claude-opus-5-5` | web, `pnpm eval`: the Claude model for briefs and articles                            |
 | `TOKEN_ENCRYPTION_KEY`  | none              | web, worker: 32 random bytes, base64 (`openssl rand -base64 32`)                      |
-| `KEYWORD_PROVIDER`      | `dataforseo`      | web: `dataforseo` or `offline` (development and test only)                            |
+| `KEYWORD_PROVIDER`      | `dataforseo`      | web, worker (autopilot): `dataforseo` or `offline` (development and test only)        |
 | `DATAFORSEO_LOGIN`      | none              | web with DataForSEO, `pnpm smoke:keywords`                                            |
 | `DATAFORSEO_PASSWORD`   | none              | web with DataForSEO, `pnpm smoke:keywords`. Never logged                              |
 | `DATAFORSEO_BASE_URL`   | DataForSEO API    | web: another base URL, for tests                                                      |
 | `ALLOW_PRIVATE_NETWORK` | `false`           | web: `true` lets the crawler and publishers reach localhost/LAN (dev and test only)   |
 | `APP_VERSION`           | `0.1.0`           | web, worker health reports                                                            |
 | `HEARTBEAT_INTERVAL_MS` | `60000`           | worker                                                                                |
-| `SOCIAL_WRITER`         | `claude`          | web: `claude` or `template` (development and test only)                               |
+| `SOCIAL_WRITER`         | `claude`          | web, worker (autopilot): `claude` or `template` (development and test only)           |
 | `LAUNCH_WRITER`         | `claude`          | web: `claude` or `template` (development and test only)                               |
 | `ZERNIO_API_KEY`        | none              | web, worker, `pnpm smoke:social`. Never logged                                        |
 | `ZERNIO_BASE_URL`       | Zernio API        | web, worker: another base URL, for tests                                              |
@@ -431,6 +474,9 @@ The rule is enforced twice: by ESLint `no-restricted-imports` per layer, and by
 | `GOOGLE_API_BASE_URL`   | Google APIs       | web, worker: one local stand-in for every Google endpoint (development and test only) |
 | `ANALYST`               | `claude`          | web, worker: `claude` or `template` (development and test only)                       |
 | `REPORT_INTERVAL_MS`    | `3600000`         | worker: how often it checks for due weekly reports (at least 60000)                   |
+| `STRATEGIST`            | `claude`          | web, worker: `claude` or `template` (development and test only)                       |
+| `REVIEWER`              | `claude`          | web, worker: `claude` or `template` (development and test only)                       |
+| `LOOP_INTERVAL_MS`      | `3600000`         | worker: how often it checks for due autopilot weeks (at least 60000)                  |
 
 All configuration is validated with Zod when the app first handles a request; an invalid value
 fails fast with a message naming the variable.

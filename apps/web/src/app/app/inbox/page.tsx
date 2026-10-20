@@ -1,4 +1,5 @@
 import { maxLengthOf } from "@launchpilot/domain";
+import { AgentReviewNote } from "../../../components/autopilot/agent-review-note";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { InboxApproveButton } from "../../../components/inbox/approve-button";
@@ -49,6 +50,7 @@ export default async function InboxPage() {
               <p className="whitespace-pre-line text-sm text-slate-700 dark:text-slate-300">
                 {item.body.length > PREVIEW ? `${item.body.slice(0, PREVIEW)}…` : item.body}
               </p>
+              <AgentReviewNote review={item.agentReview} />
               <div className="flex flex-wrap items-start gap-3">
                 <InboxApproveButton itemId={item.id} title={item.title} />
                 <Link

@@ -1,0 +1,69 @@
+{
+  "name": "acme-analytics",
+  "brief": {
+    "audience": "Founders of small SaaS companies who want simple, privacy-friendly website analytics",
+    "problem": "Founders waste hours in bloated dashboards that track everything but answer nothing",
+    "solution": "Acme shows the five numbers that matter in one weekly email, without cookies",
+    "differentiators": ["No cookie banners needed", "Setup takes two minutes with one script tag"],
+    "tone": "Plain, calm and practical",
+    "facts": [
+      "Free 14-day trial, no credit card required",
+      "Starter is $9 per month for up to 100k pageviews",
+      "GDPR compliant and hosted in the EU",
+      "Integrates with Stripe to show revenue per traffic source"
+    ]
+  },
+  "drafts": [
+    {
+      "label": "good-x-post",
+      "expected": "pass",
+      "channel": "x",
+      "title": "No cookie banners",
+      "body": "Acme shows the five numbers that matter in one weekly email, without cookies. No cookie banners needed. Free 14-day trial, no credit card required."
+    },
+    {
+      "label": "good-linkedin-article-promo",
+      "expected": "pass",
+      "channel": "linkedin",
+      "title": "New article: Cookieless analytics for SaaS founders",
+      "body": "Founders waste hours in bloated dashboards that track everything but answer nothing.\n\nOur new guide shows how to measure what matters without cookies, and why setup takes two minutes with one script tag.\n\nhttps://blog.acme.dev/cookieless-analytics",
+      "link": "https://blog.acme.dev/cookieless-analytics"
+    },
+    {
+      "label": "good-blog-article",
+      "expected": "pass",
+      "channel": "blog",
+      "title": "Cookieless analytics: a practical guide for SaaS founders",
+      "body": "## Why cookieless analytics matters\n\nFounders waste hours in bloated dashboards that track everything but answer nothing. Acme shows the five numbers that matter in one weekly email, without cookies, so there is no cookie banner to add.\n\n## Getting started\n\nSetup takes two minutes with one script tag. Acme is GDPR compliant and hosted in the EU, and Starter is $9 per month for up to 100k pageviews.\n\n## Try it\n\nStart with the free 14-day trial; no credit card required."
+    },
+    {
+      "label": "invented-fact",
+      "expected": "needs_changes",
+      "channel": "linkedin",
+      "title": "Trusted by thousands",
+      "body": "Acme is trusted by 2,500 SaaS teams and is SOC 2 certified. See the five numbers that matter in one weekly email."
+    },
+    {
+      "label": "over-length",
+      "expected": "needs_changes",
+      "channel": "x",
+      "title": "Everything about Acme",
+      "body": "Acme shows the five numbers that matter in one weekly email, without cookies. No cookie banners needed. Setup takes two minutes with one script tag. GDPR compliant and hosted in the EU. Integrates with Stripe to show revenue per traffic source. Free 14-day trial, no credit card required. Starter is $9 per month for up to 100k pageviews."
+    },
+    {
+      "label": "hype",
+      "expected": "needs_changes",
+      "channel": "x",
+      "title": "Revolutionary analytics",
+      "body": "Revolutionary, game-changing analytics that will skyrocket your SaaS. No cookie banners needed."
+    },
+    {
+      "label": "missing-link",
+      "expected": "needs_changes",
+      "channel": "x",
+      "title": "New article: Cookieless analytics for SaaS founders",
+      "body": "We wrote a practical guide to analytics without cookies. No cookie banners needed.",
+      "link": "https://blog.acme.dev/cookieless-analytics"
+    }
+  ]
+}

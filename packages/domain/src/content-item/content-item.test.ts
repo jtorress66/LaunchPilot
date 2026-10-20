@@ -149,6 +149,7 @@ describe("ContentItem state machine", () => {
         publication: null,
         failure: null,
         publishAttempts: 0,
+        agentReview: null,
       });
     });
 

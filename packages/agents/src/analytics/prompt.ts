@@ -40,7 +40,8 @@ const metricLine = (m: ReportMetric) => {
 const listOr = (lines: readonly string[], empty: string) =>
   lines.length === 0 ? `- ${empty}` : lines.join("\n");
 
-const reportLines = (report: WeeklyReport) => [
+/** The report as the founder sees it, one block per section. Shared by the analyst and strategist. */
+export const reportLines = (report: WeeklyReport): string[] => [
   `Week: ${report.weekKey} (${describeWeek(report.week)})`,
   `Figures:\n${listOr(report.metrics.map(metricLine), "(no figures this week)")}`,
   `Top pages:\n${listOr(

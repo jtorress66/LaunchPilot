@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   parseDatabaseConfig,
+  parseLoopConfig,
   parsePublisherConfig,
   parseReportsConfig,
   parseStripeSetupConfig,
@@ -156,6 +157,66 @@ describe("parseReportsConfig", () => {
     [{ REPORT_INTERVAL_MS: "1000" }, "REPORT_INTERVAL_MS must be at least 60000"],
   ])("refuses %o", (override, message) => {
     const result = parseReportsConfig({ ...google, ...claude, ...override });
+    expect(result.ok ? "" : result.error).toContain(message);
+  });
+});
+
+describe("parseLoopConfig", () => {
+  const claude = { ANTHROPIC_API_KEY: "sk-ant-test" };
+  const dataforseo = { DATAFORSEO_LOGIN: "me@acme.dev", DATAFORSEO_PASSWORD: "pw" };
+
+  it("uses Claude for every agent and DataForSEO for keywords by default, hourly", () => {
+    expect(parseLoopConfig({ ...claude, ...dataforseo })).toEqual({
+      ok: true,
+      value: {
+        intervalMs: 3_600_000,
+        claude: { apiKey: "sk-ant-test", model: null },
+        agents: {
+          strategist: "claude",
+          reviewer: "claude",
+          articleWriter: "claude",
+          socialWriter: "claude",
+        },
+        keywords: { kind: "dataforseo", login: "me@acme.dev", password: "pw", baseUrl: null },
+      },
+    });
+  });
+
+  it("runs fully offline in development and test", () => {
+    expect(
+      parseLoopConfig({
+        APP_ENV: "test",
+        STRATEGIST: "template",
+        REVIEWER: "template",
+        ARTICLE_WRITER: "template",
+        SOCIAL_WRITER: "template",
+        KEYWORD_PROVIDER: "offline",
+        LOOP_INTERVAL_MS: "60000",
+      }),
+    ).toEqual({
+      ok: true,
+      value: {
+        intervalMs: 60_000,
+        claude: null,
+        agents: {
+          strategist: "template",
+          reviewer: "template",
+          articleWriter: "template",
+          socialWriter: "template",
+        },
+        keywords: { kind: "offline" },
+      },
+    });
+  });
+
+  it.each([
+    [{ ANTHROPIC_API_KEY: undefined }, "ANTHROPIC_API_KEY is required when an agent uses Claude"],
+    [{ REVIEWER: "template" }, "REVIEWER=template is only allowed"],
+    [{ KEYWORD_PROVIDER: "offline" }, "KEYWORD_PROVIDER=offline is only allowed"],
+    [{ DATAFORSEO_PASSWORD: undefined }, "DATAFORSEO_LOGIN and DATAFORSEO_PASSWORD are required"],
+    [{ LOOP_INTERVAL_MS: "10" }, "LOOP_INTERVAL_MS must be at least 60000"],
+  ])("refuses %o", (override, message) => {
+    const result = parseLoopConfig({ ...claude, ...dataforseo, ...override });
     expect(result.ok ? "" : result.error).toContain(message);
   });
 });

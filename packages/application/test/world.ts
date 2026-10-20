@@ -1,4 +1,7 @@
 import {
+  FakeCampaignPlanner,
+  FakeContentReviewer,
+  InMemoryAutopilotRunRepository,
   FakeAnalyticsPropertyLister,
   FakeGoogleAuthorizer,
   FakeMetricsSource,
@@ -37,7 +40,7 @@ import {
   SequentialIdGenerator,
   SequentialTokenGenerator,
 } from "@launchpilot/testing";
-import { MetricsSourceRegistry, PublisherRegistry, SignUp } from "../src";
+import { DrafterRegistry, MetricsSourceRegistry, PublisherRegistry, SignUp } from "../src";
 
 /** Every port a use case may need, backed by in-memory fakes. */
 export const makeWorld = () => {
@@ -48,6 +51,8 @@ export const makeWorld = () => {
   const searchConsole = new FakeMetricsSource("search_console");
   const ga4 = new FakeMetricsSource("ga4");
   const plausible = new FakeMetricsSource("plausible");
+  const writer = new FakeContentDrafter();
+  const socialWriter = new FakeContentDrafter();
   return {
     clock,
     ids: new SequentialIdGenerator(),
@@ -71,8 +76,16 @@ export const makeWorld = () => {
     cipher: new FakeTokenCipher(),
     blogVerifier: new FakeBlogConnectionVerifier(),
     keywords: new FakeKeywordProvider(),
-    writer: new FakeContentDrafter(),
-    socialWriter: new FakeContentDrafter(),
+    writer,
+    socialWriter,
+    drafters: new DrafterRegistry([
+      { channel: "blog", drafter: writer },
+      { channel: "x", drafter: socialWriter },
+      { channel: "linkedin", drafter: socialWriter },
+    ]),
+    planner: new FakeCampaignPlanner(),
+    reviewer: new FakeContentReviewer(),
+    autopilotRuns: new InMemoryAutopilotRunRepository(),
     blogPublisher,
     xPublisher,
     linkedinPublisher,

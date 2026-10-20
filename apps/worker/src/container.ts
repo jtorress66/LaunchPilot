@@ -1,4 +1,7 @@
 import {
+  DrafterRegistry,
+  RunDueLoops,
+  RunWeeklyLoop,
   BuildDueReports,
   MetricsSourceRegistry,
   PublishDueContent,
@@ -6,6 +9,12 @@ import {
   WeeklyReportBuilder,
 } from "@launchpilot/application";
 import {
+  ReviewerAgent,
+  StrategistAgent,
+  TemplateArticleWriter,
+  TemplatePostWriter,
+  TemplateReviewer,
+  TemplateStrategist,
   AnalystAgent,
   TemplateAnalyst,
   BriefAgent,
@@ -37,12 +46,14 @@ import {
   SearchConsoleSource,
   UuidIdGenerator,
   type GoogleOptions,
+  SeedKeywordProvider,
 } from "@launchpilot/adapters";
-import type { MetricsSource, TokenCipher } from "@launchpilot/ports";
+import type { Clock, MetricsSource, TokenCipher } from "@launchpilot/ports";
 import type {
   AnalystConfig,
   DatabaseConfig,
   GoogleConfig,
+  LoopConfig,
   PublisherConfig,
   ReportsConfig,
   StripeSetupConfig,
@@ -114,6 +125,18 @@ export const createSocialEvalWriter = ({ apiKey, model }: EvalConfig) => {
 export const createAnalystEvalAgent = ({ apiKey, model }: EvalConfig) => {
   const meter = new MeteredLlmClient(new ClaudeLlmClient({ apiKey, model }));
   return { analyst: new AnalystAgent(meter), meter };
+};
+
+/** The strategist on real Claude, metered for the strategist eval. */
+export const createStrategistEvalAgent = ({ apiKey, model }: EvalConfig) => {
+  const meter = new MeteredLlmClient(new ClaudeLlmClient({ apiKey, model }));
+  return { strategist: new StrategistAgent(meter), meter };
+};
+
+/** The reviewer on real Claude, metered for the reviewer eval. */
+export const createReviewerEvalAgent = ({ apiKey, model }: EvalConfig) => {
+  const meter = new MeteredLlmClient(new ClaudeLlmClient({ apiKey, model }));
+  return { reviewer: new ReviewerAgent(meter), meter };
 };
 
 /** The launch kit writer on real Claude, metered for the launch-kit eval. */
@@ -227,6 +250,62 @@ export const createWeeklyReports = (publisher: PublisherConfig, reports: Reports
       builder,
       clock: container.clock,
     }),
+    close: () => db.destroy(),
+  };
+};
+
+const claudeFor = (config: LoopConfig) => {
+  if (config.claude === null) throw new Error("An agent uses Claude but no API key is configured");
+  return new ClaudeLlmClient({
+    apiKey: config.claude.apiKey,
+    model: config.claude.model ?? DEFAULT_CLAUDE_MODEL,
+  });
+};
+
+/** One agent per role, Claude or its offline template, as the configuration chose. */
+const loopAgents = (config: LoopConfig) => {
+  const llm = () => claudeFor(config);
+  const { agents } = config;
+  const articleWriter =
+    agents.articleWriter === "claude" ? new SeoArticleWriter(llm()) : new TemplateArticleWriter();
+  const socialWriter =
+    agents.socialWriter === "claude" ? new SocialPostWriter(llm()) : new TemplatePostWriter();
+  return {
+    planner: agents.strategist === "claude" ? new StrategistAgent(llm()) : new TemplateStrategist(),
+    reviewer: agents.reviewer === "claude" ? new ReviewerAgent(llm()) : new TemplateReviewer(),
+    // One writer per channel: a new channel is one more registration here.
+    drafters: new DrafterRegistry([
+      { channel: "blog", drafter: articleWriter },
+      { channel: "x", drafter: socialWriter },
+      { channel: "linkedin", drafter: socialWriter },
+    ]),
+    keywords:
+      config.keywords.kind === "dataforseo"
+        ? createKeywordProvider({
+            login: config.keywords.login,
+            password: config.keywords.password,
+            baseUrl: config.keywords.baseUrl ?? undefined,
+          })
+        : new SeedKeywordProvider(),
+  };
+};
+
+/** The weekly autopilot job over Postgres. The clock is injectable so tests can pick a Monday. */
+export const createWeeklyLoop = (
+  publisher: PublisherConfig,
+  config: LoopConfig,
+  clock: Clock = container.clock,
+) => {
+  const db = createDatabase(publisher.connectionString);
+  const repositories = createPostgresRepositories(db);
+  const loop = new RunWeeklyLoop({
+    ...repositories,
+    ...loopAgents(config),
+    ids: new UuidIdGenerator(),
+    clock,
+  });
+  return {
+    runDue: new RunDueLoops({ ...repositories, loop, clock }),
     close: () => db.destroy(),
   };
 };

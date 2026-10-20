@@ -35,6 +35,9 @@ const outcome = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("failed"), reason: z.string() }),
 ]);
 
+/** What each analytics source returned for one week, as recorded. */
+export const sourceResultsSchema = z.array(z.object({ source: z.string(), outcome }));
+
 /** One recorded week of source data the analyst is evaluated on. */
 const analystEvalCaseSchema = z.object({
   name: z.string().min(1),
@@ -52,7 +55,7 @@ const analystEvalCaseSchema = z.object({
     facts: z.array(z.string()),
   }),
   week: z.object({ start: date, end: date }),
-  results: z.array(z.object({ source: z.string(), outcome })),
+  results: sourceResultsSchema,
 });
 
 export type AnalystEvalCase = z.infer<typeof analystEvalCaseSchema>;

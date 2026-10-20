@@ -12,6 +12,7 @@ import {
   describeSubscriptionRepositoryContract,
   describeAnalyticsConnectionRepositoryContract,
   describeWeeklyReportRepositoryContract,
+  describeAutopilotRunRepositoryContract,
   describeUserRepositoryContract,
   describeTaskRepositoryContract,
   describeWorkspaceRepositoryContract,
@@ -35,6 +36,7 @@ import {
   PostgresSubscriptionRepository,
   PostgresAnalyticsConnectionRepository,
   PostgresWeeklyReportRepository,
+  PostgresAutopilotRunRepository,
   PostgresUserRepository,
   PostgresTaskRepository,
   PostgresWorkspaceRepository,
@@ -132,6 +134,11 @@ describeWeeklyReportRepositoryContract("PostgresWeeklyReportRepository", async (
   return new PostgresWeeklyReportRepository(db);
 });
 
+describeAutopilotRunRepositoryContract("PostgresAutopilotRunRepository", async () => {
+  await resetWith(db, "products");
+  return new PostgresAutopilotRunRepository(db);
+});
+
 describe("PostgresContentItemRepository", () => {
   it("lists due items earliest publish time first", async () => {
     await resetWith(db, "tasks");
@@ -173,6 +180,7 @@ describe("createPostgresRepositories", () => {
     expect(await repos.workspaces.findById(workspaceId("ws_1"))).toBeDefined();
     expect(Object.keys(repos).sort()).toEqual([
       "analyticsConnections",
+      "autopilotRuns",
       "briefs",
       "campaigns",
       "channelConnections",
