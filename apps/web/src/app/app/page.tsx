@@ -84,7 +84,7 @@ export default async function DashboardPage() {
                       {product.url}
                     </a>
                   </div>
-                  <div className="flex gap-4">
+                  <div className="flex flex-wrap gap-x-4 gap-y-1">
                     <Link
                       href={`/app/products/${product.id}/brief`}
                       className="text-sm font-semibold text-brand-600 hover:underline dark:text-brand-400"
