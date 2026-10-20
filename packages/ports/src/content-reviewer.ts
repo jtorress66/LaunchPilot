@@ -6,6 +6,8 @@ export interface ReviewRequest {
   readonly channel: Channel;
   readonly title: string;
   readonly body: string;
+  /** A link the content must include, e.g. the article a post promotes. */
+  readonly link?: string;
 }
 
 export interface ReviewIssue {

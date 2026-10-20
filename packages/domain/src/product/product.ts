@@ -10,6 +10,8 @@ export interface Product {
   readonly name: string;
   readonly url: HttpUrl;
   readonly createdAt: Date;
+  /** When the founder switched on the weekly autopilot; null while it is off. */
+  readonly autopilotSince: Date | null;
 }
 
 export const createProduct = (input: {
@@ -26,5 +28,6 @@ export const createProduct = (input: {
       name,
       url,
       createdAt: input.now,
+      autopilotSince: null,
     })),
   );

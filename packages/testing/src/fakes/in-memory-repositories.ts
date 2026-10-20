@@ -1,4 +1,5 @@
 import type {
+  AutopilotRun,
   AnalyticsConnection,
   AnalyticsProvider,
   WeeklyReport,
@@ -46,6 +47,7 @@ import type {
   WorkspaceRepository,
   AnalyticsConnectionRepository,
   WeeklyReportRepository,
+  AutopilotRunRepository,
 } from "@launchpilot/ports";
 import { InMemoryStore } from "./in-memory-store";
 
@@ -127,6 +129,14 @@ export class InMemoryProductRepository implements ProductRepository {
 
   listByWorkspace(workspaceId: WorkspaceId): Promise<readonly Product[]> {
     return Promise.resolve(this.base.store.filter((p) => p.workspaceId === workspaceId));
+  }
+
+  listWithAutopilot(): Promise<readonly Product[]> {
+    return Promise.resolve(
+      this.base.store
+        .filter((p) => p.autopilotSince !== null)
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    );
   }
 }
 
@@ -348,6 +358,28 @@ export class InMemoryWeeklyReportRepository implements WeeklyReportRepository {
 
   save(report: WeeklyReport): Promise<void> {
     this.store.put(report);
+    return Promise.resolve();
+  }
+}
+
+export class InMemoryAutopilotRunRepository implements AutopilotRunRepository {
+  private readonly store = new InMemoryStore<string, AutopilotRun>(
+    (r) => `${r.productId}:${String(r.week.start.getTime())}`,
+  );
+
+  findByProductAndWeek(productId: ProductId, weekStart: Date): Promise<AutopilotRun | undefined> {
+    return Promise.resolve(this.store.get(`${productId}:${String(weekStart.getTime())}`));
+  }
+
+  latestForProduct(productId: ProductId): Promise<AutopilotRun | undefined> {
+    const [latest] = this.store
+      .filter((r) => r.productId === productId)
+      .sort((a, b) => b.week.start.getTime() - a.week.start.getTime());
+    return Promise.resolve(latest);
+  }
+
+  save(run: AutopilotRun): Promise<void> {
+    this.store.put(run);
     return Promise.resolve();
   }
 }

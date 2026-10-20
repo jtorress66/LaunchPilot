@@ -13,6 +13,7 @@ export interface ProductRow {
   name: string;
   url: string;
   created_at: Date;
+  autopilot_since: Date | null;
 }
 
 export interface BriefRow {
@@ -79,6 +80,8 @@ export interface ContentItemRow {
   published_at: Date | null;
   failure: string | null;
   publish_attempts: number;
+  /** jsonb: AgentReview with an ISO timestamp; text on the way in. */
+  agent_review: string | null;
 }
 
 export interface SocialProfileRow {
@@ -181,6 +184,16 @@ export interface WeeklyReportRow {
   built_at: Date;
 }
 
+export interface AutopilotRunRow {
+  id: string;
+  product_id: string;
+  week_start: Date;
+  week_end: Date;
+  /** jsonb: the run's outcome and summary; text on the way in. */
+  outcome: string;
+  ran_at: Date;
+}
+
 export interface Database {
   users: UserRow;
   sessions: SessionRow;
@@ -198,4 +211,5 @@ export interface Database {
   submissions: SubmissionRow;
   analytics_connections: AnalyticsConnectionRow;
   weekly_reports: WeeklyReportRow;
+  autopilot_runs: AutopilotRunRow;
 }

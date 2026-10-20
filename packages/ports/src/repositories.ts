@@ -1,4 +1,5 @@
 import type {
+  AutopilotRun,
   AnalyticsConnection,
   AnalyticsProvider,
   Channel,
@@ -64,6 +65,8 @@ export interface SubscriptionRepository {
 
 export interface ProductRepository extends Repository<ProductId, Product> {
   listByWorkspace(workspaceId: WorkspaceId): Promise<readonly Product[]>;
+  /** Products whose weekly autopilot is on, ordered by id: the weekly loop's work list. */
+  listWithAutopilot(): Promise<readonly Product[]>;
 }
 
 export interface BriefRepository extends Repository<BriefId, Brief> {
@@ -149,4 +152,11 @@ export interface WeeklyReportRepository {
   listByProduct(productId: ProductId): Promise<readonly WeeklyReport[]>;
   /** Inserts or replaces the report for the same product and week. */
   save(report: WeeklyReport): Promise<void>;
+}
+
+export interface AutopilotRunRepository {
+  findByProductAndWeek(productId: ProductId, weekStart: Date): Promise<AutopilotRun | undefined>;
+  latestForProduct(productId: ProductId): Promise<AutopilotRun | undefined>;
+  /** Inserts or replaces the run for the same product and week. */
+  save(run: AutopilotRun): Promise<void>;
 }

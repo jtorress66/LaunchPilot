@@ -5,6 +5,7 @@ import {
   describeLaunchKitRepositoryContract,
   describeAnalyticsConnectionRepositoryContract,
   describeWeeklyReportRepositoryContract,
+  describeAutopilotRunRepositoryContract,
   describeSubmissionRepositoryContract,
   describeBriefRepositoryContract,
   describeCampaignRepositoryContract,
@@ -20,6 +21,7 @@ import {
   InMemoryLaunchKitRepository,
   InMemoryAnalyticsConnectionRepository,
   InMemoryWeeklyReportRepository,
+  InMemoryAutopilotRunRepository,
   InMemorySubmissionRepository,
   InMemoryBriefRepository,
   InMemoryCampaignRepository,
@@ -75,4 +77,8 @@ describeAnalyticsConnectionRepositoryContract(
 describeWeeklyReportRepositoryContract(
   "InMemoryWeeklyReportRepository",
   () => new InMemoryWeeklyReportRepository(),
+);
+describeAutopilotRunRepositoryContract(
+  "InMemoryAutopilotRunRepository",
+  () => new InMemoryAutopilotRunRepository(),
 );

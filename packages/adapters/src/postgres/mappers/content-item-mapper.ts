@@ -7,6 +7,7 @@ import {
   taskId,
   userId,
   type Actor,
+  type AgentReview,
   type ContentItem,
   type HttpUrl,
 } from "@launchpilot/domain";
@@ -54,6 +55,14 @@ const readFailure = (value: string | null): ContentItem["failure"] => {
   return { reason: stored.reason, at: new Date(stored.at) };
 };
 
+type StoredAgentReview = Omit<AgentReview, "reviewedAt"> & { readonly reviewedAt: string };
+
+const readAgentReview = (value: string | null): AgentReview | null => {
+  if (value === null) return null;
+  const stored = readJson(value) as StoredAgentReview;
+  return { ...stored, reviewedAt: new Date(stored.reviewedAt) };
+};
+
 export const contentItemMapper = {
   toRow: (item: ContentItem): ContentItemRow => ({
     id: item.id,
@@ -85,6 +94,13 @@ export const contentItemMapper = {
         ? null
         : toJson({ ...item.failure, at: item.failure.at.toISOString() } satisfies StoredFailure),
     publish_attempts: item.publishAttempts,
+    agent_review:
+      item.agentReview === null
+        ? null
+        : toJson({
+            ...item.agentReview,
+            reviewedAt: item.agentReview.reviewedAt.toISOString(),
+          } satisfies StoredAgentReview),
   }),
   fromRow: (row: ContentItemRow): ContentItem => ({
     id: contentItemId(row.id),
@@ -111,5 +127,6 @@ export const contentItemMapper = {
         : null,
     failure: readFailure(row.failure),
     publishAttempts: row.publish_attempts,
+    agentReview: readAgentReview(row.agent_review),
   }),
 };

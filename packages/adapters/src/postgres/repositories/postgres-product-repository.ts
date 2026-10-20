@@ -31,4 +31,14 @@ export class PostgresProductRepository implements ProductRepository {
       .execute();
     return rows.map(productMapper.fromRow);
   }
+
+  async listWithAutopilot(): Promise<readonly Product[]> {
+    const rows = await this.db
+      .selectFrom("products")
+      .selectAll()
+      .where("autopilot_since", "is not", null)
+      .orderBy("id")
+      .execute();
+    return rows.map(productMapper.fromRow);
+  }
 }
