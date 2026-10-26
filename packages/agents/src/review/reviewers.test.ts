@@ -58,6 +58,19 @@ describe("ReviewerAgent", () => {
     expect(llm.requests[0]?.system).not.toContain("Acme");
   });
 
+  it("counts the brief's solution and differentiators as approved claims, as the rule checks do", async () => {
+    const llm = new FakeLlmClient().reply(reply("pass"));
+    await new ReviewerAgent(llm).review(request);
+    const prompt = llm.requests[0]?.messages[0]?.content ?? "";
+    const approved = prompt.slice(
+      prompt.indexOf("Approved product statements"),
+      prompt.indexOf("Title:"),
+    );
+    expect(approved).toContain(request.brief.solution);
+    for (const point of request.brief.differentiators) expect(approved).toContain(point);
+    for (const fact of request.brief.facts) expect(approved).toContain(fact);
+  });
+
   it("returns the model's verdict and issues", async () => {
     const issues = [{ severity: "suggestion", message: "Lead with the problem" }];
     const llm = new FakeLlmClient().reply(reply("pass", issues));

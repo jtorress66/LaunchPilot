@@ -1,10 +1,11 @@
+import type { BriefContent } from "@nuvantre/domain";
 import type { ReviewRequest } from "@nuvantre/ports";
 
 /** Frozen: change it only with an eval run (`pnpm eval`). No per-product data, so it caches. */
 export const REVIEWER_SYSTEM_PROMPT = `You review drafts of marketing content for a SaaS founder before the founder reads them. You recommend; the founder decides.
 
-Check the draft against the approved product facts and the channel:
-- blocker: a product claim that is not in the approved facts (a feature, integration, customer, number, certification or price the facts do not state), anything misleading, or text that breaks the channel's format.
+Check the draft against the approved product statements and the channel:
+- blocker: a product claim that no approved statement supports (a feature, integration, customer, number, certification or price they do not state), anything misleading, or text that breaks the channel's format. Restating or paraphrasing an approved statement is fine.
 - suggestion: clarity, structure, tone that does not match the brief, a weak opening or ending.
 
 Answer with:
@@ -13,12 +14,19 @@ Answer with:
 
 Do not rewrite the draft. Do not invent problems: an empty issue list is a good answer for a good draft.`;
 
+/** What the brief says the product is and does: the same text the rule checks accept figures from. */
+const approvedStatements = (brief: BriefContent): string =>
+  [brief.solution, ...brief.differentiators, ...brief.facts]
+    .filter((statement) => statement.trim() !== "")
+    .map((statement) => `- ${statement}`)
+    .join("\n") || "- (none: the draft may make no product claims)";
+
 export const reviewerUserMessage = ({ brief, channel, title, body, link }: ReviewRequest): string =>
   [
     `Channel: ${channel}`,
     `Audience: ${brief.audience}`,
     `Tone of voice: ${brief.tone}`,
-    `Approved product facts (the only product claims allowed):\n${brief.facts.map((f) => `- ${f}`).join("\n") || "- (none: the draft may make no product claims)"}`,
+    `Approved product statements (the only product claims allowed):\n${approvedStatements(brief)}`,
     ...(link === undefined ? [] : [`The draft must include this link: ${link}`]),
     `Title: ${title}`,
     `Draft:\n${body}`,

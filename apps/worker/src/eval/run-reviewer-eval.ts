@@ -41,6 +41,11 @@ for (const file of files) {
     console.log(
       `${mark(score.passed)} ${score.name.padEnd(36)} expected ${draft.expected.padEnd(13)} got ${(score.decision ?? "-").padEnd(13)} blockers named ${mark(score.explainsBlockers)}${score.error ? `  error: ${score.error}` : ""}`,
     );
+    // On a wrong verdict, show what the reviewer said so the prompt can be fixed.
+    if (!score.matchesLabel && result.ok) {
+      for (const issue of result.value.issues)
+        console.log(`    ${issue.severity}: ${issue.message}`);
+    }
   }
 }
 
