@@ -15,7 +15,7 @@ Place this file at `docs/BUILD_STEPS.md`. Work on one step at a time. Tick a ste
 | 7 | Social module | Calendar, social agent, approval inbox, publisher registry (X, LinkedIn via unified API) | E2E: post approved → published to a sandbox account | [x] |
 | 8 | Launch module | Directory database, launch kit generator, submission tracker | Launch kit generated for a sample product; tracker statuses update | [x] |
 | 9 | Analytics | Search Console + GA4/Plausible sources, analyst agent, weekly report | Report built correctly from recorded API data | [x] |
-| 10 | Orchestration | Strategist + reviewer agents, weekly loop jobs | Full-loop E2E test passes; evals meet thresholds | [ ] |
+| 10 | Orchestration | Strategist + reviewer agents, weekly loop jobs | Full-loop E2E test passes; evals meet thresholds | [x] |
 | 11 | Hardening for beta | Security review, rate limits, monitoring, eval thresholds, audit log | Beta checklist complete | [ ] |
 
 ## Prompt to start each step in Claude Code
