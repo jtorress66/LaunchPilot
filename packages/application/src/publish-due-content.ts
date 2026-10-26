@@ -3,8 +3,8 @@ import {
   transition,
   type ContentItem,
   type ContentItemEvent,
-} from "@launchpilot/domain";
-import type { Clock, ContentItemRepository, TaskRepository } from "@launchpilot/ports";
+} from "@nuvantre/domain";
+import type { Clock, ContentItemRepository, TaskRepository } from "@nuvantre/ports";
 import { completeTaskOf } from "./complete-task";
 import type { PublisherRegistry } from "./publisher-registry";
 

@@ -1,4 +1,4 @@
-import type { LinkedAccount, Result, SocialChannel } from "@launchpilot/domain";
+import type { LinkedAccount, Result, SocialChannel } from "@nuvantre/domain";
 import type { PortError } from "./port-error";
 
 export type SocialLinkError = PortError<"rejected" | "unavailable">;

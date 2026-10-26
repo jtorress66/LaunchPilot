@@ -1,14 +1,14 @@
-import { productId, type MetricsSnapshot } from "@launchpilot/domain";
+import { productId, type MetricsSnapshot } from "@nuvantre/domain";
 import {
   aGoogleConnection,
   FakeTokenCipher,
   InMemoryAnalyticsConnectionRepository,
-} from "@launchpilot/testing";
+} from "@nuvantre/testing";
 import {
   describeAnalyticsPropertyListerContract,
   describeGoogleAuthorizerContract,
   describeMetricsSourceContract,
-} from "@launchpilot/testing/contracts";
+} from "@nuvantre/testing/contracts";
 import { http, HttpResponse, type JsonBodyType } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";

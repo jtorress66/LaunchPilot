@@ -21,7 +21,7 @@ export function AuthShell({
           className="mb-8 flex items-center justify-center gap-2 font-semibold tracking-tight"
         >
           <Logo />
-          LaunchPilot
+          Nuvantre
         </Link>
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-800 dark:bg-slate-900">
           <h1 className="text-xl font-semibold tracking-tight">{title}</h1>

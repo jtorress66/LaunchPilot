@@ -1,4 +1,5 @@
-import { aProduct } from "@launchpilot/testing";
+import { enableAutopilot } from "@nuvantre/domain";
+import { aProduct } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { productMapper } from "./product-mapper";
 
@@ -11,7 +12,13 @@ describe("productMapper", () => {
       name: "Acme Analytics",
       url: "https://acme.dev/",
       created_at: product.createdAt,
+      autopilot_since: null,
     });
+  });
+
+  it("round-trips when the autopilot was switched on", () => {
+    const product = enableAutopilot(aProduct(), new Date("2026-10-19T09:00:00.000Z"));
+    expect(productMapper.fromRow(productMapper.toRow(product))).toEqual(product);
   });
 
   it("round-trips a product", () => {

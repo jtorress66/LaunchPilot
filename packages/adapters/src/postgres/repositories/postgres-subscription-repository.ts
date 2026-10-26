@@ -1,5 +1,5 @@
-import type { Subscription, WorkspaceId } from "@launchpilot/domain";
-import type { SubscriptionRepository } from "@launchpilot/ports";
+import type { Subscription, WorkspaceId } from "@nuvantre/domain";
+import type { SubscriptionRepository } from "@nuvantre/ports";
 import type { Kysely } from "kysely";
 import { subscriptionMapper } from "../mappers/subscription-mapper";
 import type { Database } from "../schema";

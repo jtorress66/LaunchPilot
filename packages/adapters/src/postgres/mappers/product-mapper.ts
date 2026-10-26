@@ -1,4 +1,4 @@
-import { parseHttpUrl, productId, workspaceId, type Product } from "@launchpilot/domain";
+import { parseHttpUrl, productId, workspaceId, type Product } from "@nuvantre/domain";
 import type { ProductRow } from "../schema";
 
 export const productMapper = {
@@ -8,6 +8,7 @@ export const productMapper = {
     name: product.name,
     url: product.url,
     created_at: product.createdAt,
+    autopilot_since: product.autopilotSince,
   }),
   fromRow: (row: ProductRow): Product => {
     const url = parseHttpUrl(row.url);
@@ -18,6 +19,7 @@ export const productMapper = {
       name: row.name,
       url: url.value,
       createdAt: row.created_at,
+      autopilotSince: row.autopilot_since,
     };
   },
 };

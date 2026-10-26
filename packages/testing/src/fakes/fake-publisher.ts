@@ -1,11 +1,5 @@
-import {
-  err,
-  ok,
-  type Channel,
-  type PublishableContentItem,
-  type Result,
-} from "@launchpilot/domain";
-import type { Clock, PublishError, PublishReceipt, Publisher } from "@launchpilot/ports";
+import { err, ok, type Channel, type PublishableContentItem, type Result } from "@nuvantre/domain";
+import type { Clock, PublishError, PublishReceipt, Publisher } from "@nuvantre/ports";
 import { FixedClock } from "./fixed-clock";
 import { NextFailure } from "./next-failure";
 

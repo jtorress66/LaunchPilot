@@ -1,5 +1,5 @@
-import type { DraftRequest } from "@launchpilot/ports";
-import { aBriefContent } from "@launchpilot/testing";
+import type { DraftRequest } from "@nuvantre/ports";
+import { aBriefContent } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { TemplateArticleWriter } from "./template-article-writer";
 

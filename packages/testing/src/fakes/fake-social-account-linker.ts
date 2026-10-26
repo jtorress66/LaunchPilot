@@ -1,5 +1,5 @@
-import { err, ok, type LinkedAccount, type Result, type SocialChannel } from "@launchpilot/domain";
-import type { SocialAccountLinker, SocialLinkError } from "@launchpilot/ports";
+import { err, ok, type LinkedAccount, type Result, type SocialChannel } from "@nuvantre/domain";
+import type { SocialAccountLinker, SocialLinkError } from "@nuvantre/ports";
 import { NextFailure } from "./next-failure";
 
 /** One profile per external id, with sequential ids; tests link accounts with `link`. */

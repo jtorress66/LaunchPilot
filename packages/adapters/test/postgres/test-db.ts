@@ -1,5 +1,5 @@
-import { campaignId, productId, taskId, workspaceId } from "@launchpilot/domain";
-import { aCampaign, aProduct, aTask, aUser, aWorkspace } from "@launchpilot/testing";
+import { campaignId, productId, taskId, workspaceId } from "@nuvantre/domain";
+import { aCampaign, aProduct, aTask, aUser, aWorkspace } from "@nuvantre/testing";
 import { sql, type Kysely } from "kysely";
 import { inject } from "vitest";
 import { createDatabase, type Database } from "../../src/postgres";
@@ -12,7 +12,7 @@ import { workspaceMapper } from "../../src/postgres/mappers/workspace-mapper";
 export const connect = (): Kysely<Database> => createDatabase(inject("databaseUrl"));
 
 export const truncateAll = async (db: Kysely<Database>): Promise<void> => {
-  await sql`TRUNCATE users, sessions, subscriptions, workspaces, products, briefs, campaigns, tasks, content_items, channel_connections, social_profiles, launch_kits, submissions, directories, analytics_connections, weekly_reports CASCADE`.execute(
+  await sql`TRUNCATE users, sessions, subscriptions, workspaces, products, briefs, campaigns, tasks, content_items, channel_connections, social_profiles, launch_kits, submissions, directories, analytics_connections, weekly_reports, autopilot_runs CASCADE`.execute(
     db,
   );
 };

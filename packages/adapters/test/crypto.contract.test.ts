@@ -3,7 +3,7 @@ import {
   describePasswordHasherContract,
   describeTokenCipherContract,
   describeTokenGeneratorContract,
-} from "@launchpilot/testing/contracts";
+} from "@nuvantre/testing/contracts";
 import { randomBytes } from "node:crypto";
 import {
   AesGcmTokenCipher,

@@ -9,7 +9,7 @@ import {
   type SocialChannel,
   type SocialProfile,
   type Workspace,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type {
   Clock,
   IdGenerator,
@@ -17,7 +17,7 @@ import type {
   SocialAccountLinker,
   SocialLinkError,
   SocialProfileRepository,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { failure, type UseCaseError } from "./errors";
 import { loadOwnedProduct } from "./owned-product";
 
@@ -31,7 +31,7 @@ interface Deps {
 
 /**
  * Gives the founder the provider's page for linking one channel. The product's profile is
- * created on first use; LaunchPilot never sees the founder's passwords.
+ * created on first use; Nuvantre never sees the founder's passwords.
  */
 export class ConnectSocial {
   constructor(private readonly deps: Deps) {}

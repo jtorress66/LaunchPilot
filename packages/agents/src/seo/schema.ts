@@ -1,4 +1,4 @@
-import type { JsonSchema } from "@launchpilot/ports";
+import type { JsonSchema } from "@nuvantre/ports";
 import { z } from "zod";
 
 /** Validates the model's answer at the edge; limits match the ContentItem entity's. */

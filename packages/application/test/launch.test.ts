@@ -4,8 +4,8 @@ import {
   type SubmissionEvent,
   type User,
   type Workspace,
-} from "@launchpilot/domain";
-import { aListing } from "@launchpilot/testing";
+} from "@nuvantre/domain";
+import { aListing } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import {
   AddToLaunch,

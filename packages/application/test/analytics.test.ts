@@ -1,5 +1,5 @@
-import type { Product, User, Workspace } from "@launchpilot/domain";
-import { FakeAnalyticsPropertyLister, FakePlausibleSiteVerifier } from "@launchpilot/testing";
+import type { Product, User, Workspace } from "@nuvantre/domain";
+import { FakeAnalyticsPropertyLister, FakePlausibleSiteVerifier } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import {
   ApproveBrief,
@@ -90,7 +90,7 @@ describe("connecting Google", () => {
     const url = new URL(result.value.url);
     expect(url.searchParams.get("state")).toBe(result.value.state);
     expect(url.searchParams.get("redirect_uri")).toBe(
-      "https://app.launchpilot.test/api/google/callback",
+      "https://app.nuvantre.test/api/google/callback",
     );
     expect(result.value.state).toMatch(/^token_/);
   });

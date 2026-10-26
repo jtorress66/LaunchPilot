@@ -12,7 +12,7 @@ export function ApprovalSection() {
             Automation with a founder-shaped safety switch
           </h2>
           <p className="mt-4 text-slate-600 dark:text-slate-400">
-            LaunchPilot drafts and schedules, but publishing is gated on your approval, enforced in
+            Nuvantre drafts and schedules, but publishing is gated on your approval, enforced in
             code rather than in a settings toggle.
           </p>
         </div>

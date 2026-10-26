@@ -1,5 +1,5 @@
-import { err, ok, type Channel, type ProductId, type Result } from "@launchpilot/domain";
-import type { Clock, PublishError, Publisher, PublisherProvider } from "@launchpilot/ports";
+import { err, ok, type Channel, type ProductId, type Result } from "@nuvantre/domain";
+import type { Clock, PublishError, Publisher, PublisherProvider } from "@nuvantre/ports";
 import { FakePublisher } from "./fake-publisher";
 
 /** Hands out one shared FakePublisher for connected products, so tests can inspect it. */

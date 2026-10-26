@@ -4,7 +4,7 @@ import type { ChannelConnectionId, ProductId } from "../shared/ids";
 import { nonEmptyText } from "../shared/text";
 import { parseHttpUrl, type HttpUrl } from "../shared/url";
 
-/** How LaunchPilot reaches a product's own channel, e.g. its WordPress blog. */
+/** How Nuvantre reaches a product's own channel, e.g. its WordPress blog. */
 export interface ChannelConnection {
   readonly id: ChannelConnectionId;
   readonly productId: ProductId;

@@ -1,5 +1,5 @@
-import { parseHttpUrl, type HttpUrl } from "@launchpilot/domain";
-import type { CrawledPage, SiteCrawler } from "@launchpilot/ports";
+import { parseHttpUrl, type HttpUrl } from "@nuvantre/domain";
+import type { CrawledPage, SiteCrawler } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 
 export interface SiteCrawlerHarness {

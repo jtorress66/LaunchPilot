@@ -3,12 +3,8 @@ import {
   productId,
   transitionSubmission,
   type Directory,
-} from "@launchpilot/domain";
-import type {
-  DirectoryCatalog,
-  LaunchKitRepository,
-  SubmissionRepository,
-} from "@launchpilot/ports";
+} from "@nuvantre/domain";
+import type { DirectoryCatalog, LaunchKitRepository, SubmissionRepository } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 import {
   aDirectory,

@@ -1,4 +1,4 @@
-import type { BriefContent, Channel, Result } from "@launchpilot/domain";
+import type { BriefContent, Channel, Result } from "@nuvantre/domain";
 import type { PortError } from "./port-error";
 
 export interface ReviewRequest {
@@ -6,6 +6,8 @@ export interface ReviewRequest {
   readonly channel: Channel;
   readonly title: string;
   readonly body: string;
+  /** A link the content must include, e.g. the article a post promotes. */
+  readonly link?: string;
 }
 
 export interface ReviewIssue {

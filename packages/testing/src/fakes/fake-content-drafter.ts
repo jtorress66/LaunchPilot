@@ -1,5 +1,5 @@
-import { err, ok, type Result } from "@launchpilot/domain";
-import type { ContentDrafter, Draft, DraftError, DraftRequest } from "@launchpilot/ports";
+import { err, ok, type Result } from "@nuvantre/domain";
+import type { ContentDrafter, Draft, DraftError, DraftRequest } from "@nuvantre/ports";
 import { NextFailure } from "./next-failure";
 
 export class FakeContentDrafter implements ContentDrafter {

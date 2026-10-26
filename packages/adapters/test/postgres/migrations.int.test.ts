@@ -44,11 +44,13 @@ describe("migrations", () => {
           "0004_social",
           "0005_launch",
           "0006_analytics",
+          "0007_orchestration",
         ],
       },
     });
     expect(await tables()).toEqual([
       "analytics_connections",
+      "autopilot_runs",
       "briefs",
       "campaigns",
       "channel_connections",
@@ -76,6 +78,7 @@ describe("migrations", () => {
       ok: true,
       value: {
         applied: [
+          "0007_orchestration",
           "0006_analytics",
           "0005_launch",
           "0004_social",

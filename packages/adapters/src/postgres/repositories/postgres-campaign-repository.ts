@@ -1,5 +1,5 @@
-import type { Campaign, CampaignId, ProductId } from "@launchpilot/domain";
-import type { CampaignRepository } from "@launchpilot/ports";
+import type { Campaign, CampaignId, ProductId } from "@nuvantre/domain";
+import type { CampaignRepository } from "@nuvantre/ports";
 import type { Kysely } from "kysely";
 import { campaignMapper } from "../mappers/campaign-mapper";
 import type { Database } from "../schema";

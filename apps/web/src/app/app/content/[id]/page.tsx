@@ -4,11 +4,12 @@ import {
   socialChannels,
   type CommunityChannel,
   type SocialChannel,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArticleEditor } from "../../../../components/content/article-editor";
+import { AgentReviewNote } from "../../../../components/autopilot/agent-review-note";
 import { ContentStatusBadge } from "../../../../components/content/content-status-badge";
 import { CommunityPostEditor } from "../../../../components/content/community-post-editor";
 import { PostEditor } from "../../../../components/content/post-editor";
@@ -18,7 +19,7 @@ import { getAppContainer } from "../../../../container";
 import { requireUser } from "../../../_lib/auth";
 import { idParam } from "../../../_lib/params";
 
-export const metadata: Metadata = { title: "Content — LaunchPilot" };
+export const metadata: Metadata = { title: "Content — Nuvantre" };
 
 const socialChannel = (channel: string): SocialChannel | undefined =>
   socialChannels.find((c) => c === channel);
@@ -63,6 +64,8 @@ export default async function ContentPage({ params, searchParams }: ContentPageP
         </div>
         <ContentStatusBadge status={item.status} />
       </div>
+
+      {item.status === "in_review" ? <AgentReviewNote review={item.agentReview} /> : null}
 
       {item.publication ? (
         <p

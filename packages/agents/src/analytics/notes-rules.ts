@@ -1,4 +1,4 @@
-import { numbersNotInReport, type AnalystNotes, type WeeklyReport } from "@launchpilot/domain";
+import { numbersNotInReport, type AnalystNotes, type WeeklyReport } from "@nuvantre/domain";
 import { MAX_HIGHLIGHTS, MAX_SUGGESTIONS } from "./prompt";
 
 const SUMMARY_MAX = 600;

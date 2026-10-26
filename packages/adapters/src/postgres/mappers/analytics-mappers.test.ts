@@ -1,5 +1,5 @@
-import { withAnalystNotes } from "@launchpilot/domain";
-import { aGoogleConnection, aPlausibleConnection, aWeeklyReport } from "@launchpilot/testing";
+import { withAnalystNotes } from "@nuvantre/domain";
+import { aGoogleConnection, aPlausibleConnection, aWeeklyReport } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { analyticsConnectionMapper, weeklyReportMapper } from "./analytics-mappers";
 

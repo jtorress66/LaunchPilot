@@ -1,5 +1,5 @@
-import { channels, contentItemStatuses, isAutoPublishable } from "@launchpilot/domain";
-import { aContentItem } from "@launchpilot/testing";
+import { channels, contentItemStatuses, isAutoPublishable } from "@nuvantre/domain";
+import { aContentItem } from "@nuvantre/testing";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { PostgresContentItemRepository } from "../../src/postgres";
 import { connect, resetWith } from "./test-db";

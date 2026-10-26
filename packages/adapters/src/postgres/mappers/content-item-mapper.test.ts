@@ -1,5 +1,5 @@
-import { contentItemStatuses } from "@launchpilot/domain";
-import { aContentItem } from "@launchpilot/testing";
+import { contentItemStatuses, withAgentReview } from "@nuvantre/domain";
+import { aContentItem } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { contentItemMapper } from "./content-item-mapper";
 
@@ -12,6 +12,21 @@ describe("contentItemMapper", () => {
   it("round-trips an approved item on a draft-only channel", () => {
     const item = aContentItem({ channel: "reddit", status: "approved" });
     expect(contentItemMapper.fromRow(contentItemMapper.toRow(item))).toEqual(item);
+  });
+
+  it("round-trips the reviewer agent's verdict as JSON", () => {
+    const item = withAgentReview(aContentItem(), {
+      decision: "needs_changes",
+      issues: [{ severity: "blocker", message: "Over the limit" }],
+      redrafted: true,
+      reviewedAt: new Date("2026-10-19T07:05:00.000Z"),
+    });
+    const row = contentItemMapper.toRow(item);
+    expect(JSON.parse(row.agent_review ?? "null")).toMatchObject({
+      reviewedAt: "2026-10-19T07:05:00.000Z",
+    });
+    expect(contentItemMapper.fromRow(row)).toEqual(item);
+    expect(contentItemMapper.toRow(aContentItem()).agent_review).toBeNull();
   });
 
   it("stores the publish attempt count", () => {

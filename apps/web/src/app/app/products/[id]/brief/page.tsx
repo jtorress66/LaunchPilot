@@ -1,4 +1,4 @@
-import { productId } from "@launchpilot/domain";
+import { productId } from "@nuvantre/domain";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -8,7 +8,7 @@ import { DraftBriefForm } from "../../../../../components/brief/draft-brief-form
 import { getAppContainer } from "../../../../../container";
 import { requireUser } from "../../../../_lib/auth";
 
-export const metadata: Metadata = { title: "Product Brief — LaunchPilot" };
+export const metadata: Metadata = { title: "Product Brief — Nuvantre" };
 
 interface BriefPageProps {
   readonly params: Promise<{ id: string }>;
@@ -66,8 +66,8 @@ export default async function BriefPage({ params, searchParams }: BriefPageProps
         />
       ) : (
         <p className="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-600 dark:border-slate-700 dark:text-slate-400">
-          No brief yet. LaunchPilot reads your site and drafts one for you to edit and approve.
-          Facts your site does not support are left out.
+          No brief yet. Nuvantre reads your site and drafts one for you to edit and approve. Facts
+          your site does not support are left out.
         </p>
       )}
     </div>

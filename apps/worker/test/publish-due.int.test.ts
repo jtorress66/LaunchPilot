@@ -3,9 +3,9 @@ import {
   createPostgresRepositories,
   migrateDown,
   migrateToLatest,
-} from "@launchpilot/adapters";
-import { PublishDueContent, PublisherRegistry } from "@launchpilot/application";
-import { contentItemId } from "@launchpilot/domain";
+} from "@nuvantre/adapters";
+import { PublishDueContent, PublisherRegistry } from "@nuvantre/application";
+import { contentItemId } from "@nuvantre/domain";
 import {
   aCampaign,
   aContentItem,
@@ -15,7 +15,7 @@ import {
   aWorkspace,
   FakePublisherProvider,
   FixedClock,
-} from "@launchpilot/testing";
+} from "@nuvantre/testing";
 import { afterAll, beforeAll, describe, expect, it, inject } from "vitest";
 import { createPublishDueJob } from "../src/jobs/publish-due-job";
 

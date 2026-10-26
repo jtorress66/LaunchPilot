@@ -1,5 +1,5 @@
-import { FakeLlmClient } from "@launchpilot/testing";
-import { describeWeeklyReportAnalystContract } from "@launchpilot/testing/contracts";
+import { FakeLlmClient } from "@nuvantre/testing";
+import { describeWeeklyReportAnalystContract } from "@nuvantre/testing/contracts";
 import { AnalystAgent, TemplateAnalyst } from "../src";
 
 describeWeeklyReportAnalystContract("TemplateAnalyst", () => new TemplateAnalyst());

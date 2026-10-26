@@ -1,4 +1,4 @@
-import type { PasswordHasher } from "@launchpilot/ports";
+import type { PasswordHasher } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 
 const password = "correct horse battery staple";

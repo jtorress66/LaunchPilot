@@ -15,7 +15,7 @@ describe("Google OAuth state cookie", () => {
       path: "/api/google",
       maxAge: 600,
     });
-    expect(googleStateCookieOptions("https://launchpilot.app").secure).toBe(true);
+    expect(googleStateCookieOptions("https://nuvantre.app").secure).toBe(true);
   });
 
   it("carries the state and the product the flow is for", () => {

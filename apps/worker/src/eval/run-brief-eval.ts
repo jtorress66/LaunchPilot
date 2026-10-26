@@ -1,6 +1,6 @@
 // `pnpm eval`: drafts a brief with real Claude for every recorded site in evals/brief/sites
 // and fails when grounding or completeness drop below the thresholds.
-import { parseHttpUrl } from "@launchpilot/domain";
+import { parseHttpUrl } from "@nuvantre/domain";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { createBriefEvalAgent } from "../container";

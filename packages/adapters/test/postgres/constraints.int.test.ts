@@ -1,5 +1,5 @@
-import { productId, workspaceId } from "@launchpilot/domain";
-import { aBrief, aContentItem, aGoogleConnection, aProduct } from "@launchpilot/testing";
+import { productId, workspaceId } from "@nuvantre/domain";
+import { aBrief, aContentItem, aGoogleConnection, aProduct } from "@nuvantre/testing";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { analyticsConnectionMapper } from "../../src/postgres/mappers/analytics-mappers";
 import { briefMapper } from "../../src/postgres/mappers/brief-mapper";

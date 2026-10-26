@@ -1,10 +1,10 @@
-import { err, ok, type Result } from "@launchpilot/domain";
+import { err, ok, type Result } from "@nuvantre/domain";
 import type {
   DraftError,
   LaunchKitDraft,
   LaunchKitDrafter,
   LaunchKitRequest,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { aListing } from "../fixtures/entities";
 import { NextFailure } from "./next-failure";
 

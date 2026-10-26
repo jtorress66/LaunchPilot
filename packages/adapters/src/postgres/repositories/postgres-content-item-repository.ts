@@ -1,5 +1,5 @@
-import type { ContentItem, ContentItemId, ContentItemStatus, ProductId } from "@launchpilot/domain";
-import type { ContentItemRepository } from "@launchpilot/ports";
+import type { ContentItem, ContentItemId, ContentItemStatus, ProductId } from "@nuvantre/domain";
+import type { ContentItemRepository } from "@nuvantre/ports";
 import type { Kysely } from "kysely";
 import { contentItemMapper } from "../mappers/content-item-mapper";
 import type { Database } from "../schema";

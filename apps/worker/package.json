@@ -1,5 +1,5 @@
 {
-  "name": "@launchpilot/worker",
+  "name": "@nuvantre/worker",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -16,19 +16,21 @@
     "eval:social": "tsx src/eval/run-social-eval.ts",
     "eval:launch": "tsx src/eval/run-launch-eval.ts",
     "eval:analyst": "tsx src/eval/run-analyst-eval.ts",
+    "eval:strategist": "tsx src/eval/run-strategist-eval.ts",
+    "eval:reviewer": "tsx src/eval/run-reviewer-eval.ts",
     "watch:zernio": "tsx src/watch/zernio-changelog.ts"
   },
   "dependencies": {
-    "@launchpilot/adapters": "workspace:*",
-    "@launchpilot/agents": "workspace:*",
-    "@launchpilot/application": "workspace:*",
-    "@launchpilot/domain": "workspace:*",
-    "@launchpilot/ports": "workspace:*",
+    "@nuvantre/adapters": "workspace:*",
+    "@nuvantre/agents": "workspace:*",
+    "@nuvantre/application": "workspace:*",
+    "@nuvantre/domain": "workspace:*",
+    "@nuvantre/ports": "workspace:*",
     "tsx": "4.20.6",
     "zod": "3.25.76"
   },
   "devDependencies": {
-    "@launchpilot/testing": "workspace:*",
+    "@nuvantre/testing": "workspace:*",
     "@types/node": "22.20.5",
     "msw": "2.15.0",
     "vitest": "3.2.7"

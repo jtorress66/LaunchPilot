@@ -1,11 +1,11 @@
-import { err, keepGroundedFacts, ok, type Result } from "@launchpilot/domain";
+import { err, keepGroundedFacts, ok, type Result } from "@nuvantre/domain";
 import type {
   BriefDraft,
   BriefDraftError,
   BriefDrafter,
   BriefDraftRequest,
   LlmClient,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { BRIEF_SYSTEM_PROMPT, briefUserMessage } from "./prompt";
 import { briefAnswer, briefAnswerJsonSchema, type BriefAnswer } from "./schema";
 import { siteCorpus } from "./site-corpus";

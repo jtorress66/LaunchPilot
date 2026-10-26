@@ -3,9 +3,9 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "LaunchPilot — Your AI marketing team for SaaS",
+  title: "Nuvantre — Your AI marketing team for SaaS",
   description:
-    "LaunchPilot reads your SaaS, writes your product brief, and runs SEO, launches, social and analytics every week. You approve everything before it goes live.",
+    "Nuvantre reads your SaaS, writes your product brief, and runs SEO, launches, social and analytics every week. You approve everything before it goes live.",
 };
 
 export const viewport: Viewport = {

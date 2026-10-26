@@ -1,4 +1,4 @@
-import { userId, type Session } from "@launchpilot/domain";
+import { userId, type Session } from "@nuvantre/domain";
 import { sha256Hex } from "../../crypto/sha256";
 import type { SessionRow } from "../schema";
 

@@ -1,4 +1,4 @@
-import { aCampaign } from "@launchpilot/testing";
+import { aCampaign } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { campaignMapper } from "./campaign-mapper";
 

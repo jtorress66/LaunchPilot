@@ -7,12 +7,12 @@ import {
   type Result,
   type WeeklyReport,
   type Workspace,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type {
   AnalyticsConnectionRepository,
   ProductRepository,
   WeeklyReportRepository,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { failure, type UseCaseError } from "./errors";
 import { loadOwnedProduct } from "./owned-product";
 

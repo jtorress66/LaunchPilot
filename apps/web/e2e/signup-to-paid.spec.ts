@@ -14,6 +14,12 @@ test("a founder signs up, adds a product, hits the Free limit and upgrades to St
   await page.getByRole("link", { name: "Dashboard" }).click();
   await expect(page.getByRole("listitem").filter({ hasText: "Acme Analytics" })).toBeVisible();
   await expect(page.getByRole("meter", { name: "Products" })).toHaveAttribute("aria-valuenow", "1");
+  // The product's links wrap on a phone instead of widening its card past the page gutter.
+  const card = await page.getByRole("listitem").filter({ hasText: "Acme Analytics" }).boundingBox();
+  const gutter = 16;
+  expect((card?.x ?? 0) + (card?.width ?? 0)).toBeLessThanOrEqual(
+    (page.viewportSize()?.width ?? 0) - gutter,
+  );
 
   await addProduct(page, "Second Product", "https://second.dev");
   const limit = page.getByRole("alert").filter({ hasText: "The Free plan includes 1 product" });

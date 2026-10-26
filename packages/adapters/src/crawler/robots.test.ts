@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseRobots } from "./robots";
 
-const AGENT = "LaunchPilotBot";
+const AGENT = "NuvantreBot";
 
 describe("parseRobots", () => {
   it("allows everything when robots.txt is empty", () => {
@@ -19,7 +19,7 @@ describe("parseRobots", () => {
       "User-agent: *",
       "Disallow: /",
       "",
-      "User-agent: launchpilotbot",
+      "User-agent: nuvantrebot",
       "Disallow: /private",
     ].join("\n");
     const allowed = parseRobots(robots, AGENT);
@@ -48,7 +48,7 @@ describe("parseRobots", () => {
   });
 
   it("shares rules between consecutive user-agent lines", () => {
-    const robots = "User-agent: otherbot\nUser-agent: LaunchPilotBot\nDisallow: /beta\n";
+    const robots = "User-agent: otherbot\nUser-agent: NuvantreBot\nDisallow: /beta\n";
     expect(parseRobots(robots, AGENT)("/beta")).toBe(false);
   });
 });

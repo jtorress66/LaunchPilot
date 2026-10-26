@@ -1,4 +1,4 @@
-import type { Analysis } from "@launchpilot/ports";
+import type { Analysis } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 import {
   parseAnalystEvalCase,

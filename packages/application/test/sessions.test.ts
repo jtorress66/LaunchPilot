@@ -1,5 +1,5 @@
-import { userId } from "@launchpilot/domain";
-import { aSession, aUser } from "@launchpilot/testing";
+import { userId } from "@nuvantre/domain";
+import { aSession, aUser } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { AuthenticateSession, LogOut } from "../src";
 import { makeWorld, signedUp } from "./world";

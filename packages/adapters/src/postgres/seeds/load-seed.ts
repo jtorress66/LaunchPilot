@@ -1,4 +1,4 @@
-import type { Directory, Result } from "@launchpilot/domain";
+import type { Directory, Result } from "@nuvantre/domain";
 import seed from "./directories.json";
 import { parseSeedDirectories } from "./parse-seed";
 

@@ -1,5 +1,5 @@
-import type { UserId, Workspace, WorkspaceId } from "@launchpilot/domain";
-import type { WorkspaceRepository } from "@launchpilot/ports";
+import type { UserId, Workspace, WorkspaceId } from "@nuvantre/domain";
+import type { WorkspaceRepository } from "@nuvantre/ports";
 import type { Kysely } from "kysely";
 import { workspaceMapper } from "../mappers/workspace-mapper";
 import type { Database } from "../schema";

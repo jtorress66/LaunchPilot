@@ -1,4 +1,4 @@
-import type { ContentDrafter, DraftRequest } from "@launchpilot/ports";
+import type { ContentDrafter, DraftRequest } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 import { aBriefContent } from "../src/fixtures/entities";
 

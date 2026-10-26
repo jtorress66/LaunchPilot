@@ -1,15 +1,15 @@
-import { productId } from "@launchpilot/domain";
+import { productId } from "@nuvantre/domain";
 import {
   aBlogConnection,
   aPublishableItem,
   FixedClock,
   InMemoryChannelConnectionRepository,
-} from "@launchpilot/testing";
+} from "@nuvantre/testing";
 import {
   describeBlogConnectionVerifierContract,
   describePublisherContract,
   describePublisherProviderContract,
-} from "@launchpilot/testing/contracts";
+} from "@nuvantre/testing/contracts";
 import { randomBytes } from "node:crypto";
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import type { AddressInfo } from "node:net";

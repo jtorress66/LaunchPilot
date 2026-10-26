@@ -34,6 +34,11 @@ import {
   SignUp,
   StartCheckout,
   UpdateBrief,
+  DrafterRegistry,
+  GetAutopilotStatus,
+  RunAutopilotNow,
+  RunWeeklyLoop,
+  SetAutopilot,
   ChooseAnalyticsProperties,
   CompleteGoogleConnect,
   ConnectPlausible,
@@ -45,8 +50,12 @@ import {
   MetricsSourceRegistry,
   StartGoogleConnect,
   WeeklyReportBuilder,
-} from "@launchpilot/application";
+} from "@nuvantre/application";
 import {
+  ReviewerAgent,
+  StrategistAgent,
+  TemplateReviewer,
+  TemplateStrategist,
   AnalystAgent,
   TemplateAnalyst,
   BriefAgent,
@@ -57,7 +66,7 @@ import {
   TemplateLaunchKitWriter,
   TemplateArticleWriter,
   TemplatePostWriter,
-} from "@launchpilot/agents";
+} from "@nuvantre/agents";
 import {
   AesGcmTokenCipher,
   DataForSeoKeywordProvider,
@@ -88,8 +97,8 @@ import {
   PlausibleStatsVerifier,
   SearchConsoleSource,
   type GoogleOptions,
-} from "@launchpilot/adapters";
-import type { MetricsSource } from "@launchpilot/ports";
+} from "@nuvantre/adapters";
+import type { MetricsSource } from "@nuvantre/ports";
 import {
   parseWebConfig,
   type ClaudeConfig,
@@ -229,6 +238,14 @@ const analyticsFor = (
   };
 };
 
+const strategistFor = ({ strategist }: WebConfig["autopilot"]) =>
+  strategist.kind === "claude"
+    ? new StrategistAgent(claudeClient(strategist))
+    : new TemplateStrategist();
+
+const reviewerFor = ({ reviewer }: WebConfig["autopilot"]) =>
+  reviewer.kind === "claude" ? new ReviewerAgent(claudeClient(reviewer)) : new TemplateReviewer();
+
 const build = (config: WebConfig) => {
   const billing = billingFor(config);
   const repositories = createPostgresRepositories(createDatabase(config.databaseUrl));
@@ -263,6 +280,17 @@ const build = (config: WebConfig) => {
     hasher: new ScryptPasswordHasher(),
     appUrl: config.appUrl,
   };
+  // The weekly loop drafts with the same writers as the SEO and Social pages: one per channel.
+  const loop = new RunWeeklyLoop({
+    ...deps,
+    planner: strategistFor(config.autopilot),
+    reviewer: reviewerFor(config.autopilot),
+    drafters: new DrafterRegistry([
+      { channel: "blog", drafter: deps.writer },
+      { channel: "x", drafter: deps.socialWriter },
+      { channel: "linkedin", drafter: deps.socialWriter },
+    ]),
+  });
   return {
     appUrl: config.appUrl,
     webhookSignatureHeader: billing.webhookSignatureHeader,
@@ -302,19 +330,22 @@ const build = (config: WebConfig) => {
     updateSubmission: new UpdateSubmission(deps),
     getLaunchOverview: new GetLaunchOverview(deps),
     analytics: analyticsFor(config, repositories, cipher, deps),
+    setAutopilot: new SetAutopilot(deps),
+    runAutopilotNow: new RunAutopilotNow({ ...deps, loop }),
+    getAutopilotStatus: new GetAutopilotStatus(deps),
   };
 };
 
 export type AppContainer = ReturnType<typeof build>;
 
 // Cached on globalThis so dev-server reloads reuse one connection pool.
-const cache = globalThis as { launchpilotApp?: AppContainer };
+const cache = globalThis as { nuvantreApp?: AppContainer };
 
 /** Builds the app on first use, so `next build` never needs runtime secrets. */
 export const getAppContainer = (): AppContainer => {
-  if (cache.launchpilotApp) return cache.launchpilotApp;
+  if (cache.nuvantreApp) return cache.nuvantreApp;
   const config = parseWebConfig(process.env);
   if (!config.ok) throw new Error(`Invalid configuration: ${config.error}`);
-  cache.launchpilotApp = build(config.value);
-  return cache.launchpilotApp;
+  cache.nuvantreApp = build(config.value);
+  return cache.nuvantreApp;
 };

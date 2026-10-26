@@ -1,4 +1,4 @@
-import { effectivePlan, isActive } from "@launchpilot/domain";
+import { effectivePlan, isActive } from "@nuvantre/domain";
 import { describe, expect, it } from "vitest";
 import { aSession, aSubscription, aUser } from "./accounts";
 import { fixtureNow } from "./entities";

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { AuthShell } from "../../components/auth-shell";
 import { LogInForm } from "../../components/forms/auth-forms";
 
-export const metadata: Metadata = { title: "Log in — LaunchPilot" };
+export const metadata: Metadata = { title: "Log in — Nuvantre" };
 
 export default async function LogInPage({
   searchParams,
@@ -19,7 +19,7 @@ export default async function LogInPage({
       }
       footer={
         <>
-          New to LaunchPilot?{" "}
+          New to Nuvantre?{" "}
           <Link
             href="/signup"
             className="font-semibold text-brand-600 hover:underline dark:text-brand-400"

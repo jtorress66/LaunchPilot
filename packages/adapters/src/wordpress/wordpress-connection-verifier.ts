@@ -1,10 +1,10 @@
-import { err, ok, type Result } from "@launchpilot/domain";
+import { err, ok, type Result } from "@nuvantre/domain";
 import type {
   BlogConnectionVerifier,
   BlogCredentials,
   ConnectionError,
   VerifiedBlog,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { z } from "zod";
 import { httpGet, safeRequest, type HttpFailure } from "../net/safe-http";
 import { basicAuth, httpOptions, parseJson, restUrl, type WordPressNetwork } from "./rest";
@@ -27,7 +27,7 @@ const fromHttpFailure = (error: HttpFailure) =>
     ? failure("blocked", "That address cannot be used for a blog")
     : failure("unreachable", "The blog could not be reached", true);
 
-/** Checks a WordPress site and its Application Password before LaunchPilot stores them. */
+/** Checks a WordPress site and its Application Password before Nuvantre stores them. */
 export class WordPressConnectionVerifier implements BlogConnectionVerifier {
   constructor(private readonly network: WordPressNetwork) {}
 

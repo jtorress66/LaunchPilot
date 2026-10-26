@@ -17,6 +17,6 @@ export const profileList = z.object({ profiles: z.array(z.object({ _id: z.string
 
 type Account = z.infer<typeof accountList>["accounts"][number];
 
-/** An account LaunchPilot can post through: active and not waiting to be reconnected. */
+/** An account Nuvantre can post through: active and not waiting to be reconnected. */
 export const isUsable = (account: Account) =>
   account.isActive && account.needsReconnection !== true;

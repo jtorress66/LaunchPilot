@@ -1,7 +1,7 @@
 import {
   describeBillingWebhookVerifierContract,
   describeCheckoutProviderContract,
-} from "@launchpilot/testing/contracts";
+} from "@nuvantre/testing/contracts";
 import { LocalCheckoutProvider, LocalWebhookVerifier, signLocalWebhook } from "../src";
 
 const secret = "local-test-secret-0123456789";

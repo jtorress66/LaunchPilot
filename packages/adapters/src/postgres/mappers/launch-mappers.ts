@@ -15,7 +15,7 @@ import {
   type LaunchKit,
   type Listing,
   type Submission,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type { DirectoryRow, LaunchKitRow, SubmissionRow } from "../schema";
 import { oneOf, readJson, toJson } from "./columns";
 

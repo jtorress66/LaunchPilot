@@ -1,5 +1,5 @@
-import { err, ok, type Result } from "@launchpilot/domain";
-import type { BillingError, CheckoutProvider, CheckoutRequest } from "@launchpilot/ports";
+import { err, ok, type Result } from "@nuvantre/domain";
+import type { BillingError, CheckoutProvider, CheckoutRequest } from "@nuvantre/ports";
 import { NextFailure } from "./next-failure";
 
 export class FakeCheckoutProvider implements CheckoutProvider {

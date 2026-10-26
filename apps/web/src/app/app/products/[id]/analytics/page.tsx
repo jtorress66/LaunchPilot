@@ -1,8 +1,9 @@
-import { describeWeek, productId } from "@launchpilot/domain";
+import { describeWeek, productId } from "@nuvantre/domain";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BuildReportButton } from "../../../../../components/analytics/build-report-button";
+import { AutopilotCard } from "../../../../../components/autopilot/autopilot-card";
 import { DisconnectButton } from "../../../../../components/analytics/disconnect-button";
 import { GooglePropertiesForm } from "../../../../../components/analytics/google-properties-form";
 import { PlausibleConnectForm } from "../../../../../components/analytics/plausible-connect-form";
@@ -12,14 +13,14 @@ import { analyticsFailureMessage } from "../../../../../server/messages";
 import { requireUser } from "../../../../_lib/auth";
 import { idParam } from "../../../../_lib/params";
 
-export const metadata: Metadata = { title: "Analytics — LaunchPilot" };
+export const metadata: Metadata = { title: "Analytics — Nuvantre" };
 
 const card =
   "space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900";
 
 interface AnalyticsPageProps {
   readonly params: Promise<{ id: string }>;
-  readonly searchParams: Promise<{ google?: string; plausible?: string }>;
+  readonly searchParams: Promise<{ google?: string; plausible?: string; autopilot?: string }>;
 }
 
 const googleNotices: Partial<Record<string, string>> = {
@@ -46,8 +47,11 @@ export default async function AnalyticsPage({ params, searchParams }: AnalyticsP
   const id = idParam(raw);
   const { workspace } = await requireUser();
   const app = getAppContainer();
-  const overview = await app.analytics.getOverview.execute({ workspace, productId: productId(id) });
-  if (!overview.ok) notFound();
+  const [overview, autopilot] = await Promise.all([
+    app.analytics.getOverview.execute({ workspace, productId: productId(id) }),
+    app.getAutopilotStatus.execute({ workspace, productId: productId(id) }),
+  ]);
+  if (!overview.ok || !autopilot.ok) notFound();
   const { product, google, plausible, reports, latest } = overview.value;
   const properties =
     google && app.analytics.google
@@ -61,8 +65,8 @@ export default async function AnalyticsPage({ params, searchParams }: AnalyticsP
         <p className="text-sm text-slate-500">{product.name}</p>
         <h1 className="text-2xl font-bold tracking-tight">Analytics</h1>
         <p className="mt-1 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
-          Connect Search Console and Google Analytics 4 or Plausible. Every Monday LaunchPilot
-          builds last week&apos;s report, with read-only access.
+          Connect Search Console and Google Analytics 4 or Plausible. Every Monday Nuvantre builds
+          last week&apos;s report, with read-only access.
         </p>
       </div>
 
@@ -79,6 +83,15 @@ export default async function AnalyticsPage({ params, searchParams }: AnalyticsP
         <Notice tone={query.google === "unconfigured" ? "error" : "ok"} text={googleNotice} />
       ) : null}
       {query.plausible === "connected" ? <Notice tone="ok" text="Plausible is connected." /> : null}
+      {query.autopilot === "ran" ? (
+        <Notice tone="ok" text="This week's run is done. Review the drafts in your Inbox." />
+      ) : null}
+
+      <AutopilotCard
+        productId={product.id}
+        enabledSince={autopilot.value.enabledSince}
+        latest={autopilot.value.latest}
+      />
 
       <div className="grid gap-8 lg:grid-cols-[1fr_22rem]">
         <section aria-labelledby="report" className={card}>

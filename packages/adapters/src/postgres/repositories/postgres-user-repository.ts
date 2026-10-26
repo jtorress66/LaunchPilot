@@ -1,5 +1,5 @@
-import type { Email, User, UserId } from "@launchpilot/domain";
-import type { UserRepository } from "@launchpilot/ports";
+import type { Email, User, UserId } from "@nuvantre/domain";
+import type { UserRepository } from "@nuvantre/ports";
 import { sql, type Kysely } from "kysely";
 import { userMapper } from "../mappers/user-mapper";
 import type { Database } from "../schema";

@@ -1,4 +1,5 @@
-import { maxLengthOf } from "@launchpilot/domain";
+import { maxLengthOf } from "@nuvantre/domain";
+import { AgentReviewNote } from "../../../components/autopilot/agent-review-note";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { InboxApproveButton } from "../../../components/inbox/approve-button";
@@ -6,7 +7,7 @@ import { channelName } from "../../../components/social/channel-name";
 import { getAppContainer } from "../../../container";
 import { requireUser } from "../../_lib/auth";
 
-export const metadata: Metadata = { title: "Inbox — LaunchPilot" };
+export const metadata: Metadata = { title: "Inbox — Nuvantre" };
 
 const PREVIEW = 600;
 
@@ -49,6 +50,7 @@ export default async function InboxPage() {
               <p className="whitespace-pre-line text-sm text-slate-700 dark:text-slate-300">
                 {item.body.length > PREVIEW ? `${item.body.slice(0, PREVIEW)}…` : item.body}
               </p>
+              <AgentReviewNote review={item.agentReview} />
               <div className="flex flex-wrap items-start gap-3">
                 <InboxApproveButton itemId={item.id} title={item.title} />
                 <Link

@@ -1,4 +1,4 @@
-import { err, ok, type Result } from "@launchpilot/domain";
+import { err, ok, type Result } from "@nuvantre/domain";
 import { z } from "zod";
 
 export interface DatabaseConfig {
@@ -173,5 +173,110 @@ export const parseReportsConfig = (
       c.ANALYST === "claude" && c.ANTHROPIC_API_KEY !== undefined
         ? { kind: "claude", apiKey: c.ANTHROPIC_API_KEY, model: c.ANTHROPIC_MODEL ?? null }
         : { kind: "template" },
+  });
+};
+
+export type AgentChoice = "claude" | "template";
+
+export type LoopKeywordsConfig =
+  | {
+      readonly kind: "dataforseo";
+      readonly login: string;
+      /** Never logged. */
+      readonly password: string;
+      readonly baseUrl: string | null;
+    }
+  | { readonly kind: "offline" };
+
+export interface LoopConfig {
+  readonly intervalMs: number;
+  /** Null when no agent uses Claude. */
+  readonly claude: { readonly apiKey: string; readonly model: string | null } | null;
+  readonly agents: {
+    readonly strategist: AgentChoice;
+    readonly reviewer: AgentChoice;
+    readonly articleWriter: AgentChoice;
+    readonly socialWriter: AgentChoice;
+  };
+  readonly keywords: LoopKeywordsConfig;
+}
+
+const agentChoice = z.enum(["claude", "template"]).default("claude");
+
+const loopSchema = z.object({
+  APP_ENV: z.enum(["development", "test", "production"]).default("production"),
+  LOOP_INTERVAL_MS: z.coerce
+    .number()
+    .int()
+    .min(60_000, "LOOP_INTERVAL_MS must be at least 60000")
+    .default(3_600_000),
+  STRATEGIST: agentChoice,
+  REVIEWER: agentChoice,
+  ARTICLE_WRITER: agentChoice,
+  SOCIAL_WRITER: agentChoice,
+  KEYWORD_PROVIDER: z.enum(["dataforseo", "offline"]).default("dataforseo"),
+  DATAFORSEO_LOGIN: z.string().min(1).optional(),
+  DATAFORSEO_PASSWORD: z.string().min(1).optional(),
+  DATAFORSEO_BASE_URL: z.string().url("DATAFORSEO_BASE_URL must be an absolute URL").optional(),
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  ANTHROPIC_MODEL: z
+    .string()
+    .regex(/^claude-[a-z0-9.-]+$/, "ANTHROPIC_MODEL must be a Claude model id")
+    .optional(),
+});
+
+type LoopEnv = z.infer<typeof loopSchema>;
+
+/** Stand-ins for real services; production must never fall back to them silently. */
+const loopDevOnly: readonly [string, (c: LoopEnv) => boolean][] = [
+  ["STRATEGIST=template", (c) => c.STRATEGIST === "template"],
+  ["REVIEWER=template", (c) => c.REVIEWER === "template"],
+  ["ARTICLE_WRITER=template", (c) => c.ARTICLE_WRITER === "template"],
+  ["SOCIAL_WRITER=template", (c) => c.SOCIAL_WRITER === "template"],
+  ["KEYWORD_PROVIDER=offline", (c) => c.KEYWORD_PROVIDER === "offline"],
+];
+
+/** What the weekly loop job needs: its agents, the keyword source and the schedule. */
+export const parseLoopConfig = (
+  env: Readonly<Record<string, string | undefined>>,
+): Result<LoopConfig, string> => {
+  const parsed = loopSchema.safeParse(env);
+  if (!parsed.success) return err(parsed.error.issues[0]?.message ?? "Invalid configuration");
+  const c = parsed.data;
+  if (c.APP_ENV === "production") {
+    const refused = loopDevOnly.find(([, applies]) => applies(c));
+    if (refused) return err(`${refused[0]} is only allowed when APP_ENV is development or test`);
+  }
+  const agents = {
+    strategist: c.STRATEGIST,
+    reviewer: c.REVIEWER,
+    articleWriter: c.ARTICLE_WRITER,
+    socialWriter: c.SOCIAL_WRITER,
+  };
+  const needsClaude = Object.values(agents).includes("claude");
+  if (needsClaude && c.ANTHROPIC_API_KEY === undefined) {
+    return err("ANTHROPIC_API_KEY is required when an agent uses Claude");
+  }
+  if (c.KEYWORD_PROVIDER === "dataforseo" && (!c.DATAFORSEO_LOGIN || !c.DATAFORSEO_PASSWORD)) {
+    return err(
+      "DATAFORSEO_LOGIN and DATAFORSEO_PASSWORD are required when KEYWORD_PROVIDER is dataforseo",
+    );
+  }
+  return ok({
+    intervalMs: c.LOOP_INTERVAL_MS,
+    claude:
+      needsClaude && c.ANTHROPIC_API_KEY !== undefined
+        ? { apiKey: c.ANTHROPIC_API_KEY, model: c.ANTHROPIC_MODEL ?? null }
+        : null,
+    agents,
+    keywords:
+      c.KEYWORD_PROVIDER === "dataforseo" && c.DATAFORSEO_LOGIN && c.DATAFORSEO_PASSWORD
+        ? {
+            kind: "dataforseo",
+            login: c.DATAFORSEO_LOGIN,
+            password: c.DATAFORSEO_PASSWORD,
+            baseUrl: c.DATAFORSEO_BASE_URL ?? null,
+          }
+        : { kind: "offline" },
   });
 };

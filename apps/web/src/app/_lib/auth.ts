@@ -1,5 +1,5 @@
 import "server-only";
-import type { Session } from "@launchpilot/domain";
+import type { Session } from "@nuvantre/domain";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";

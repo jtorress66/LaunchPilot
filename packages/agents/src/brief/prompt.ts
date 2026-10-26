@@ -1,4 +1,4 @@
-import type { BriefDraftRequest } from "@launchpilot/ports";
+import type { BriefDraftRequest } from "@nuvantre/ports";
 
 /**
  * Frozen system prompt for the brief agent. It holds no per-product data so the

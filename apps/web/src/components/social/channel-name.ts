@@ -1,4 +1,4 @@
-import type { Channel } from "@launchpilot/domain";
+import type { Channel } from "@nuvantre/domain";
 
 const names: Record<Channel, string> = {
   blog: "Blog",

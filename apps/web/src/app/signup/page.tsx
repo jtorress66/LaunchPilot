@@ -3,13 +3,13 @@ import Link from "next/link";
 import { AuthShell } from "../../components/auth-shell";
 import { SignUpForm } from "../../components/forms/auth-forms";
 
-export const metadata: Metadata = { title: "Create your account — LaunchPilot" };
+export const metadata: Metadata = { title: "Create your account — Nuvantre" };
 
 export default function SignUpPage() {
   return (
     <AuthShell
       title="Create your account"
-      subtitle="Start free. Upgrade when LaunchPilot is pulling its weight."
+      subtitle="Start free. Upgrade when Nuvantre is pulling its weight."
       footer={
         <>
           Already have an account?{" "}

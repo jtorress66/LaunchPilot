@@ -1,5 +1,5 @@
-import { communityChannels, err, ok, validateListing, type Result } from "@launchpilot/domain";
-import type { DraftError, LaunchKitDraft } from "@launchpilot/ports";
+import { communityChannels, err, ok, validateListing, type Result } from "@nuvantre/domain";
+import type { DraftError, LaunchKitDraft } from "@nuvantre/ports";
 import { z } from "zod";
 
 /** One recorded brief the launch kit writer is evaluated on. */

@@ -1,16 +1,16 @@
 // Responses below are shaped after Zernio's API as typed by its official SDK (@zernio/node).
-import { productId, withLinkedAccounts } from "@launchpilot/domain";
+import { productId, withLinkedAccounts } from "@nuvantre/domain";
 import {
   aPublishableItem,
   aSocialProfile,
   FixedClock,
   InMemorySocialProfileRepository,
-} from "@launchpilot/testing";
+} from "@nuvantre/testing";
 import {
   describePublisherContract,
   describePublisherProviderContract,
   describeSocialAccountLinkerContract,
-} from "@launchpilot/testing/contracts";
+} from "@nuvantre/testing/contracts";
 import { http, HttpResponse, type JsonBodyType } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
@@ -144,7 +144,7 @@ describe("ZernioAccountLinker", () => {
     });
   });
 
-  it("asks for the channel's linking page, returning the founder to LaunchPilot", async () => {
+  it("asks for the channel's linking page, returning the founder to Nuvantre", async () => {
     const captured = respond("get", "connect/linkedin", connectUrl);
     const result = await linker().linkingUrl(PROFILE_ID, "linkedin", "https://app.test/back?x=1");
     expect(result).toEqual({ ok: true, value: connectUrl.authUrl });

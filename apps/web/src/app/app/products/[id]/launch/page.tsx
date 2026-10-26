@@ -1,4 +1,4 @@
-import { productId } from "@launchpilot/domain";
+import { productId } from "@nuvantre/domain";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -13,7 +13,7 @@ import { parseDirectoryFilter } from "../../../../../server/forms";
 import { requireUser } from "../../../../_lib/auth";
 import { idParam } from "../../../../_lib/params";
 
-export const metadata: Metadata = { title: "Launch — LaunchPilot" };
+export const metadata: Metadata = { title: "Launch — Nuvantre" };
 
 const card =
   "space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900";
@@ -43,7 +43,7 @@ export default async function LaunchPage({ params, searchParams }: LaunchPagePro
         <h1 className="text-2xl font-bold tracking-tight">Launch</h1>
         <p className="mt-1 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
           Generate your launch kit, pick where to launch, and track every submission. You submit
-          each one yourself; LaunchPilot never submits or posts for you here.
+          each one yourself; Nuvantre never submits or posts for you here.
         </p>
       </div>
 

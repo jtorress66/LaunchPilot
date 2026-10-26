@@ -1,5 +1,5 @@
-import { communityChannels, listingLimits, type Listing } from "@launchpilot/domain";
-import type { CommunityDraft } from "@launchpilot/ports";
+import { communityChannels, listingLimits, type Listing } from "@nuvantre/domain";
+import type { CommunityDraft } from "@nuvantre/ports";
 import { SHOW_HN_TITLE_MAX } from "./prompt";
 
 const textFields: readonly [keyof typeof listingLimits & keyof Listing, string][] = [

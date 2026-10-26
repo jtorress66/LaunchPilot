@@ -1,10 +1,10 @@
 import { z } from "zod";
 import type { SafeHttpOptions } from "../net/safe-http";
 
-export const WORDPRESS_USER_AGENT = "LaunchPilot/1.0 (+https://launchpilot.app)";
+export const WORDPRESS_USER_AGENT = "Nuvantre/1.0 (+https://nuvantre.app)";
 
 export interface WordPressNetwork {
-  /** Development and test only: lets LaunchPilot reach a blog on localhost or a LAN. */
+  /** Development and test only: lets Nuvantre reach a blog on localhost or a LAN. */
   readonly allowPrivateNetwork: boolean;
   readonly timeoutMs?: number;
 }

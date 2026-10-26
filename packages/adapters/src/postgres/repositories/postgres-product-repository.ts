@@ -1,5 +1,5 @@
-import type { Product, ProductId, WorkspaceId } from "@launchpilot/domain";
-import type { ProductRepository } from "@launchpilot/ports";
+import type { Product, ProductId, WorkspaceId } from "@nuvantre/domain";
+import type { ProductRepository } from "@nuvantre/ports";
 import type { Kysely } from "kysely";
 import { productMapper } from "../mappers/product-mapper";
 import type { Database } from "../schema";
@@ -27,6 +27,16 @@ export class PostgresProductRepository implements ProductRepository {
       .selectAll()
       .where("workspace_id", "=", workspaceId)
       .orderBy("created_at")
+      .orderBy("id")
+      .execute();
+    return rows.map(productMapper.fromRow);
+  }
+
+  async listWithAutopilot(): Promise<readonly Product[]> {
+    const rows = await this.db
+      .selectFrom("products")
+      .selectAll()
+      .where("autopilot_since", "is not", null)
       .orderBy("id")
       .execute();
     return rows.map(productMapper.fromRow);

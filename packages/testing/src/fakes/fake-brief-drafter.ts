@@ -1,10 +1,5 @@
-import { err, ok, type Result } from "@launchpilot/domain";
-import type {
-  BriefDraft,
-  BriefDraftError,
-  BriefDrafter,
-  BriefDraftRequest,
-} from "@launchpilot/ports";
+import { err, ok, type Result } from "@nuvantre/domain";
+import type { BriefDraft, BriefDraftError, BriefDrafter, BriefDraftRequest } from "@nuvantre/ports";
 import { NextFailure } from "./next-failure";
 
 /** Drafts a predictable brief whose facts are the first line of each crawled page. */

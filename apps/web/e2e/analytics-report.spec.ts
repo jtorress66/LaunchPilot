@@ -10,7 +10,7 @@ test("a founder connects Google and Plausible and reads the weekly report", asyn
 
   await page.getByRole("link", { name: "Connect Google" }).click();
   await expect(
-    page.getByRole("heading", { name: "LaunchPilot wants read-only access" }),
+    page.getByRole("heading", { name: "Nuvantre wants read-only access" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Allow" }).click();
   await expect(page.getByRole("status")).toHaveText(

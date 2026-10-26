@@ -1,4 +1,4 @@
-// Agents depend on @launchpilot/domain and @launchpilot/ports only and receive every
+// Agents depend on @nuvantre/domain and @nuvantre/ports only and receive every
 // collaborator through their constructor. Each one drafts, reviews or plans, never several.
 export { BriefAgent } from "./brief/brief-agent";
 export { ExtractiveBriefDrafter } from "./brief/extractive-brief-drafter";
@@ -15,3 +15,9 @@ export { LAUNCH_SYSTEM_PROMPT } from "./launch/prompt";
 export { AnalystAgent } from "./analytics/analyst-agent";
 export { TemplateAnalyst } from "./analytics/template-analyst";
 export { ANALYST_SYSTEM_PROMPT } from "./analytics/prompt";
+export { StrategistAgent } from "./strategy/strategist-agent";
+export { TemplateStrategist } from "./strategy/template-strategist";
+export { STRATEGIST_SYSTEM_PROMPT } from "./strategy/prompt";
+export { ReviewerAgent } from "./review/reviewer-agent";
+export { TemplateReviewer } from "./review/template-reviewer";
+export { REVIEWER_SYSTEM_PROMPT } from "./review/prompt";

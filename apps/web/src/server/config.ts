@@ -1,4 +1,4 @@
-import { err, ok, type Result } from "@launchpilot/domain";
+import { err, ok, type Result } from "@nuvantre/domain";
 import { z } from "zod";
 
 export type BillingConfig =
@@ -26,6 +26,7 @@ export type SocialWriterConfig = ClaudeConfig | { readonly kind: "template" };
 export type LaunchWriterConfig = ClaudeConfig | { readonly kind: "template" };
 
 export type AnalystConfig = ClaudeConfig | { readonly kind: "template" };
+export type AutopilotAgentConfig = ClaudeConfig | { readonly kind: "template" };
 
 export interface GoogleConfig {
   readonly clientId: string;
@@ -55,6 +56,10 @@ export interface WebConfig {
   readonly launch: { readonly writer: LaunchWriterConfig };
   /** Google is null when GOOGLE_CLIENT_ID is not set: founders can then connect Plausible only. */
   readonly analytics: { readonly google: GoogleConfig | null; readonly analyst: AnalystConfig };
+  readonly autopilot: {
+    readonly strategist: AutopilotAgentConfig;
+    readonly reviewer: AutopilotAgentConfig;
+  };
 }
 
 const KEY_MESSAGE =
@@ -97,6 +102,8 @@ const shared = {
   GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
   GOOGLE_API_BASE_URL: z.string().url("GOOGLE_API_BASE_URL must be an absolute URL").optional(),
   ANALYST: z.enum(["claude", "template"]).default("claude"),
+  STRATEGIST: z.enum(["claude", "template"]).default("claude"),
+  REVIEWER: z.enum(["claude", "template"]).default("claude"),
 };
 
 const schema = z.discriminatedUnion("BILLING_PROVIDER", [
@@ -128,6 +135,8 @@ const devOnlySettings: readonly [string, (c: Env) => boolean][] = [
   ["SOCIAL_WRITER=template", (c) => c.SOCIAL_WRITER === "template"],
   ["LAUNCH_WRITER=template", (c) => c.LAUNCH_WRITER === "template"],
   ["ANALYST=template", (c) => c.ANALYST === "template"],
+  ["STRATEGIST=template", (c) => c.STRATEGIST === "template"],
+  ["REVIEWER=template", (c) => c.REVIEWER === "template"],
   ["GOOGLE_API_BASE_URL", (c) => c.GOOGLE_API_BASE_URL !== undefined],
   ["ALLOW_PRIVATE_NETWORK", (c) => c.ALLOW_PRIVATE_NETWORK === "true"],
 ];
@@ -166,10 +175,12 @@ export const parseWebConfig = (
     c.ARTICLE_WRITER === "claude" ||
     c.SOCIAL_WRITER === "claude" ||
     c.LAUNCH_WRITER === "claude" ||
-    c.ANALYST === "claude";
+    c.ANALYST === "claude" ||
+    c.STRATEGIST === "claude" ||
+    c.REVIEWER === "claude";
   if (needsClaude && !ai) {
     return err(
-      "ANTHROPIC_API_KEY is required when BRIEF_DRAFTER, ARTICLE_WRITER, SOCIAL_WRITER, LAUNCH_WRITER or ANALYST is claude",
+      "ANTHROPIC_API_KEY is required when BRIEF_DRAFTER, ARTICLE_WRITER, SOCIAL_WRITER, LAUNCH_WRITER, ANALYST, STRATEGIST or REVIEWER is claude",
     );
   }
   if ((c.GOOGLE_CLIENT_ID === undefined) !== (c.GOOGLE_CLIENT_SECRET === undefined)) {
@@ -212,6 +223,10 @@ export const parseWebConfig = (
               baseUrl: c.GOOGLE_API_BASE_URL ?? null,
             },
       analyst: c.ANALYST === "claude" && ai ? ai : { kind: "template" },
+    },
+    autopilot: {
+      strategist: c.STRATEGIST === "claude" && ai ? ai : { kind: "template" },
+      reviewer: c.REVIEWER === "claude" && ai ? ai : { kind: "template" },
     },
   });
 };

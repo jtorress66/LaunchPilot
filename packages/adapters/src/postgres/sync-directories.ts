@@ -1,4 +1,4 @@
-import type { Directory } from "@launchpilot/domain";
+import type { Directory } from "@nuvantre/domain";
 import type { Kysely } from "kysely";
 import { directoryMapper } from "./mappers/launch-mappers";
 import type { Database } from "./schema";

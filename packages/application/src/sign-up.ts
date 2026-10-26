@@ -13,7 +13,7 @@ import {
   type Session,
   type User,
   type Workspace,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type {
   Clock,
   IdGenerator,
@@ -23,7 +23,7 @@ import type {
   TokenGenerator,
   UserRepository,
   WorkspaceRepository,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { failure, type UseCaseError } from "./errors";
 
 export interface SignUpDeps {

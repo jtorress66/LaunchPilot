@@ -1,5 +1,5 @@
-import { withLinkedAccounts } from "@launchpilot/domain";
-import { aSocialProfile } from "@launchpilot/testing";
+import { withLinkedAccounts } from "@nuvantre/domain";
+import { aSocialProfile } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { socialProfileMapper } from "./social-profile-mapper";
 

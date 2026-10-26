@@ -5,14 +5,14 @@ import {
   type ContentItemId,
   type Result,
   type Workspace,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type {
   Clock,
   ContentItemRepository,
   ProductRepository,
   PublishError,
   TaskRepository,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import type { UseCaseError } from "./errors";
 import { completeTaskOf } from "./complete-task";
 import { loadOwnedItem } from "./owned-content";

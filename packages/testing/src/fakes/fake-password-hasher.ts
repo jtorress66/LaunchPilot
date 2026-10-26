@@ -1,4 +1,4 @@
-import type { PasswordHasher } from "@launchpilot/ports";
+import type { PasswordHasher } from "@nuvantre/ports";
 
 const toHex = (text: string) =>
   Array.from(new TextEncoder().encode(text), (byte) => byte.toString(16).padStart(2, "0")).join("");

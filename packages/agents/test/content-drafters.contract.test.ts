@@ -1,9 +1,9 @@
-import type { ContentDrafter } from "@launchpilot/ports";
-import { aListing, FakeLlmClient } from "@launchpilot/testing";
+import type { ContentDrafter } from "@nuvantre/ports";
+import { aListing, FakeLlmClient } from "@nuvantre/testing";
 import {
   describeContentDrafterContract,
   describeLaunchKitDrafterContract,
-} from "@launchpilot/testing/contracts";
+} from "@nuvantre/testing/contracts";
 import {
   SeoArticleWriter,
   SocialPostWriter,

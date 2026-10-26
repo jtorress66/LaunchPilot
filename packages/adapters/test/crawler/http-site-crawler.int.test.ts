@@ -1,6 +1,6 @@
-import { parseHttpUrl, type HttpUrl } from "@launchpilot/domain";
-import type { CrawledPage } from "@launchpilot/ports";
-import { describeSiteCrawlerContract } from "@launchpilot/testing/contracts";
+import { parseHttpUrl, type HttpUrl } from "@nuvantre/domain";
+import type { CrawledPage } from "@nuvantre/ports";
+import { describeSiteCrawlerContract } from "@nuvantre/testing/contracts";
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
@@ -101,7 +101,7 @@ describe("HttpSiteCrawler", () => {
   it("identifies itself with its own user agent", async () => {
     serve("/", html("<p>Home</p>"));
     await crawler().crawl(url());
-    expect(site.requests[0]?.userAgent).toMatch(/^LaunchPilotBot\/1\.0/);
+    expect(site.requests[0]?.userAgent).toMatch(/^NuvantreBot\/1\.0/);
   });
 
   it("skips pages robots.txt disallows for our bot", async () => {
@@ -123,7 +123,7 @@ describe("HttpSiteCrawler", () => {
 
   it("refuses a site whose robots.txt disallows the home page", async () => {
     serve("/robots.txt", (_req, res) => {
-      res.writeHead(200).end("User-agent: LaunchPilotBot\nDisallow: /\n");
+      res.writeHead(200).end("User-agent: NuvantreBot\nDisallow: /\n");
     });
     serve("/", html("<p>Home</p>"));
     const result = await crawler().crawl(url());

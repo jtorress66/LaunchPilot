@@ -8,8 +8,8 @@ import {
   type ProductId,
   type Result,
   type Workspace,
-} from "@launchpilot/domain";
-import type { Clock, LaunchKitRepository, ProductRepository } from "@launchpilot/ports";
+} from "@nuvantre/domain";
+import type { Clock, LaunchKitRepository, ProductRepository } from "@nuvantre/ports";
 import { failure, type UseCaseError } from "./errors";
 import { loadOwnedProduct } from "./owned-product";
 

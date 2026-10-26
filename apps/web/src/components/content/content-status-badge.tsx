@@ -1,4 +1,4 @@
-import type { ContentItemStatus } from "@launchpilot/domain";
+import type { ContentItemStatus } from "@nuvantre/domain";
 
 const labels: Record<ContentItemStatus, string> = {
   draft: "Draft",

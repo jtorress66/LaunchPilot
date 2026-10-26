@@ -1,5 +1,5 @@
-import type { ProductId, SocialProfile } from "@launchpilot/domain";
-import type { SocialProfileRepository } from "@launchpilot/ports";
+import type { ProductId, SocialProfile } from "@nuvantre/domain";
+import type { SocialProfileRepository } from "@nuvantre/ports";
 import type { Kysely } from "kysely";
 import { socialProfileMapper } from "../mappers/social-profile-mapper";
 import type { Database } from "../schema";

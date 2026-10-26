@@ -1,4 +1,4 @@
-import type { Result } from "@launchpilot/domain";
+import type { Result } from "@nuvantre/domain";
 import type { PortError } from "./port-error";
 
 export interface BlogCredentials {

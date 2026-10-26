@@ -34,3 +34,6 @@ export * from "./connect-google";
 export * from "./connect-plausible";
 export * from "./weekly-reports";
 export * from "./get-analytics";
+export * from "./drafter-registry";
+export * from "./weekly-loop";
+export { remainingContentAllowance } from "./content-allowance";

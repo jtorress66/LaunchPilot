@@ -4,7 +4,7 @@ import {
   socialProfileId,
   type LinkedAccount,
   type SocialProfile,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type { SocialProfileRow } from "../schema";
 import { oneOf, readJson, toJson } from "./columns";
 

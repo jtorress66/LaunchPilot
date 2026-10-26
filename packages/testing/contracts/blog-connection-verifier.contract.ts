@@ -1,4 +1,4 @@
-import type { BlogConnectionVerifier, BlogCredentials } from "@launchpilot/ports";
+import type { BlogConnectionVerifier, BlogCredentials } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 
 export interface BlogConnectionVerifierHarness {

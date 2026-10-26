@@ -7,17 +7,20 @@ import type {
   Repository,
   TaskRepository,
   WorkspaceRepository,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import {
   briefId,
   campaignId,
   channelConnectionId,
   contentItemId,
+  enableAutopilot,
   productId,
+  reviewOf,
   taskId,
   userId,
+  withAgentReview,
   workspaceId,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import { describe, expect, it } from "vitest";
 import {
   aBlogConnection,
@@ -133,6 +136,18 @@ export function describeProductRepositoryContract(
       expect([...listed].sort((a, b) => a.id.localeCompare(b.id))).toEqual(mine);
       expect(await repo.listByWorkspace(ws(99))).toEqual([]);
     });
+
+    it("lists the products whose autopilot is on, by id, and keeps when it was switched on", async () => {
+      const repo = await make();
+      const since = new Date("2026-10-19T09:00:00.000Z");
+      const on = [
+        enableAutopilot(aProduct({ id: prod(2) }), since),
+        enableAutopilot(aProduct({ id: prod(1) }), since),
+      ];
+      await Promise.all([...on, aProduct({ id: prod(3) })].map((p) => repo.save(p)));
+      expect(await repo.listWithAutopilot()).toEqual([on[1], on[0]]);
+      expect((await repo.findById(prod(1)))?.autopilotSince).toEqual(since);
+    });
   });
 }
 
@@ -228,6 +243,17 @@ export function describeContentItemRepositoryContract(
   });
 
   describe(`ContentItemRepository contract: ${name}`, () => {
+    it("keeps the reviewer agent's verdict with the item", async () => {
+      const repo = await make();
+      const review = reviewOf(
+        { decision: "needs_changes", issues: [{ severity: "blocker", message: "Too long" }] },
+        { redrafted: true, at: new Date("2026-10-19T07:05:00.000Z") },
+      );
+      const item = withAgentReview(aContentItem({ id: contentItemId("item_reviewed") }), review);
+      await repo.save(item);
+      expect(await repo.findById(item.id)).toEqual(item);
+    });
+
     it("lists only the items in the given status", async () => {
       const repo = await make();
       const scheduled = aContentItem({ id: contentItemId("item_1"), status: "scheduled" });

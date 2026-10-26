@@ -41,17 +41,17 @@ describe("ensureStripePrices", () => {
 
     expect(await ensureStripePrices(stripe())).toEqual({
       ok: true,
-      value: { created: ["launchpilot_starter_monthly", "launchpilot_growth_monthly"] },
+      value: { created: ["nuvantre_starter_monthly", "nuvantre_growth_monthly"] },
     });
     expect(created).toEqual([
       expect.objectContaining({
-        lookup_key: "launchpilot_starter_monthly",
+        lookup_key: "nuvantre_starter_monthly",
         currency: "usd",
         unit_amount: "2900",
         "recurring[interval]": "month",
-        "product_data[name]": "LaunchPilot Starter",
+        "product_data[name]": "Nuvantre Starter",
       }),
-      expect.objectContaining({ lookup_key: "launchpilot_growth_monthly", unit_amount: "7900" }),
+      expect.objectContaining({ lookup_key: "nuvantre_growth_monthly", unit_amount: "7900" }),
     ]);
   });
 

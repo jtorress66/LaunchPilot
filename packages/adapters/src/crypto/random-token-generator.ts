@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import type { TokenGenerator } from "@launchpilot/ports";
+import type { TokenGenerator } from "@nuvantre/ports";
 
 /** 256 bits from the OS CSPRNG, base64url-encoded (43 characters). */
 export class RandomTokenGenerator implements TokenGenerator {

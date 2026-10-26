@@ -1,4 +1,4 @@
-import { workspaceId } from "@launchpilot/domain";
+import { workspaceId } from "@nuvantre/domain";
 import { describe, expect, it } from "vitest";
 import { LocalWebhookVerifier } from "./local-billing";
 import { LocalCheckoutSimulator } from "./local-checkout-simulator";

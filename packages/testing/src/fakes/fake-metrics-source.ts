@@ -1,5 +1,5 @@
-import { err, ok, type MetricsSnapshot, type ProductId, type Result } from "@launchpilot/domain";
-import type { MetricsError, MetricsQuery, MetricsSource } from "@launchpilot/ports";
+import { err, ok, type MetricsSnapshot, type ProductId, type Result } from "@nuvantre/domain";
+import type { MetricsError, MetricsQuery, MetricsSource } from "@nuvantre/ports";
 import { NextFailure } from "./next-failure";
 
 type Week = Pick<MetricsSnapshot, "values"> &

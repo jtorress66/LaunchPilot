@@ -1,4 +1,4 @@
-import type { IdGenerator } from "@launchpilot/ports";
+import type { IdGenerator } from "@nuvantre/ports";
 
 /** Predictable ids: `id_1`, `id_2`, … */
 export class SequentialIdGenerator implements IdGenerator {

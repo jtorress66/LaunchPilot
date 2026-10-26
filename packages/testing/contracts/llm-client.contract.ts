@@ -1,4 +1,4 @@
-import type { LlmClient } from "@launchpilot/ports";
+import type { LlmClient } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 
 export interface LlmClientHarness {

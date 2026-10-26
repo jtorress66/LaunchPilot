@@ -1,10 +1,10 @@
-import { err, ok, type ProductId, type Result, type SocialChannel } from "@launchpilot/domain";
+import { err, ok, type ProductId, type Result, type SocialChannel } from "@nuvantre/domain";
 import type {
   PublishError,
   Publisher,
   PublisherProvider,
   SocialProfileRepository,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { channelNames, type ZernioOptions } from "./api";
 import { ZernioPublisher } from "./zernio-publisher";
 

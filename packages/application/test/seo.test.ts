@@ -5,7 +5,7 @@ import {
   type Product,
   type User,
   type Workspace,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import { describe, expect, it } from "vitest";
 import {
   ApproveBrief,

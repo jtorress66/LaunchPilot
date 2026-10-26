@@ -1,5 +1,5 @@
-import type { CampaignId, Task, TaskId } from "@launchpilot/domain";
-import type { TaskRepository } from "@launchpilot/ports";
+import type { CampaignId, Task, TaskId } from "@nuvantre/domain";
+import type { TaskRepository } from "@nuvantre/ports";
 import type { Kysely } from "kysely";
 import { taskMapper } from "../mappers/task-mapper";
 import type { Database } from "../schema";

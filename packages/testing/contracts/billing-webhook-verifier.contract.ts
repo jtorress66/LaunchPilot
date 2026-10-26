@@ -1,5 +1,5 @@
-import { workspaceId, type BillingEvent } from "@launchpilot/domain";
-import type { BillingWebhookVerifier } from "@launchpilot/ports";
+import { workspaceId, type BillingEvent } from "@nuvantre/domain";
+import type { BillingWebhookVerifier } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 
 export interface SignedWebhook {
@@ -11,7 +11,7 @@ export interface BillingWebhookVerifierHarness {
   readonly verifier: BillingWebhookVerifier;
   /** Produce a webhook the provider would send for this event, signed with the verifier's secret. */
   sign(event: BillingEvent): SignedWebhook | Promise<SignedWebhook>;
-  /** A correctly signed webhook for an event type LaunchPilot ignores. */
+  /** A correctly signed webhook for an event type Nuvantre ignores. */
   signIgnored(): SignedWebhook | Promise<SignedWebhook>;
 }
 
@@ -71,7 +71,7 @@ export function describeBillingWebhookVerifierContract(
       }
     });
 
-    it("returns null for an event type LaunchPilot ignores", async () => {
+    it("returns null for an event type Nuvantre ignores", async () => {
       const harness = await make();
       const { payload, signature } = await harness.signIgnored();
       expect(await harness.verifier.verify(payload, signature)).toEqual({ ok: true, value: null });

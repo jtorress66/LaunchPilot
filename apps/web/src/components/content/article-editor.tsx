@@ -1,6 +1,6 @@
 "use client";
 
-import type { ContentItemStatus } from "@launchpilot/domain";
+import type { ContentItemStatus } from "@nuvantre/domain";
 import { useActionState, useState } from "react";
 import {
   approveArticleAction,

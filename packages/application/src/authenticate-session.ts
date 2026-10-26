@@ -1,10 +1,10 @@
-import { err, isActive, ok, type Result, type User, type Workspace } from "@launchpilot/domain";
+import { err, isActive, ok, type Result, type User, type Workspace } from "@nuvantre/domain";
 import type {
   Clock,
   SessionRepository,
   UserRepository,
   WorkspaceRepository,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { failure, type UseCaseError } from "./errors";
 
 export interface AuthenticateSessionDeps {

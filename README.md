@@ -1,6 +1,6 @@
-# LaunchPilot
+# Nuvantre
 
-LaunchPilot is an AI marketing app for SaaS founders. It reads a founder's SaaS, writes a Product
+Nuvantre is an AI marketing app for SaaS founders. It reads a founder's SaaS, writes a Product
 Brief, and runs SEO content, launches/directories, social posting and analytics on a weekly loop.
 The founder approves everything before it is published.
 
@@ -35,6 +35,12 @@ The schema lives in `packages/adapters/src/postgres/migrations/` as ordered, imm
 migrations (Kysely). Besides foreign keys and value checks, the database itself refuses rows that
 break the product safety rules: approved/scheduled/published content without a founder approval, a
 scheduled item without a publish time, and any scheduled or published item on a draft-only channel.
+
+**Renamed from LaunchPilot:** the local Postgres user and database are now `nuvantre`. A volume
+created before the rename still holds the old `launchpilot` role, so reset it once with
+`docker compose down -v && docker compose up -d`, then `pnpm db:migrate`. Stripe subscriptions on
+the old `launchpilot_*_monthly` prices keep mapping to their plans; `pnpm stripe:setup` creates the
+`nuvantre_*_monthly` prices that new checkouts use.
 
 ### Accounts
 
@@ -79,7 +85,7 @@ After adding a product, the founder lands on its **Product Brief** page:
 
 1. **Draft my brief from your site.** `HttpSiteCrawler` reads the home page and up to 7 same-site
    pages (pricing, features, about and FAQ first). It respects `robots.txt` and identifies itself as
-   `LaunchPilotBot/1.0`. It allows 10 seconds and 2 MB per page and 60k characters in total.
+   `NuvantreBot/1.0`. It allows 10 seconds and 2 MB per page and 60k characters in total.
 2. **The brief agent drafts** the audience, problem, solution, differentiators, tone and product
    facts. Every fact must come with a quote copied from the site. Facts whose quote is not on the
    site are dropped (`packages/domain/src/brief/grounding.ts`) and listed for the founder. A draft
@@ -111,7 +117,7 @@ redirect:
 Once the brief is approved, the product's **SEO** page runs the loop:
 
 1. **Connect your blog.** WordPress only for now: the founder enters the site address, a username
-   and an Application Password (WordPress → Users → Profile → Application Passwords). LaunchPilot
+   and an Application Password (WordPress → Users → Profile → Application Passwords). Nuvantre
    checks it with the REST API (the user must be able to publish posts) and stores the password
    encrypted with AES-256-GCM (`TOKEN_ENCRYPTION_KEY`). It is never logged or shown again.
 2. **Plan articles.** The founder enters up to 5 topics. DataForSEO suggests keyword ideas with
@@ -142,10 +148,10 @@ live post.
 
 The product's **Social** page (it needs an approved brief) and the **Inbox** run the loop:
 
-1. **Connect X and LinkedIn.** One button per channel. LaunchPilot creates a
+1. **Connect X and LinkedIn.** One button per channel. Nuvantre creates a
    [Zernio](https://zernio.com) profile for the product, the first time only, then sends the
-   founder to the platform's own sign-in page through Zernio. LaunchPilot never sees their
-   passwords. When the founder comes back, LaunchPilot stores which accounts they linked.
+   founder to the platform's own sign-in page through Zernio. Nuvantre never sees their
+   passwords. When the founder comes back, Nuvantre stores which accounts they linked.
 2. **Draft the week.** The social writer (Claude, or the offline template writer in dev and test)
    drafts 3 X posts and 2 LinkedIn posts. Angles come from the brief's differentiators and facts;
    when a blog article was published, the first post on each channel promotes it, with its link.
@@ -190,7 +196,7 @@ reads Zernio's public API changelog. It is the same feed as Zernio's `api.change
 webhook, but it needs no key and no deployed endpoint. The workflow opens one GitHub issue, labelled
 `zernio-changelog`, for each entry that does any of these:
 
-- changes or removes an endpoint LaunchPilot calls
+- changes or removes an endpoint Nuvantre calls
 - removes a response schema the adapter reads
 - needs action on X or LinkedIn
 - deprecates something on X or LinkedIn
@@ -201,7 +207,7 @@ Actions tab. Once the app is deployed (step 11), the webhook can replace it.
 
 ### Launch module
 
-The product's **Launch** page (it needs an approved brief) has three parts. LaunchPilot never
+The product's **Launch** page (it needs an approved brief) has three parts. Nuvantre never
 submits or posts anything here: the founder submits each listing and community post by hand.
 
 1. **Launch kit.** The launch writer (Claude, or the offline template writer in dev and test)
@@ -243,14 +249,14 @@ tagline limit comes from third-party guides, not from Product Hunt's own documen
 
 The product's **Analytics** page connects read-only sources and shows the weekly report.
 
-1. **Connect Google.** One sign-in covers Search Console and Google Analytics 4. LaunchPilot asks
+1. **Connect Google.** One sign-in covers Search Console and Google Analytics 4. Nuvantre asks
    Google for read-only access (`webmasters.readonly`, `analytics.readonly`, plus `openid email`
    to name the account). The refresh token is encrypted at rest and never logged. The OAuth
    `state` is kept in a short-lived httpOnly cookie and checked on the way back. The founder then
    picks a Search Console property and a GA4 property from the lists Google returns. Either can be
    left empty.
 2. **Connect Plausible.** Site domain plus a Stats API key (Plausible → Settings → API keys).
-   LaunchPilot checks both with one small query before storing the key, encrypted. A self-hosted
+   Nuvantre checks both with one small query before storing the key, encrypted. A self-hosted
    Plausible address is accepted; it goes through the same SSRF guard as founder blog URLs.
 3. **Weekly report.** Weeks run Monday 00:00 to Monday 00:00 UTC. The worker builds last week's
    report for every connected product from Monday 06:00 UTC (and catches up on later runs), at
@@ -291,6 +297,39 @@ replay the same responses in `packages/adapters/test/google/recorded` and `.../p
 They were written from Google's and Plausible's documented response shapes, because those APIs are
 not reachable from the build sandbox; re-record them from a real account when one is available.
 
+### Orchestration (weekly autopilot)
+
+The **Weekly autopilot** card on the product's Analytics page (linked from the dashboard) runs the
+whole loop: **report → plan → draft → review → Inbox**. It is off until the founder turns it on.
+
+1. **When it runs.** Every Monday from 07:00 UTC (after the 06:00 weekly reports) the worker runs
+   this week's loop for every product with the autopilot on, at most 10 per check. **Run this week
+   now** runs it on demand. A week runs once per product: a completed week is never re-run, while a
+   skipped week (for example, no approved brief yet) can be retried with **Run this week now**.
+2. **Plan.** The strategist reads the approved brief, last week's report (if there is one), the
+   remaining monthly content allowance and the candidates Nuvantre offers: up to 6 ranked
+   keyword opportunities researched from last week's top searches and the brief, and brief-derived
+   angles for X and LinkedIn. Nuvantre then checks the plan: SEO articles go only to the blog
+   and posts only to X or LinkedIn (launch and community work stays with the founder), every task
+   must use an offered keyword or angle, no repeats, at most 2 articles, 3 X posts and 2 LinkedIn
+   posts a week, and articles first within the allowance. Any other task is dropped with a reason.
+   A rationale may cite only figures from the report or the keyword research.
+3. **Draft and review.** The article writer drafts each article and the social writer each post.
+   The reviewer then checks each draft. It blocks, without asking the model:
+   - over-length text
+   - a missing required link
+   - hype words
+   - figures the brief does not state
+
+   With Claude it also flags claims the brief does not support, tone and clarity. A draft with a
+   blocker gets one rewrite with the reviewer's notes, then a second review.
+
+4. **Inbox.** Every draft lands **in review** with the reviewer's verdict ("Reviewer: passes", or
+   the issues it found). The reviewer only recommends: the founder approves and publishes exactly
+   as before, and nothing is published without that approval. One failed draft does not stop the
+   rest of the week; the card shows the run's summary (drafts waiting, rewritten after review,
+   failed, stopped at the plan's monthly limit).
+
 ### LLM evals
 
 `pnpm eval` drafts a brief with real Claude for each recorded site in `evals/brief/sites/*.json`.
@@ -316,11 +355,21 @@ brief facts, avoid the "forbidden" claims and hype words ("revolutionary", "#1",
 Show HN post a title that starts "Show HN:" within 80 characters, and include all three community
 posts.
 
-Last comes the **analyst** suite: the analyst writes notes on each recorded week in
+Then comes the **analyst** suite: the analyst writes notes on each recorded week in
 `evals/analytics/cases/*.json` (one full week from all three sources, one with a failed source and
 falling visitors). The notes must state only numbers that are in the report, cite only brief facts,
 avoid the "forbidden" claims (invented causes such as "thanks to", signups, revenue) and hype, give
 1 to 3 suggestions, and name the week's biggest change in the summary.
+
+Then comes the **strategist** suite: the strategist plans each recorded week in
+`evals/strategy/cases/*.json` (one with last week's report, one first week with no report). Each
+plan must use only offered keywords and angles on plannable channels, stay within the allowance
+and the weekly channel caps, state only figures from the report, the keyword research or the brief,
+have a goal, avoid hype, and mix articles and posts.
+
+Last comes the **reviewer** suite: the reviewer checks hand-labelled drafts in
+`evals/review/cases/*.json` (3 good; 4 bad: an invented fact, over length, hype, a missing link).
+Its verdict must match every label, and a held-back draft must name at least one blocker.
 
 The thresholds are 100% for every suite. Below them, the command exits non-zero. It also prints
 token usage and an estimated cost: a few cents per run. Run it whenever a prompt in
@@ -410,18 +459,18 @@ The rule is enforced twice: by ESLint `no-restricted-imports` per layer, and by
 | `STRIPE_SECRET_KEY`     | none              | web with Stripe billing, `pnpm stripe:setup`                                          |
 | `STRIPE_WEBHOOK_SECRET` | none              | web with Stripe billing (`whsec_…`)                                                   |
 | `BRIEF_DRAFTER`         | `claude`          | web: `claude` or `extractive` (development and test only)                             |
-| `ARTICLE_WRITER`        | `claude`          | web: `claude` or `template` (development and test only)                               |
-| `ANTHROPIC_API_KEY`     | none              | web when Claude drafts, worker when `ANALYST=claude`, `pnpm eval`. Never logged       |
+| `ARTICLE_WRITER`        | `claude`          | web, worker (autopilot): `claude` or `template` (development and test only)           |
+| `ANTHROPIC_API_KEY`     | none              | web when Claude drafts, worker when an agent uses Claude, `pnpm eval`. Never logged   |
 | `ANTHROPIC_MODEL`       | `claude-opus-5-5` | web, `pnpm eval`: the Claude model for briefs and articles                            |
 | `TOKEN_ENCRYPTION_KEY`  | none              | web, worker: 32 random bytes, base64 (`openssl rand -base64 32`)                      |
-| `KEYWORD_PROVIDER`      | `dataforseo`      | web: `dataforseo` or `offline` (development and test only)                            |
+| `KEYWORD_PROVIDER`      | `dataforseo`      | web, worker (autopilot): `dataforseo` or `offline` (development and test only)        |
 | `DATAFORSEO_LOGIN`      | none              | web with DataForSEO, `pnpm smoke:keywords`                                            |
 | `DATAFORSEO_PASSWORD`   | none              | web with DataForSEO, `pnpm smoke:keywords`. Never logged                              |
 | `DATAFORSEO_BASE_URL`   | DataForSEO API    | web: another base URL, for tests                                                      |
 | `ALLOW_PRIVATE_NETWORK` | `false`           | web: `true` lets the crawler and publishers reach localhost/LAN (dev and test only)   |
 | `APP_VERSION`           | `0.1.0`           | web, worker health reports                                                            |
 | `HEARTBEAT_INTERVAL_MS` | `60000`           | worker                                                                                |
-| `SOCIAL_WRITER`         | `claude`          | web: `claude` or `template` (development and test only)                               |
+| `SOCIAL_WRITER`         | `claude`          | web, worker (autopilot): `claude` or `template` (development and test only)           |
 | `LAUNCH_WRITER`         | `claude`          | web: `claude` or `template` (development and test only)                               |
 | `ZERNIO_API_KEY`        | none              | web, worker, `pnpm smoke:social`. Never logged                                        |
 | `ZERNIO_BASE_URL`       | Zernio API        | web, worker: another base URL, for tests                                              |
@@ -431,6 +480,9 @@ The rule is enforced twice: by ESLint `no-restricted-imports` per layer, and by
 | `GOOGLE_API_BASE_URL`   | Google APIs       | web, worker: one local stand-in for every Google endpoint (development and test only) |
 | `ANALYST`               | `claude`          | web, worker: `claude` or `template` (development and test only)                       |
 | `REPORT_INTERVAL_MS`    | `3600000`         | worker: how often it checks for due weekly reports (at least 60000)                   |
+| `STRATEGIST`            | `claude`          | web, worker: `claude` or `template` (development and test only)                       |
+| `REVIEWER`              | `claude`          | web, worker: `claude` or `template` (development and test only)                       |
+| `LOOP_INTERVAL_MS`      | `3600000`         | worker: how often it checks for due autopilot weeks (at least 60000)                  |
 
 All configuration is validated with Zod when the app first handles a request; an invalid value
 fails fast with a message naming the variable.

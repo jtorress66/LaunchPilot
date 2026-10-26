@@ -1,4 +1,4 @@
-import { aSession, aSubscription, aUser } from "@launchpilot/testing";
+import { aSession, aSubscription, aUser } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { sessionMapper } from "./session-mapper";
 import { subscriptionMapper } from "./subscription-mapper";

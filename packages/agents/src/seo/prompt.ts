@@ -1,4 +1,4 @@
-import type { DraftRequest } from "@launchpilot/ports";
+import type { DraftRequest } from "@nuvantre/ports";
 
 /**
  * Frozen system prompt for the SEO article writer. It holds no per-article data so the

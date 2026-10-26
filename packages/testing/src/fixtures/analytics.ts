@@ -13,7 +13,7 @@ import {
   type ReportWeek,
   type SourceResult,
   type WeeklyReport,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import { fixtureNow, unwrap } from "./entities";
 
 /** The week before `fixtureNow` (a Monday): 29 Dec 2025 – 5 Jan 2026. */

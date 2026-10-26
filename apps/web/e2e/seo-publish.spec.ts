@@ -8,7 +8,7 @@ test("a founder plans SEO articles, approves one and publishes it to their WordP
   await onSeoPage(page);
 
   await connectWordPress(page);
-  await expect(page.getByRole("status")).toContainText("Connected to LaunchPilot E2E Blog");
+  await expect(page.getByRole("status")).toContainText("Connected to Nuvantre E2E Blog");
 
   await page.getByLabel("Topics your customers search for").fill("privacy analytics");
   await page.getByRole("button", { name: "Plan articles" }).click();

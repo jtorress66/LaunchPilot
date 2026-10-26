@@ -1,5 +1,5 @@
-import type { LlmRequest } from "@launchpilot/ports";
-import { describeLlmClientContract } from "@launchpilot/testing/contracts";
+import type { LlmRequest } from "@nuvantre/ports";
+import { describeLlmClientContract } from "@nuvantre/testing/contracts";
 import { http, HttpResponse, type JsonBodyType } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";

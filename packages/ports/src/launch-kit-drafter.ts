@@ -1,4 +1,4 @@
-import type { BriefContent, CommunityChannel, Listing, Result } from "@launchpilot/domain";
+import type { BriefContent, CommunityChannel, Listing, Result } from "@nuvantre/domain";
 import type { DraftError } from "./content-drafter";
 
 export interface LaunchKitRequest {

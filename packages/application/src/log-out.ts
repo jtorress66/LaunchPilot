@@ -1,5 +1,5 @@
-import { ok, type Result } from "@launchpilot/domain";
-import type { SessionRepository } from "@launchpilot/ports";
+import { ok, type Result } from "@nuvantre/domain";
+import type { SessionRepository } from "@nuvantre/ports";
 import type { UseCaseError } from "./errors";
 
 export class LogOut {

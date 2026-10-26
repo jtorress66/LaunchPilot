@@ -1,4 +1,4 @@
-import { campaignId, taskId, taskKinds, taskStatuses, type Task } from "@launchpilot/domain";
+import { campaignId, taskId, taskKinds, taskStatuses, type Task } from "@nuvantre/domain";
 import type { TaskRow } from "../schema";
 import { oneOf } from "./columns";
 

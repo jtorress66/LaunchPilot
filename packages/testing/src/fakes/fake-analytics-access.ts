@@ -1,4 +1,4 @@
-import { err, ok, type Result } from "@launchpilot/domain";
+import { err, ok, type Result } from "@nuvantre/domain";
 import type {
   AnalyticsProperties,
   AnalyticsPropertyLister,
@@ -9,7 +9,7 @@ import type {
   PlausibleSiteVerifier,
   PlausibleVerifyError,
   PropertyListError,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 
 const SCOPES = [
   "openid",

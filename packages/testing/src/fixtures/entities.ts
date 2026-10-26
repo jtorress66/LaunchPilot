@@ -54,7 +54,7 @@ import {
   taskId,
   userId,
   workspaceId,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 
 /** Fixed reference time so fixtures are deterministic. */
 export const fixtureNow = new Date("2026-01-05T09:00:00.000Z");

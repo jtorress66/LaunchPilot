@@ -1,4 +1,4 @@
-import { err, ok, type ProductId, type Result } from "@launchpilot/domain";
+import { err, ok, type ProductId, type Result } from "@nuvantre/domain";
 import type {
   ChannelConnectionRepository,
   Clock,
@@ -6,7 +6,7 @@ import type {
   Publisher,
   PublisherProvider,
   TokenCipher,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import type { WordPressNetwork } from "./rest";
 import { WordPressPublisher } from "./wordpress-publisher";
 

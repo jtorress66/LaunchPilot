@@ -3,9 +3,9 @@ import type {
   AnalyticsProvider,
   ProductId,
   WeeklyReport,
-} from "@launchpilot/domain";
-import { productId } from "@launchpilot/domain";
-import type { AnalyticsConnectionRepository, WeeklyReportRepository } from "@launchpilot/ports";
+} from "@nuvantre/domain";
+import { productId } from "@nuvantre/domain";
+import type { AnalyticsConnectionRepository, WeeklyReportRepository } from "@nuvantre/ports";
 import type { Kysely } from "kysely";
 import { analyticsConnectionMapper, weeklyReportMapper } from "../mappers/analytics-mappers";
 import type { Database } from "../schema";

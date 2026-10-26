@@ -1,4 +1,4 @@
-import { aWorkspace } from "@launchpilot/testing";
+import { aWorkspace } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { workspaceMapper } from "./workspace-mapper";
 

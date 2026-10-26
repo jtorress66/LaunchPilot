@@ -68,6 +68,8 @@ try {
     ARTICLE_WRITER: "template",
     SOCIAL_WRITER: "template",
     LAUNCH_WRITER: "template",
+    STRATEGIST: "template",
+    REVIEWER: "template",
     KEYWORD_PROVIDER: "dataforseo",
     DATAFORSEO_LOGIN: "e2e",
     DATAFORSEO_PASSWORD: "e2e",

@@ -1,11 +1,11 @@
 import { aGoogleConnection } from "../src/fixtures/analytics";
-import { chooseGoogleProperties } from "@launchpilot/domain";
+import { chooseGoogleProperties } from "@nuvantre/domain";
 import type {
   AnalyticsPropertyLister,
   GoogleAuthorizer,
   PlausibleCredentials,
   PlausibleSiteVerifier,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 
 type Make<H> = () => H | Promise<H>;
@@ -16,7 +16,7 @@ export interface GoogleAuthorizerHarness {
   readonly validCode: string;
 }
 
-const redirectUrl = "https://app.launchpilot.test/api/google/callback";
+const redirectUrl = "https://app.nuvantre.test/api/google/callback";
 
 export function describeGoogleAuthorizerContract(
   name: string,

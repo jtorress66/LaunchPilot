@@ -1,4 +1,4 @@
-import { FakeLlmClient } from "@launchpilot/testing";
+import { FakeLlmClient } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { MeteredLlmClient } from "./metered-llm-client";
 

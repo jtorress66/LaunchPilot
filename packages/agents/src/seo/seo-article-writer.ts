@@ -1,4 +1,4 @@
-import { err, ok, type Result } from "@launchpilot/domain";
+import { err, ok, type Result } from "@nuvantre/domain";
 import type {
   ContentDrafter,
   Draft,
@@ -6,7 +6,7 @@ import type {
   DraftRequest,
   LlmClient,
   LlmError,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { SEO_SYSTEM_PROMPT, seoUserMessage } from "./prompt";
 import { articleAnswer, articleAnswerJsonSchema, type ArticleAnswer } from "./schema";
 

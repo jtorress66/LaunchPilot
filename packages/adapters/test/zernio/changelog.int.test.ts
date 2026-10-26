@@ -94,17 +94,17 @@ describe("assessZernioChange", () => {
     [
       "an endpoint we call was modified",
       entry({ changes: endpoints("modified", "POST", "/v1/posts") }),
-      "Changes POST /v1/posts, which LaunchPilot calls",
+      "Changes POST /v1/posts, which Nuvantre calls",
     ],
     [
       "an endpoint we call was removed, even with an /api prefix",
       entry({ changes: endpoints("removed", "get", "/api/v1/accounts") }),
-      "Removes GET /v1/accounts, which LaunchPilot calls",
+      "Removes GET /v1/accounts, which Nuvantre calls",
     ],
     [
       "the connect endpoint we call changed",
       entry({ changes: endpoints("modified", "GET", "/v1/connect/{platform}") }),
-      "Changes GET /v1/connect/{platform}, which LaunchPilot calls",
+      "Changes GET /v1/connect/{platform}, which Nuvantre calls",
     ],
     [
       "a response schema we read was removed",
@@ -114,7 +114,7 @@ describe("assessZernioChange", () => {
           schemas: { added: [], removed: ["SocialAccount"], modified: [] },
         },
       }),
-      "Removes the SocialAccount schema, which LaunchPilot reads",
+      "Removes the SocialAccount schema, which Nuvantre reads",
     ],
     [
       "action is required on X",
@@ -170,7 +170,7 @@ describe("assessZernioChange", () => {
         }),
       ).reasons,
     ).toEqual([
-      "Changes POST /v1/posts, which LaunchPilot calls",
+      "Changes POST /v1/posts, which Nuvantre calls",
       "Needs action on X",
       "Needs action on LinkedIn",
     ]);

@@ -1,5 +1,5 @@
-import { isGrounded, parseHttpUrl } from "@launchpilot/domain";
-import type { BriefDrafter, BriefDraftRequest, CrawledSite } from "@launchpilot/ports";
+import { isGrounded, parseHttpUrl } from "@nuvantre/domain";
+import type { BriefDrafter, BriefDraftRequest, CrawledSite } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 
 export interface BriefDrafterHarness {

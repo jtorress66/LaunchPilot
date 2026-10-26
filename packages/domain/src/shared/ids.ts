@@ -16,6 +16,7 @@ export type LaunchKitId = Brand<string, "LaunchKitId">;
 export type SubmissionId = Brand<string, "SubmissionId">;
 export type AnalyticsConnectionId = Brand<string, "AnalyticsConnectionId">;
 export type WeeklyReportId = Brand<string, "WeeklyReportId">;
+export type AutopilotRunId = Brand<string, "AutopilotRunId">;
 
 /** Ids come from the IdGenerator port or storage, so an empty one is a programmer error. */
 const nonEmptyId = (value: string): string => {
@@ -36,3 +37,4 @@ export const launchKitId = (value: string) => nonEmptyId(value) as LaunchKitId;
 export const submissionId = (value: string) => nonEmptyId(value) as SubmissionId;
 export const analyticsConnectionId = (value: string) => nonEmptyId(value) as AnalyticsConnectionId;
 export const weeklyReportId = (value: string) => nonEmptyId(value) as WeeklyReportId;
+export const autopilotRunId = (value: string) => nonEmptyId(value) as AutopilotRunId;

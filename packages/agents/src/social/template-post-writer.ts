@@ -1,5 +1,5 @@
-import { err, maxLengthOf, ok, type Result } from "@launchpilot/domain";
-import type { ContentDrafter, Draft, DraftError, DraftRequest } from "@launchpilot/ports";
+import { err, maxLengthOf, ok, type Result } from "@nuvantre/domain";
+import type { ContentDrafter, Draft, DraftError, DraftRequest } from "@nuvantre/ports";
 
 const ELLIPSIS = "…";
 

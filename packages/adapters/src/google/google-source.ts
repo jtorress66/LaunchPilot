@@ -1,10 +1,10 @@
-import { err, ok, type GoogleConnection, type Result } from "@launchpilot/domain";
+import { err, ok, type GoogleConnection, type Result } from "@nuvantre/domain";
 import type {
   AnalyticsConnectionRepository,
   MetricsError,
   MetricsQuery,
   TokenCipher,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { accessTokenFor } from "./access-token";
 import type { GoogleOptions } from "./api";
 

@@ -1,11 +1,11 @@
-import { err, ok, type MetricsSnapshot, type QueryRow, type Result } from "@launchpilot/domain";
+import { err, ok, type MetricsSnapshot, type QueryRow, type Result } from "@nuvantre/domain";
 import type {
   AnalyticsConnectionRepository,
   MetricsError,
   MetricsQuery,
   MetricsSource,
   TokenCipher,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { z } from "zod";
 import {
   apiFailure,

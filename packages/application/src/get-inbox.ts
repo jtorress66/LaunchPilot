@@ -1,5 +1,5 @@
-import type { ContentItem, Product, Workspace } from "@launchpilot/domain";
-import type { ContentItemRepository, ProductRepository } from "@launchpilot/ports";
+import type { ContentItem, Product, Workspace } from "@nuvantre/domain";
+import type { ContentItemRepository, ProductRepository } from "@nuvantre/ports";
 
 export interface InboxEntry {
   readonly item: ContentItem;

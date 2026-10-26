@@ -7,7 +7,7 @@ import {
   parseDirectory,
   type Directory,
   type Result,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import { z } from "zod";
 
 const limit = z.number().int().positive().optional();

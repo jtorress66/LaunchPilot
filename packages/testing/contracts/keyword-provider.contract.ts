@@ -1,4 +1,4 @@
-import type { KeywordIdea, KeywordProvider, KeywordQuery } from "@launchpilot/ports";
+import type { KeywordIdea, KeywordProvider, KeywordQuery } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 
 export interface KeywordProviderHarness {

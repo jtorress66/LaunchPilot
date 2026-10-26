@@ -1,6 +1,6 @@
 name: Zernio changelog
 
-# Daily: flags Zernio API changes that affect LaunchPilot's integration by opening one GitHub
+# Daily: flags Zernio API changes that affect Nuvantre's integration by opening one GitHub
 # issue per affecting changelog entry. Reads Zernio's public changelog; no secret needed.
 on:
   schedule:
@@ -35,7 +35,7 @@ jobs:
           FLAGGED: ${{ runner.temp }}/zernio-changes.json
         run: |
           gh label create zernio-changelog --color B60205 \
-            --description "A Zernio API change that affects LaunchPilot" 2>/dev/null || true
+            --description "A Zernio API change that affects Nuvantre" 2>/dev/null || true
           count="$(jq length "$FLAGGED")"
           for i in $(seq 0 $((count - 1))); do
             id="$(jq -r ".[$i].id" "$FLAGGED")"

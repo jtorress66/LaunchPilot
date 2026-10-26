@@ -5,8 +5,8 @@ import {
   type BillingEvent,
   type Result,
   type Subscription,
-} from "@launchpilot/domain";
-import type { BillingWebhookVerifier, SubscriptionRepository } from "@launchpilot/ports";
+} from "@nuvantre/domain";
+import type { BillingWebhookVerifier, SubscriptionRepository } from "@nuvantre/ports";
 import { failure, type UseCaseError } from "./errors";
 
 export interface HandleBillingWebhookDeps {

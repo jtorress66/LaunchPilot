@@ -47,10 +47,10 @@ export const startWordPress = async () => {
     "core",
     "install",
     `--url=${url}`,
-    "--title=LaunchPilot E2E Blog",
+    "--title=Nuvantre E2E Blog",
     "--admin_user=admin",
     "--admin_password=e2e-admin-password",
-    "--admin_email=admin@launchpilot.test",
+    "--admin_email=admin@nuvantre.test",
     "--skip-email",
   );
   const password = await wpCli(
@@ -58,7 +58,7 @@ export const startWordPress = async () => {
     "application-password",
     "create",
     "admin",
-    "launchpilot",
+    "nuvantre",
     "--porcelain",
   );
 

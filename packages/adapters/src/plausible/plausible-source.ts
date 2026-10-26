@@ -1,11 +1,11 @@
-import { err, ok, type MetricsSnapshot, type Result } from "@launchpilot/domain";
+import { err, ok, type MetricsSnapshot, type Result } from "@nuvantre/domain";
 import type {
   AnalyticsConnectionRepository,
   MetricsError,
   MetricsQuery,
   MetricsSource,
   TokenCipher,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { dateRangeOf, queryStats, type PlausibleNetwork, type StatsFailure } from "./stats-api";
 
 const TOP = 10;
@@ -29,7 +29,7 @@ const metricsError = (failure: StatsFailure): MetricsError => {
         code: "unavailable",
         message:
           failure.failure.reason === "blocked"
-            ? "The Plausible address is one LaunchPilot cannot reach"
+            ? "The Plausible address is one Nuvantre cannot reach"
             : "Plausible could not be reached",
         retryable: failure.failure.reason !== "blocked",
       };

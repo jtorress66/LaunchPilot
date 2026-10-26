@@ -1,4 +1,4 @@
-import type { BriefContent, Channel, Result, TaskKind } from "@launchpilot/domain";
+import type { BriefContent, Channel, Result, TaskKind } from "@nuvantre/domain";
 import type { PortError } from "./port-error";
 
 export interface DraftRequest {

@@ -1,5 +1,5 @@
-import { err, isGrounded, ok, type Result } from "@launchpilot/domain";
-import type { BriefDraft, BriefDraftError } from "@launchpilot/ports";
+import { err, isGrounded, ok, type Result } from "@nuvantre/domain";
+import type { BriefDraft, BriefDraftError } from "@nuvantre/ports";
 import { z } from "zod";
 
 /** One recorded site the brief agent is evaluated on. */

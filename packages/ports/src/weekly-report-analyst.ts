@@ -1,4 +1,4 @@
-import type { AnalystNotes, BriefContent, Result, WeeklyReport } from "@launchpilot/domain";
+import type { AnalystNotes, BriefContent, Result, WeeklyReport } from "@nuvantre/domain";
 import type { PortError } from "./port-error";
 
 export interface AnalysisRequest {

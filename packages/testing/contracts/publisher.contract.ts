@@ -1,4 +1,4 @@
-import type { Publisher } from "@launchpilot/ports";
+import type { Publisher } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 import { aPublishableItem } from "../src/fixtures/entities";
 

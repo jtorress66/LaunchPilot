@@ -1,4 +1,4 @@
-import { effectivePlan, isActive, parseEmail } from "@launchpilot/domain";
+import { effectivePlan, isActive, parseEmail } from "@nuvantre/domain";
 import { describe, expect, it } from "vitest";
 import { SignUp } from "../src";
 import { makeWorld, PASSWORD, signedUp } from "./world";

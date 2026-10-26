@@ -1,4 +1,4 @@
-import type { JsonSchema } from "@launchpilot/ports";
+import type { JsonSchema } from "@nuvantre/ports";
 import { z } from "zod";
 
 const post = z.object({ title: z.string(), body: z.string() });

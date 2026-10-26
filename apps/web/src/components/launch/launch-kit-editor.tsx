@@ -1,6 +1,6 @@
 "use client";
 
-import { listingLimits, type LaunchKitStatus, type Listing } from "@launchpilot/domain";
+import { listingLimits, type LaunchKitStatus, type Listing } from "@nuvantre/domain";
 import { useActionState, useState } from "react";
 import {
   approveLaunchKitAction,

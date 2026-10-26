@@ -3,8 +3,8 @@ import {
   workspaceId as wsId,
   type BillingEvent,
   type WorkspaceId,
-} from "@launchpilot/domain";
-import { FakeWebhookVerifier } from "@launchpilot/testing";
+} from "@nuvantre/domain";
+import { FakeWebhookVerifier } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { HandleBillingWebhook, StartCheckout } from "../src";
 import { makeWorld, signedUp, type World } from "./world";
@@ -23,8 +23,8 @@ describe("StartCheckout", () => {
         workspaceId: workspace.id,
         plan: "starter",
         email: user.email,
-        successUrl: "https://app.launchpilot.test/app/billing?checkout=success",
-        cancelUrl: "https://app.launchpilot.test/app/billing?checkout=canceled",
+        successUrl: "https://app.nuvantre.test/app/billing?checkout=success",
+        cancelUrl: "https://app.nuvantre.test/app/billing?checkout=canceled",
       },
     ]);
   });

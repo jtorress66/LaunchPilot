@@ -12,12 +12,13 @@ import {
   describeSubscriptionRepositoryContract,
   describeAnalyticsConnectionRepositoryContract,
   describeWeeklyReportRepositoryContract,
+  describeAutopilotRunRepositoryContract,
   describeUserRepositoryContract,
   describeTaskRepositoryContract,
   describeWorkspaceRepositoryContract,
-} from "@launchpilot/testing/contracts";
-import { contentItemId, taskId, workspaceId } from "@launchpilot/domain";
-import { aContentItem, aDirectory, aTask } from "@launchpilot/testing";
+} from "@nuvantre/testing/contracts";
+import { contentItemId, taskId, workspaceId } from "@nuvantre/domain";
+import { aContentItem, aDirectory, aTask } from "@nuvantre/testing";
 import { afterAll, describe, expect, it } from "vitest";
 import {
   createPostgresRepositories,
@@ -35,6 +36,7 @@ import {
   PostgresSubscriptionRepository,
   PostgresAnalyticsConnectionRepository,
   PostgresWeeklyReportRepository,
+  PostgresAutopilotRunRepository,
   PostgresUserRepository,
   PostgresTaskRepository,
   PostgresWorkspaceRepository,
@@ -132,6 +134,11 @@ describeWeeklyReportRepositoryContract("PostgresWeeklyReportRepository", async (
   return new PostgresWeeklyReportRepository(db);
 });
 
+describeAutopilotRunRepositoryContract("PostgresAutopilotRunRepository", async () => {
+  await resetWith(db, "products");
+  return new PostgresAutopilotRunRepository(db);
+});
+
 describe("PostgresContentItemRepository", () => {
   it("lists due items earliest publish time first", async () => {
     await resetWith(db, "tasks");
@@ -173,6 +180,7 @@ describe("createPostgresRepositories", () => {
     expect(await repos.workspaces.findById(workspaceId("ws_1"))).toBeDefined();
     expect(Object.keys(repos).sort()).toEqual([
       "analyticsConnections",
+      "autopilotRuns",
       "briefs",
       "campaigns",
       "channelConnections",

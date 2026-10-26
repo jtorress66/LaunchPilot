@@ -1,4 +1,4 @@
-import { err, ok, type Result } from "@launchpilot/domain";
+import { err, ok, type Result } from "@nuvantre/domain";
 import { z } from "zod";
 
 const text = (required: string, max: number) =>

@@ -1,4 +1,4 @@
-import { campaignId, campaignStatuses, productId, type Campaign } from "@launchpilot/domain";
+import { campaignId, campaignStatuses, productId, type Campaign } from "@nuvantre/domain";
 import type { CampaignRow } from "../schema";
 import { oneOf } from "./columns";
 

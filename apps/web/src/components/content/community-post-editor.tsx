@@ -1,6 +1,6 @@
 "use client";
 
-import type { CommunityChannel, ContentItemStatus } from "@launchpilot/domain";
+import type { CommunityChannel, ContentItemStatus } from "@nuvantre/domain";
 import { useActionState, useState } from "react";
 import {
   approveArticleAction,
@@ -30,7 +30,7 @@ const EDITABLE: readonly ContentItemStatus[] = ["draft", "in_review", "approved"
 
 /**
  * A draft-only post: the founder edits, approves, then copies it and posts it themselves.
- * LaunchPilot never publishes it.
+ * Nuvantre never publishes it.
  */
 export function CommunityPostEditor({
   itemId,
@@ -128,7 +128,7 @@ export function CommunityPostEditor({
           </a>
         </div>
         <p className="text-xs text-slate-500">
-          {channelName(channel)} posts are drafts only: LaunchPilot never posts them for you.
+          {channelName(channel)} posts are drafts only: Nuvantre never posts them for you.
         </p>
       </section>
     </div>

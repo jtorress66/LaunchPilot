@@ -1,5 +1,5 @@
-import { err, type Channel, type ProductId, type Result } from "@launchpilot/domain";
-import type { PublishError, Publisher, PublisherProvider } from "@launchpilot/ports";
+import { err, type Channel, type ProductId, type Result } from "@nuvantre/domain";
+import type { PublishError, Publisher, PublisherProvider } from "@nuvantre/ports";
 
 /**
  * One PublisherProvider per channel. Supporting a new channel means registering its

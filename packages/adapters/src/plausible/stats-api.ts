@@ -1,11 +1,11 @@
-import { err, ok, type Result } from "@launchpilot/domain";
+import { err, ok, type Result } from "@nuvantre/domain";
 import { z } from "zod";
 import { safeRequest, type HttpFailure, type SafeHttpOptions } from "../net/safe-http";
 
-export const PLAUSIBLE_USER_AGENT = "LaunchPilot/1.0 (+https://launchpilot.app)";
+export const PLAUSIBLE_USER_AGENT = "Nuvantre/1.0 (+https://nuvantre.app)";
 
 export interface PlausibleNetwork {
-  /** Development and test only: lets LaunchPilot reach a self-hosted Plausible on a LAN. */
+  /** Development and test only: lets Nuvantre reach a self-hosted Plausible on a LAN. */
   readonly allowPrivateNetwork: boolean;
   readonly timeoutMs?: number;
 }

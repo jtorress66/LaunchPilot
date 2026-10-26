@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { CreateProduct, GetDashboard } from "../src";
 import { makeWorld, signedUp, type World } from "./world";
-import { FakeWebhookVerifier, InMemorySubscriptionRepository } from "@launchpilot/testing";
+import { FakeWebhookVerifier, InMemorySubscriptionRepository } from "@nuvantre/testing";
 import { HandleBillingWebhook } from "../src";
-import type { Workspace } from "@launchpilot/domain";
+import type { Workspace } from "@nuvantre/domain";
 
 const upgrade = async (world: World, workspace: Workspace, plan: "starter" | "growth") => {
   const { payload, signature } = FakeWebhookVerifier.sign({

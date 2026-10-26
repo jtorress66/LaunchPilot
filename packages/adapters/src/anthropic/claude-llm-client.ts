@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { BetaContentBlock, BetaMessage } from "@anthropic-ai/sdk/resources/beta/messages";
-import { err, ok, type Result } from "@launchpilot/domain";
-import type { LlmClient, LlmError, LlmRequest, LlmResponse } from "@launchpilot/ports";
+import { err, ok, type Result } from "@nuvantre/domain";
+import type { LlmClient, LlmError, LlmRequest, LlmResponse } from "@nuvantre/ports";
 
 export const DEFAULT_CLAUDE_MODEL = "claude-opus-5-5";
 

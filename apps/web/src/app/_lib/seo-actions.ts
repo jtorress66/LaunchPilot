@@ -1,6 +1,6 @@
 "use server";
 
-import { productId, taskId } from "@launchpilot/domain";
+import { productId, taskId } from "@nuvantre/domain";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getAppContainer } from "../../container";

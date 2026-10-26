@@ -1,15 +1,5 @@
-import type {
-  Directory,
-  LaunchKit,
-  ProductId,
-  Submission,
-  SubmissionId,
-} from "@launchpilot/domain";
-import type {
-  DirectoryCatalog,
-  LaunchKitRepository,
-  SubmissionRepository,
-} from "@launchpilot/ports";
+import type { Directory, LaunchKit, ProductId, Submission, SubmissionId } from "@nuvantre/domain";
+import type { DirectoryCatalog, LaunchKitRepository, SubmissionRepository } from "@nuvantre/ports";
 import type { Kysely } from "kysely";
 import { directoryMapper, launchKitMapper, submissionMapper } from "../mappers/launch-mappers";
 import type { Database } from "../schema";

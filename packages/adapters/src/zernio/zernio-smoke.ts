@@ -1,4 +1,4 @@
-import { err, ok, type Result } from "@launchpilot/domain";
+import { err, ok, type Result } from "@nuvantre/domain";
 import type { z } from "zod";
 import { callZernio, channelOf, zernioMessage, type ZernioOptions } from "./api";
 import { accountList, isUsable, profileList } from "./schemas";

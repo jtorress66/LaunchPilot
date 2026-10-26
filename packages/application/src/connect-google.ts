@@ -7,7 +7,7 @@ import {
   type ProductId,
   type Result,
   type Workspace,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type {
   AnalyticsConnectionRepository,
   AnalyticsProperties,
@@ -20,7 +20,7 @@ import type {
   PropertyListError,
   TokenCipher,
   TokenGenerator,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { failure, type UseCaseError } from "./errors";
 import { loadOwnedProduct } from "./owned-product";
 

@@ -1,6 +1,6 @@
-# CLAUDE.md — LaunchPilot
+# CLAUDE.md — Nuvantre
 
-LaunchPilot is an AI marketing app for SaaS founders: it reads a founder's SaaS, writes a Product Brief, and runs SEO content, launches/directories, social posting, and analytics on a weekly loop, with founder approval before anything is published.
+Nuvantre is an AI marketing app for SaaS founders: it reads a founder's SaaS, writes a Product Brief, and runs SEO content, launches/directories, social posting, and analytics on a weekly loop, with founder approval before anything is published.
 
 These rules apply to every session. If a request conflicts with them, stop and ask.
 

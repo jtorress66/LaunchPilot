@@ -1,10 +1,10 @@
-import { err, listingLimits, ok, type Result } from "@launchpilot/domain";
+import { err, listingLimits, ok, type Result } from "@nuvantre/domain";
 import type {
   DraftError,
   LaunchKitDraft,
   LaunchKitDrafter,
   LaunchKitRequest,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { SHOW_HN_TITLE_MAX } from "./prompt";
 
 const ELLIPSIS = "…";

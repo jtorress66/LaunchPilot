@@ -1,5 +1,5 @@
-import type { Channel, ChannelConnection, ProductId } from "@launchpilot/domain";
-import type { ChannelConnectionRepository } from "@launchpilot/ports";
+import type { Channel, ChannelConnection, ProductId } from "@nuvantre/domain";
+import type { ChannelConnectionRepository } from "@nuvantre/ports";
 import type { Kysely } from "kysely";
 import { channelConnectionMapper } from "../mappers/channel-connection-mapper";
 import type { Database } from "../schema";

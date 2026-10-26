@@ -1,4 +1,4 @@
-import { aTask } from "@launchpilot/testing";
+import { aTask } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { taskMapper } from "./task-mapper";
 

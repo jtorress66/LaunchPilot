@@ -5,8 +5,8 @@ import {
   type ProductId,
   type Result,
   type Workspace,
-} from "@launchpilot/domain";
-import type { BriefRepository, Clock, ProductRepository } from "@launchpilot/ports";
+} from "@nuvantre/domain";
+import type { BriefRepository, Clock, ProductRepository } from "@nuvantre/ports";
 import type { UseCaseError } from "./errors";
 import { loadOwnedBrief } from "./owned-brief";
 
