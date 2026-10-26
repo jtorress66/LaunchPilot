@@ -1,4 +1,4 @@
-import { describeWeek, productId } from "@launchpilot/domain";
+import { describeWeek, productId } from "@nuvantre/domain";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -13,7 +13,7 @@ import { analyticsFailureMessage } from "../../../../../server/messages";
 import { requireUser } from "../../../../_lib/auth";
 import { idParam } from "../../../../_lib/params";
 
-export const metadata: Metadata = { title: "Analytics — LaunchPilot" };
+export const metadata: Metadata = { title: "Analytics — Nuvantre" };
 
 const card =
   "space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900";
@@ -65,8 +65,8 @@ export default async function AnalyticsPage({ params, searchParams }: AnalyticsP
         <p className="text-sm text-slate-500">{product.name}</p>
         <h1 className="text-2xl font-bold tracking-tight">Analytics</h1>
         <p className="mt-1 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
-          Connect Search Console and Google Analytics 4 or Plausible. Every Monday LaunchPilot
-          builds last week&apos;s report, with read-only access.
+          Connect Search Console and Google Analytics 4 or Plausible. Every Monday Nuvantre builds
+          last week&apos;s report, with read-only access.
         </p>
       </div>
 

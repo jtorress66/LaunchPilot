@@ -1,5 +1,5 @@
-import { transitionTask, type ContentItem } from "@launchpilot/domain";
-import type { TaskRepository } from "@launchpilot/ports";
+import { transitionTask, type ContentItem } from "@nuvantre/domain";
+import type { TaskRepository } from "@nuvantre/ports";
 
 /** Marks the task behind a published item as done, if it is still in progress. */
 export const completeTaskOf = async (tasks: TaskRepository, item: ContentItem): Promise<void> => {

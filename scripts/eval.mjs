@@ -3,13 +3,13 @@
 import { spawnSync } from "node:child_process";
 
 const suites = [
-  ["--filter", "@launchpilot/worker", "eval"],
-  ["--filter", "@launchpilot/worker", "eval:seo"],
-  ["--filter", "@launchpilot/worker", "eval:social"],
-  ["--filter", "@launchpilot/worker", "eval:launch"],
-  ["--filter", "@launchpilot/worker", "eval:analyst"],
-  ["--filter", "@launchpilot/worker", "eval:strategist"],
-  ["--filter", "@launchpilot/worker", "eval:reviewer"],
+  ["--filter", "@nuvantre/worker", "eval"],
+  ["--filter", "@nuvantre/worker", "eval:seo"],
+  ["--filter", "@nuvantre/worker", "eval:social"],
+  ["--filter", "@nuvantre/worker", "eval:launch"],
+  ["--filter", "@nuvantre/worker", "eval:analyst"],
+  ["--filter", "@nuvantre/worker", "eval:strategist"],
+  ["--filter", "@nuvantre/worker", "eval:reviewer"],
 ];
 for (const suite of suites) {
   const { status } = spawnSync("pnpm", ["--silent", ...suite], { stdio: "inherit" });

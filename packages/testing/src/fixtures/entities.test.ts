@@ -1,4 +1,4 @@
-import { contentItemStatuses, toPublishable } from "@launchpilot/domain";
+import { contentItemStatuses, toPublishable } from "@nuvantre/domain";
 import { describe, expect, it } from "vitest";
 import {
   aBrief,

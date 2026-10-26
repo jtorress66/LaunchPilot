@@ -1,5 +1,5 @@
-import { productId } from "@launchpilot/domain";
-import { FakePublisherProvider } from "@launchpilot/testing";
+import { productId } from "@nuvantre/domain";
+import { FakePublisherProvider } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { PublisherRegistry } from "../src";
 

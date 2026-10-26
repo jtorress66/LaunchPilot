@@ -1,6 +1,6 @@
-import { validateListing } from "@launchpilot/domain";
-import type { LaunchKitRequest } from "@launchpilot/ports";
-import { aBriefContent } from "@launchpilot/testing";
+import { validateListing } from "@nuvantre/domain";
+import type { LaunchKitRequest } from "@nuvantre/ports";
+import { aBriefContent } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { TemplateLaunchKitWriter } from "./template-launch-kit-writer";
 

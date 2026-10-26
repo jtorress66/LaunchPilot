@@ -1,5 +1,5 @@
-import { numbersNotInReport, productId } from "@launchpilot/domain";
-import { aBriefContent, aReportWeek, aSnapshot, aWeeklyReport } from "@launchpilot/testing";
+import { numbersNotInReport, productId } from "@nuvantre/domain";
+import { aBriefContent, aReportWeek, aSnapshot, aWeeklyReport } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { TemplateAnalyst } from "./template-analyst";
 

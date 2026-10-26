@@ -1,5 +1,5 @@
-import { planPostAngles, type BriefContent, type WeekCandidates } from "@launchpilot/domain";
-import type { PlanRequest } from "@launchpilot/ports";
+import { planPostAngles, type BriefContent, type WeekCandidates } from "@nuvantre/domain";
+import type { PlanRequest } from "@nuvantre/ports";
 import { aBriefContent } from "./entities";
 
 /** Ranked keyword opportunities and brief-derived angles, as the weekly loop offers them. */

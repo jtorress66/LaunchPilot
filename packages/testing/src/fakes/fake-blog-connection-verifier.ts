@@ -1,10 +1,10 @@
-import { err, ok, type Result } from "@launchpilot/domain";
+import { err, ok, type Result } from "@nuvantre/domain";
 import type {
   BlogConnectionVerifier,
   BlogCredentials,
   ConnectionError,
   VerifiedBlog,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 
 const key = ({ siteUrl, username, secret }: BlogCredentials) =>
   `${siteUrl.replace(/\/$/, "")}\n${username}\n${secret}`;

@@ -7,7 +7,7 @@ import {
   type ProductId,
   type Result,
   type Workspace,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type {
   AnalyticsConnectionRepository,
   Clock,
@@ -16,7 +16,7 @@ import type {
   PlausibleVerifyError,
   ProductRepository,
   TokenCipher,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import type { UseCaseError } from "./errors";
 import { loadOwnedProduct } from "./owned-product";
 

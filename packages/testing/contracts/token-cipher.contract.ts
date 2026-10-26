@@ -1,4 +1,4 @@
-import type { TokenCipher } from "@launchpilot/ports";
+import type { TokenCipher } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 
 export function describeTokenCipherContract(name: string, make: () => TokenCipher): void {

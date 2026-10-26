@@ -1,4 +1,4 @@
-import type { AgentReview } from "@launchpilot/domain";
+import type { AgentReview } from "@nuvantre/domain";
 
 /** The reviewer agent's recommendation on a draft. The founder still decides. */
 export function AgentReviewNote({ review }: { readonly review: AgentReview | null }) {

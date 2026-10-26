@@ -1,4 +1,4 @@
-import type { DomainError } from "@launchpilot/domain";
+import type { DomainError } from "@nuvantre/domain";
 
 export type ApplicationErrorCode =
   | "email_taken"

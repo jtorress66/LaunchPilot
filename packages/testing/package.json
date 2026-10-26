@@ -1,5 +1,5 @@
 {
-  "name": "@launchpilot/testing",
+  "name": "@nuvantre/testing",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -11,8 +11,8 @@
     "typecheck": "tsc --noEmit -p ."
   },
   "dependencies": {
-    "@launchpilot/domain": "workspace:*",
-    "@launchpilot/ports": "workspace:*"
+    "@nuvantre/domain": "workspace:*",
+    "@nuvantre/ports": "workspace:*"
   },
   "devDependencies": {
     "vitest": "3.2.7"

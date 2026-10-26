@@ -24,7 +24,7 @@ test("autopilot plans, drafts and reviews the week, and the founder approves and
   test.slow();
   await onSeoPage(page);
   await connectWordPress(page);
-  await expect(page.getByRole("status")).toContainText("Connected to LaunchPilot E2E Blog");
+  await expect(page.getByRole("status")).toContainText("Connected to Nuvantre E2E Blog");
 
   await page.goto(productPage(page, "social"));
   await page.getByRole("button", { name: "Connect X" }).click();

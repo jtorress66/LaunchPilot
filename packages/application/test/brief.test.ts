@@ -1,4 +1,4 @@
-import { productId, type BriefContent, type Product, type Workspace } from "@launchpilot/domain";
+import { productId, type BriefContent, type Product, type Workspace } from "@nuvantre/domain";
 import { describe, expect, it } from "vitest";
 import {
   ApproveBrief,

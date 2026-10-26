@@ -5,8 +5,8 @@ import {
   metricLabels,
   type ReportMetric,
   type WeeklyReport,
-} from "@launchpilot/domain";
-import type { AnalysisRequest } from "@launchpilot/ports";
+} from "@nuvantre/domain";
+import type { AnalysisRequest } from "@nuvantre/ports";
 
 export const MAX_SUGGESTIONS = 3;
 export const MAX_HIGHLIGHTS = 4;

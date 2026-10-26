@@ -1,5 +1,5 @@
-import { parseEmail, userId, workspaceId, type Email } from "@launchpilot/domain";
-import type { SessionRepository, SubscriptionRepository, UserRepository } from "@launchpilot/ports";
+import { parseEmail, userId, workspaceId, type Email } from "@nuvantre/domain";
+import type { SessionRepository, SubscriptionRepository, UserRepository } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 import { aSession, aSubscription, aUser } from "../src/fixtures/accounts";
 import { describeRepositoryContract } from "./repository.contract";

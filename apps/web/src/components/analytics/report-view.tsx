@@ -1,4 +1,4 @@
-import { describeWeek, formatMetricValue, type WeeklyReport } from "@launchpilot/domain";
+import { describeWeek, formatMetricValue, type WeeklyReport } from "@nuvantre/domain";
 import { MetricTile } from "./metric-tile";
 import { sourceName } from "./source-name";
 

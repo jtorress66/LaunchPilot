@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Clock } from "@launchpilot/ports";
+import type { Clock } from "@nuvantre/ports";
 
 /**
  * Shared contract every Clock implementation must pass (Liskov substitution).

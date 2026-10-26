@@ -1,4 +1,4 @@
-import { err, maxLengthOf, ok, type Result } from "@launchpilot/domain";
+import { err, maxLengthOf, ok, type Result } from "@nuvantre/domain";
 import type {
   ContentDrafter,
   Draft,
@@ -7,7 +7,7 @@ import type {
   LlmClient,
   LlmError,
   LlmMessage,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { rewriteMessage, SOCIAL_SYSTEM_PROMPT, socialUserMessage } from "./prompt";
 import { postAnswer, postAnswerJsonSchema, type PostAnswer } from "./schema";
 

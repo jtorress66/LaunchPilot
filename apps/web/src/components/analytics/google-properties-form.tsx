@@ -1,6 +1,6 @@
 "use client";
 
-import type { AnalyticsProperties } from "@launchpilot/ports";
+import type { AnalyticsProperties } from "@nuvantre/ports";
 import { useActionState } from "react";
 import {
   chooseGooglePropertiesAction,

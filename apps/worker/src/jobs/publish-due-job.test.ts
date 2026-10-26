@@ -1,4 +1,4 @@
-import type { PublishRunSummary } from "@launchpilot/application";
+import type { PublishRunSummary } from "@nuvantre/application";
 import { describe, expect, it } from "vitest";
 import { createPublishDueJob } from "./publish-due-job";
 

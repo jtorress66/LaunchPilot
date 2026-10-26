@@ -1,4 +1,4 @@
-import type { AutopilotRun } from "@launchpilot/domain";
+import type { AutopilotRun } from "@nuvantre/domain";
 import Link from "next/link";
 import { setAutopilotAction } from "../../app/_lib/autopilot-actions";
 import { RunNowButton } from "./run-now-button";

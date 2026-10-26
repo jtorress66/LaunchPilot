@@ -6,11 +6,11 @@ const config: NextConfig = {
   // Linting runs once for the whole monorepo via `pnpm lint`.
   eslint: { ignoreDuringBuilds: true },
   transpilePackages: [
-    "@launchpilot/domain",
-    "@launchpilot/ports",
-    "@launchpilot/application",
-    "@launchpilot/agents",
-    "@launchpilot/adapters",
+    "@nuvantre/domain",
+    "@nuvantre/ports",
+    "@nuvantre/application",
+    "@nuvantre/agents",
+    "@nuvantre/adapters",
   ],
   headers: () =>
     Promise.resolve([

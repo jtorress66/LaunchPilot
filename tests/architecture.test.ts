@@ -31,8 +31,8 @@ interface Manifest {
 const internalDepsOf = (dir: string): string[] => {
   const manifest = JSON.parse(readFileSync(join(dir, "package.json"), "utf8")) as Manifest;
   return Object.keys({ ...manifest.dependencies, ...manifest.devDependencies })
-    .filter((dep) => dep.startsWith("@launchpilot/"))
-    .map((dep) => dep.replace("@launchpilot/", ""));
+    .filter((dep) => dep.startsWith("@nuvantre/"))
+    .map((dep) => dep.replace("@nuvantre/", ""));
 };
 
 const sourceFiles = (dir: string): string[] =>
@@ -62,7 +62,7 @@ describe("architecture", () => {
     "%s production code imports no adapters, SDKs, frameworks or I/O modules",
     (name) => {
       const forbidden =
-        /^(@launchpilot\/(application|adapters|testing|web|worker)|next|react|react-dom|pg|kysely|stripe|node:|fs$|http$|https$|@anthropic-ai\/|node-html-parser|marked)/;
+        /^(@nuvantre\/(application|adapters|testing|web|worker)|next|react|react-dom|pg|kysely|stripe|node:|fs$|http$|https$|@anthropic-ai\/|node-html-parser|marked)/;
       const violations = sourceFiles(join(root, "packages", name, "src"))
         .filter((file) => !file.endsWith(".test.ts"))
         .flatMap((file) =>
@@ -81,7 +81,7 @@ describe("architecture", () => {
         .filter((file) => !file.endsWith("container.ts") && !file.endsWith(".test.ts"))
         .filter((file) =>
           importsOf(file).some(
-            (spec) => spec === "@launchpilot/adapters" || spec === "@launchpilot/agents",
+            (spec) => spec === "@nuvantre/adapters" || spec === "@nuvantre/agents",
           ),
         )
         .map((file) => relative(root, file));

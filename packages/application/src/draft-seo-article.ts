@@ -8,7 +8,7 @@ import {
   type Result,
   type TaskId,
   type Workspace,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type {
   BriefRepository,
   CampaignRepository,
@@ -20,7 +20,7 @@ import type {
   ProductRepository,
   SubscriptionRepository,
   TaskRepository,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { loadApprovedBrief } from "./approved-brief";
 import { checkContentAllowance } from "./content-allowance";
 import type { UseCaseError } from "./errors";

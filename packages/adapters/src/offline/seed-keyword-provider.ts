@@ -1,5 +1,5 @@
-import { err, ok, type Result } from "@launchpilot/domain";
-import type { KeywordError, KeywordIdea, KeywordProvider, KeywordQuery } from "@launchpilot/ports";
+import { err, ok, type Result } from "@nuvantre/domain";
+import type { KeywordError, KeywordIdea, KeywordProvider, KeywordQuery } from "@nuvantre/ports";
 
 /** Phrase patterns with made-up but stable metrics, so plans look realistic offline. */
 const patterns: readonly [(seed: string) => string, number, number][] = [

@@ -3,7 +3,7 @@ import {
   parseHttpUrl,
   productId,
   type ChannelConnection,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type { ChannelConnectionRow } from "../schema";
 import { oneOf } from "./columns";
 

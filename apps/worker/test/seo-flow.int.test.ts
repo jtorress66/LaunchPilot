@@ -5,8 +5,8 @@ import {
   ScryptPasswordHasher,
   SystemClock,
   UuidIdGenerator,
-} from "@launchpilot/adapters";
-import { ExtractiveBriefDrafter, TemplateArticleWriter } from "@launchpilot/agents";
+} from "@nuvantre/adapters";
+import { ExtractiveBriefDrafter, TemplateArticleWriter } from "@nuvantre/agents";
 import {
   ApproveBrief,
   ApproveContentItem,
@@ -18,8 +18,8 @@ import {
   PublishContentItem,
   PublisherRegistry,
   SignUp,
-} from "@launchpilot/application";
-import { FakeKeywordProvider, FakePublisherProvider, FakeSiteCrawler } from "@launchpilot/testing";
+} from "@nuvantre/application";
+import { FakeKeywordProvider, FakePublisherProvider, FakeSiteCrawler } from "@nuvantre/testing";
 import { afterAll, describe, expect, inject, it } from "vitest";
 
 declare module "vitest" {

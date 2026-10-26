@@ -1,6 +1,6 @@
-import { validateWeekPlan } from "@launchpilot/domain";
-import type { PlanRequest } from "@launchpilot/ports";
-import { aPlanRequest, aWeeklyReport, FakeLlmClient } from "@launchpilot/testing";
+import { validateWeekPlan } from "@nuvantre/domain";
+import type { PlanRequest } from "@nuvantre/ports";
+import { aPlanRequest, aWeeklyReport, FakeLlmClient } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { planProblems } from "./plan-rules";
 import { StrategistAgent } from "./strategist-agent";

@@ -1,9 +1,9 @@
-import type { BriefDrafter } from "@launchpilot/ports";
-import { FakeLlmClient } from "@launchpilot/testing";
+import type { BriefDrafter } from "@nuvantre/ports";
+import { FakeLlmClient } from "@nuvantre/testing";
 import {
   briefDrafterContractSite,
   describeBriefDrafterContract,
-} from "@launchpilot/testing/contracts";
+} from "@nuvantre/testing/contracts";
 import { BriefAgent, ExtractiveBriefDrafter } from "../src";
 
 describeBriefDrafterContract("ExtractiveBriefDrafter", () => ({

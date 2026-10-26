@@ -1,5 +1,5 @@
-import { err, ok, type Result, type SocialChannel } from "@launchpilot/domain";
-import type { Clock } from "@launchpilot/ports";
+import { err, ok, type Result, type SocialChannel } from "@nuvantre/domain";
+import type { Clock } from "@nuvantre/ports";
 import { z } from "zod";
 
 export interface ZernioOptions {
@@ -11,7 +11,7 @@ export interface ZernioOptions {
   readonly clock: Clock;
 }
 
-/** Zernio's name for each channel LaunchPilot publishes to. */
+/** Zernio's name for each channel Nuvantre publishes to. */
 export const platformOf: Readonly<Record<SocialChannel, string>> = {
   x: "twitter",
   linkedin: "linkedin",

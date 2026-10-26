@@ -1,4 +1,4 @@
-import type { ContentReviewer, ReviewRequest } from "@launchpilot/ports";
+import type { ContentReviewer, ReviewRequest } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 import { aBriefContent } from "../src/fixtures/entities";
 

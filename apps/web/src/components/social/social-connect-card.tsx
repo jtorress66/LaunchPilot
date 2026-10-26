@@ -1,6 +1,6 @@
 "use client";
 
-import { socialChannels, type SocialChannel } from "@launchpilot/domain";
+import { socialChannels, type SocialChannel } from "@nuvantre/domain";
 import { useActionState } from "react";
 import { connectSocialAction, type SocialActionState } from "../../app/_lib/social-actions";
 import { FormError } from "../forms/form-error";
@@ -47,8 +47,8 @@ export function SocialConnectCard({
         </p>
       ) : (
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          Link your accounts on the platform&apos;s own sign-in page, through Zernio. LaunchPilot
-          never sees your passwords and only posts what you approve.
+          Link your accounts on the platform&apos;s own sign-in page, through Zernio. Nuvantre never
+          sees your passwords and only posts what you approve.
         </p>
       )}
       {socialChannels.map((channel) => (

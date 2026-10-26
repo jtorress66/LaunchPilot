@@ -5,13 +5,13 @@ import {
   type Product,
   type Result,
   type Workspace,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type {
   Clock,
   IdGenerator,
   ProductRepository,
   SubscriptionRepository,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { currentPlan } from "./current-plan";
 import type { UseCaseError } from "./errors";
 

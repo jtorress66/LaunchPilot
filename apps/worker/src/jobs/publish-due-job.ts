@@ -1,4 +1,4 @@
-import type { PublishRunSummary } from "@launchpilot/application";
+import type { PublishRunSummary } from "@nuvantre/application";
 import { createLoggedJob, type Job } from "./logged-job";
 
 export interface PublishDueJobDeps {

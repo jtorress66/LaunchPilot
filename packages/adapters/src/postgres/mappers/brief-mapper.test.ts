@@ -1,4 +1,4 @@
-import { aBrief } from "@launchpilot/testing";
+import { aBrief } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { briefMapper } from "./brief-mapper";
 

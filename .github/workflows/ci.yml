@@ -152,20 +152,20 @@ jobs:
       DATAFORSEO_PASSWORD: unused-in-the-stripe-journey
       # Nor does it post to social accounts.
       ZERNIO_API_KEY: unused-in-the-stripe-journey
-      DATABASE_URL: postgres://launchpilot:launchpilot@localhost:5432/launchpilot
+      DATABASE_URL: postgres://nuvantre:nuvantre@localhost:5432/nuvantre
       APP_URL: http://localhost:3000
       BILLING_PROVIDER: stripe
     services:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: launchpilot
-          POSTGRES_PASSWORD: launchpilot
-          POSTGRES_DB: launchpilot
+          POSTGRES_USER: nuvantre
+          POSTGRES_PASSWORD: nuvantre
+          POSTGRES_DB: nuvantre
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U launchpilot" --health-interval 5s --health-retries 10
+          --health-cmd "pg_isready -U nuvantre" --health-interval 5s --health-retries 10
     steps:
       - name: Generate an encryption key for this run
         run: |
@@ -217,7 +217,7 @@ jobs:
       - name: Build and start the web app
         run: |
           pnpm build
-          nohup pnpm --filter @launchpilot/web start > web.log 2>&1 &
+          nohup pnpm --filter @nuvantre/web start > web.log 2>&1 &
           for i in $(seq 1 60); do curl -sf http://localhost:3000/api/health && exit 0; sleep 2; done
           cat web.log; exit 1
       - run: pnpm test:e2e:stripe

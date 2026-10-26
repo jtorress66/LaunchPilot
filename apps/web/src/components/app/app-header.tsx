@@ -18,7 +18,7 @@ export function AppHeader({
         <div className="flex min-w-0 items-center gap-6">
           <Link href="/app" className="flex items-center gap-2 font-semibold tracking-tight">
             <Logo />
-            <span className="hidden sm:inline">LaunchPilot</span>
+            <span className="hidden sm:inline">Nuvantre</span>
           </Link>
           <nav aria-label="App" className="flex gap-4 text-sm">
             <Link

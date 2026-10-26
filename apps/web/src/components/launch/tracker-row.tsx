@@ -1,7 +1,7 @@
 "use client";
 
-import type { TrackerRow as Row } from "@launchpilot/application";
-import type { SubmissionStatus } from "@launchpilot/domain";
+import type { TrackerRow as Row } from "@nuvantre/application";
+import type { SubmissionStatus } from "@nuvantre/domain";
 import { useActionState } from "react";
 import {
   markLiveAction,

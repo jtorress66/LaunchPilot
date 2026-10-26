@@ -3,9 +3,9 @@ import type { AutopilotRunId, CampaignId, ProductId } from "../shared/ids";
 
 /** What one weekly loop did, shown on the autopilot card. */
 export interface AutopilotRunSummary {
-  /** Tasks the strategist proposed and LaunchPilot accepted. */
+  /** Tasks the strategist proposed and Nuvantre accepted. */
   readonly planned: number;
-  /** Proposed tasks LaunchPilot dropped (ungrounded, repeated, over a cap). */
+  /** Proposed tasks Nuvantre dropped (ungrounded, repeated, over a cap). */
   readonly dropped: number;
   /** Items now waiting in the Inbox. */
   readonly drafted: number;

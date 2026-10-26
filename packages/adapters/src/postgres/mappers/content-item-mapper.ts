@@ -10,7 +10,7 @@ import {
   type AgentReview,
   type ContentItem,
   type HttpUrl,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type { ContentItemRow } from "../schema";
 import { oneOf, readJson, toJson } from "./columns";
 

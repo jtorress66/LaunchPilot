@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { err, ok, type PlanId, type Result, type WorkspaceId } from "@launchpilot/domain";
+import { err, ok, type PlanId, type Result, type WorkspaceId } from "@nuvantre/domain";
 import { signLocalWebhook } from "./local-billing";
 
 type Fetch = (url: string, init: RequestInit) => Promise<Response>;
@@ -10,7 +10,7 @@ type Fetch = (url: string, init: RequestInit) => Promise<Response>;
  * Development and tests only.
  */
 export class LocalCheckoutSimulator {
-  static readonly signatureHeader = "x-launchpilot-signature";
+  static readonly signatureHeader = "x-nuvantre-signature";
 
   constructor(
     private readonly appUrl: string,

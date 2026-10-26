@@ -1,5 +1,5 @@
-import type { Brief, BriefId, ProductId } from "@launchpilot/domain";
-import type { BriefRepository } from "@launchpilot/ports";
+import type { Brief, BriefId, ProductId } from "@nuvantre/domain";
+import type { BriefRepository } from "@nuvantre/ports";
 import type { Kysely } from "kysely";
 import { briefMapper } from "../mappers/brief-mapper";
 import type { Database } from "../schema";

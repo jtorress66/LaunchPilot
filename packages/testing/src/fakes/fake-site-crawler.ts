@@ -1,5 +1,5 @@
-import { err, ok, type HttpUrl, type Result } from "@launchpilot/domain";
-import type { CrawlError, CrawledPage, CrawledSite, SiteCrawler } from "@launchpilot/ports";
+import { err, ok, type HttpUrl, type Result } from "@nuvantre/domain";
+import type { CrawlError, CrawledPage, CrawledSite, SiteCrawler } from "@nuvantre/ports";
 
 export class FakeSiteCrawler implements SiteCrawler {
   private readonly sites = new Map<HttpUrl, readonly CrawledPage[]>();

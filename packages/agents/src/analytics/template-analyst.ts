@@ -5,13 +5,13 @@ import {
   type ReportMetric,
   type Result,
   type WeeklyReport,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type {
   Analysis,
   AnalysisError,
   AnalysisRequest,
   WeeklyReportAnalyst,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 
 const percent = (change: number) => `${String(Math.round(Math.abs(change) * 100))}%`;
 

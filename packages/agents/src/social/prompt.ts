@@ -1,5 +1,5 @@
-import { maxLengthOf, type Channel } from "@launchpilot/domain";
-import type { DraftRequest } from "@launchpilot/ports";
+import { maxLengthOf, type Channel } from "@nuvantre/domain";
+import type { DraftRequest } from "@nuvantre/ports";
 
 /**
  * Frozen system prompt for the social post writer. It holds no per-post data so the

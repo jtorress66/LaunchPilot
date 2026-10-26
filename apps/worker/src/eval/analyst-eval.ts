@@ -8,8 +8,8 @@ import {
   weeklyReportId,
   type Result,
   type WeeklyReport,
-} from "@launchpilot/domain";
-import type { Analysis, AnalysisError } from "@launchpilot/ports";
+} from "@nuvantre/domain";
+import type { Analysis, AnalysisError } from "@nuvantre/ports";
 import { z } from "zod";
 
 const date = z.coerce.date();

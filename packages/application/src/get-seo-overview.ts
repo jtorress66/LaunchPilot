@@ -9,7 +9,7 @@ import {
   type Result,
   type Task,
   type Workspace,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type {
   BriefRepository,
   CampaignRepository,
@@ -17,7 +17,7 @@ import type {
   ContentItemRepository,
   ProductRepository,
   TaskRepository,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import type { UseCaseError } from "./errors";
 import { loadOwnedItem, loadOwnedTask } from "./owned-content";
 import { loadOwnedProduct } from "./owned-product";

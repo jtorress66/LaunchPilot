@@ -1,5 +1,5 @@
-import type { Channel } from "@launchpilot/domain";
-import type { ContentDrafter } from "@launchpilot/ports";
+import type { Channel } from "@nuvantre/domain";
+import type { ContentDrafter } from "@nuvantre/ports";
 
 /**
  * Which writer drafts for which channel. A new channel is a new registration in the

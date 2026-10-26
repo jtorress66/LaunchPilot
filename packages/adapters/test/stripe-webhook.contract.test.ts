@@ -1,5 +1,5 @@
-import type { BillingEvent } from "@launchpilot/domain";
-import { describeBillingWebhookVerifierContract } from "@launchpilot/testing/contracts";
+import type { BillingEvent } from "@nuvantre/domain";
+import { describeBillingWebhookVerifierContract } from "@nuvantre/testing/contracts";
 import Stripe from "stripe";
 import { StripeWebhookVerifier } from "../src";
 import { stripeLookupKeys } from "../src/billing/stripe-plans";

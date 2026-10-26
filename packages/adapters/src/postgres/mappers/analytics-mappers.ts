@@ -5,7 +5,7 @@ import {
   weeklyReportId,
   type AnalyticsConnection,
   type WeeklyReport,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type { AnalyticsConnectionRow, WeeklyReportRow } from "../schema";
 import { oneOf, readJson, toJson } from "./columns";
 

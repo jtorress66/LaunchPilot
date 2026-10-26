@@ -4,7 +4,7 @@ import type { PostAngle } from "../social/post-angles";
 import type { SocialChannel } from "../social/social-profile";
 import type { TaskKind } from "../task/task";
 
-/** What the strategist proposes for one task, before LaunchPilot checks it. */
+/** What the strategist proposes for one task, before Nuvantre checks it. */
 export interface ProposedTask {
   readonly kind: TaskKind;
   readonly channel: Channel;
@@ -95,7 +95,7 @@ const ground = (task: ProposedTask, candidates: WeekCandidates): Check => {
 };
 
 /**
- * Keeps only the tasks LaunchPilot can stand behind: plannable kinds and channels, grounded in
+ * Keeps only the tasks Nuvantre can stand behind: plannable kinds and channels, grounded in
  * the offered keywords and angles, no repeats, within each channel's weekly cap and the plan's
  * remaining monthly allowance (articles first). Every dropped task says why.
  */

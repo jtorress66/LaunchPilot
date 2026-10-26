@@ -1,4 +1,4 @@
-import type { LaunchKitDraft } from "@launchpilot/ports";
+import type { LaunchKitDraft } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 import { parseLaunchEvalCase, scoreKit, summariseKits, type LaunchEvalCase } from "./launch-eval";
 

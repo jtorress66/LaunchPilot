@@ -1,5 +1,5 @@
-import type { Result } from "@launchpilot/domain";
-import type { LlmClient, LlmError, LlmRequest, LlmResponse } from "@launchpilot/ports";
+import type { Result } from "@nuvantre/domain";
+import type { LlmClient, LlmError, LlmRequest, LlmResponse } from "@nuvantre/ports";
 
 export interface TokenPrices {
   readonly inputPerMillion: number;

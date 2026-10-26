@@ -1,4 +1,4 @@
-import { err, ok, type Result } from "@launchpilot/domain";
+import { err, ok, type Result } from "@nuvantre/domain";
 import http from "node:http";
 import https from "node:https";
 import { isIP } from "node:net";

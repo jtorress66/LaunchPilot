@@ -16,9 +16,9 @@ import {
   describeUserRepositoryContract,
   describeTaskRepositoryContract,
   describeWorkspaceRepositoryContract,
-} from "@launchpilot/testing/contracts";
-import { contentItemId, taskId, workspaceId } from "@launchpilot/domain";
-import { aContentItem, aDirectory, aTask } from "@launchpilot/testing";
+} from "@nuvantre/testing/contracts";
+import { contentItemId, taskId, workspaceId } from "@nuvantre/domain";
+import { aContentItem, aDirectory, aTask } from "@nuvantre/testing";
 import { afterAll, describe, expect, it } from "vitest";
 import {
   createPostgresRepositories,

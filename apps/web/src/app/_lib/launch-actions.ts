@@ -1,6 +1,6 @@
 "use server";
 
-import { productId, submissionId, type SubmissionEvent } from "@launchpilot/domain";
+import { productId, submissionId, type SubmissionEvent } from "@nuvantre/domain";
 import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { getAppContainer } from "../../container";

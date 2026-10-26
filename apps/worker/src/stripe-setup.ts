@@ -1,7 +1,7 @@
 import { parseStripeSetupConfig } from "./config";
 import { runStripeSetup } from "./container";
 
-/** CLI: `pnpm stripe:setup`. Creates LaunchPilot's Stripe prices if they are missing. */
+/** CLI: `pnpm stripe:setup`. Creates Nuvantre's Stripe prices if they are missing. */
 const config = parseStripeSetupConfig(process.env, process.argv.slice(2));
 if (!config.ok) {
   process.stderr.write(`${config.error}\n`);

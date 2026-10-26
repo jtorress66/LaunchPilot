@@ -1,10 +1,5 @@
-import { err, ok, type Result } from "@launchpilot/domain";
-import type {
-  ContentReviewer,
-  ReviewError,
-  ReviewRequest,
-  ReviewVerdict,
-} from "@launchpilot/ports";
+import { err, ok, type Result } from "@nuvantre/domain";
+import type { ContentReviewer, ReviewError, ReviewRequest, ReviewVerdict } from "@nuvantre/ports";
 import { draftBlockers, isEmptyDraft } from "./draft-checks";
 
 /** Deterministic, offline review: the rule checks only. For development, tests and E2E. */

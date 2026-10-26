@@ -4,7 +4,7 @@ import { parseWebConfig } from "./config";
 const KEY = Buffer.alloc(32, 7).toString("base64");
 
 const base = {
-  DATABASE_URL: "postgres://app:secret@localhost:5432/launchpilot",
+  DATABASE_URL: "postgres://app:secret@localhost:5432/nuvantre",
   APP_URL: "http://localhost:3000",
   ANTHROPIC_API_KEY: "sk-ant-test-key",
   TOKEN_ENCRYPTION_KEY: KEY,
@@ -76,9 +76,9 @@ describe("parseWebConfig", () => {
   });
 
   it("drops a trailing slash from APP_URL", () => {
-    expect(parseWebConfig({ ...local, APP_URL: "https://launchpilot.app/" })).toMatchObject({
+    expect(parseWebConfig({ ...local, APP_URL: "https://nuvantre.app/" })).toMatchObject({
       ok: true,
-      value: { appUrl: "https://launchpilot.app" },
+      value: { appUrl: "https://nuvantre.app" },
     });
   });
 

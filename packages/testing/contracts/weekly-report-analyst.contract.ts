@@ -1,5 +1,5 @@
-import { numbersNotInReport } from "@launchpilot/domain";
-import type { WeeklyReportAnalyst } from "@launchpilot/ports";
+import { numbersNotInReport } from "@nuvantre/domain";
+import type { WeeklyReportAnalyst } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 import { aWeeklyReport } from "../src/fixtures/analytics";
 import { aBriefContent } from "../src/fixtures/entities";

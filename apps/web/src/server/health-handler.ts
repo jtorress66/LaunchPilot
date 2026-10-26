@@ -1,5 +1,5 @@
-import { buildHealthReport } from "@launchpilot/domain";
-import type { Clock } from "@launchpilot/ports";
+import { buildHealthReport } from "@nuvantre/domain";
+import type { Clock } from "@nuvantre/ports";
 
 export interface HealthHandlerDeps {
   readonly clock: Clock;

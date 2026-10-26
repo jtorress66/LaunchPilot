@@ -16,7 +16,7 @@ export function Hero() {
           The AI marketing team that runs your growth loop every week
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-pretty text-slate-600 dark:text-slate-400">
-          LaunchPilot reads your SaaS, writes your Product Brief, and handles SEO content, launches,
+          Nuvantre reads your SaaS, writes your Product Brief, and handles SEO content, launches,
           social posts, and analytics, with you approving every piece before it ships.
         </p>
         <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">

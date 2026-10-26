@@ -1,5 +1,5 @@
-import type { Session } from "@launchpilot/domain";
-import type { SessionRepository } from "@launchpilot/ports";
+import type { Session } from "@nuvantre/domain";
+import type { SessionRepository } from "@nuvantre/ports";
 import type { Kysely } from "kysely";
 import { sessionMapper } from "../mappers/session-mapper";
 import type { Database } from "../schema";

@@ -1,4 +1,4 @@
-import type { TokenGenerator } from "@launchpilot/ports";
+import type { TokenGenerator } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 
 export function describeTokenGeneratorContract(

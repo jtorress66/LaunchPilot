@@ -1,4 +1,4 @@
-import type { BriefContent, Channel, Result } from "@launchpilot/domain";
+import type { BriefContent, Channel, Result } from "@nuvantre/domain";
 import type { PortError } from "./port-error";
 
 export interface ReviewRequest {

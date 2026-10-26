@@ -5,9 +5,9 @@ import {
   createPostgresRepositories,
   migrateDown,
   migrateToLatest,
-} from "@launchpilot/adapters";
-import { enableAutopilot } from "@launchpilot/domain";
-import { aBrief, aProduct, aUser, aWorkspace, FixedClock } from "@launchpilot/testing";
+} from "@nuvantre/adapters";
+import { enableAutopilot } from "@nuvantre/domain";
+import { aBrief, aProduct, aUser, aWorkspace, FixedClock } from "@nuvantre/testing";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import type { LoopConfig, PublisherConfig } from "../src/config";
 import { createWeeklyLoop } from "../src/container";

@@ -1,5 +1,5 @@
-import { err, ok, type Result } from "@launchpilot/domain";
-import type { Draft, DraftError } from "@launchpilot/ports";
+import { err, ok, type Result } from "@nuvantre/domain";
+import type { Draft, DraftError } from "@nuvantre/ports";
 import { z } from "zod";
 
 /** One recorded brief and keyword the SEO writer is evaluated on. */

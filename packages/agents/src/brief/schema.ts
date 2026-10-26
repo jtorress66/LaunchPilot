@@ -1,4 +1,4 @@
-import type { JsonSchema } from "@launchpilot/ports";
+import type { JsonSchema } from "@nuvantre/ports";
 import { z } from "zod";
 
 const text = (max: number) => z.string().trim().min(1).max(max);

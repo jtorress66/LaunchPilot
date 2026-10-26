@@ -1,10 +1,10 @@
-import { planIds, plans } from "@launchpilot/domain";
+import { planIds, plans } from "@nuvantre/domain";
 import type { Metadata } from "next";
 import { getAppContainer } from "../../../container";
 import { upgradeAction } from "../../_lib/actions";
 import { requireUser } from "../../_lib/auth";
 
-export const metadata: Metadata = { title: "Billing — LaunchPilot" };
+export const metadata: Metadata = { title: "Billing — Nuvantre" };
 
 const notices: Record<string, { tone: string; text: string }> = {
   success: {

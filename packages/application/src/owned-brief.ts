@@ -1,12 +1,5 @@
-import {
-  err,
-  ok,
-  type Brief,
-  type ProductId,
-  type Result,
-  type Workspace,
-} from "@launchpilot/domain";
-import type { BriefRepository, ProductRepository } from "@launchpilot/ports";
+import { err, ok, type Brief, type ProductId, type Result, type Workspace } from "@nuvantre/domain";
+import type { BriefRepository, ProductRepository } from "@nuvantre/ports";
 import { failure, type UseCaseError } from "./errors";
 import { loadOwnedProduct } from "./owned-product";
 

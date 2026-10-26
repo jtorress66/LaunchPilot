@@ -8,7 +8,7 @@ export function HowItWorks() {
         <SectionHeading
           eyebrow="How it works"
           title="From URL to a weekly marketing loop"
-          lead="Set it up in minutes. LaunchPilot does the legwork; you stay the editor-in-chief."
+          lead="Set it up in minutes. Nuvantre does the legwork; you stay the editor-in-chief."
         />
         <ol className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {steps.map((step, index) => (

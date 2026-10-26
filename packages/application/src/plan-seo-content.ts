@@ -13,7 +13,7 @@ import {
   type Result,
   type Task,
   type Workspace,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type {
   BriefRepository,
   CampaignRepository,
@@ -23,7 +23,7 @@ import type {
   KeywordProvider,
   ProductRepository,
   TaskRepository,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { loadApprovedBrief } from "./approved-brief";
 import { failure, type UseCaseError } from "./errors";
 import { loadOwnedProduct } from "./owned-product";

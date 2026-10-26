@@ -1,5 +1,5 @@
-import { err, ok, type Result } from "@launchpilot/domain";
-import type { LlmClient, LlmError, LlmRequest, LlmResponse } from "@launchpilot/ports";
+import { err, ok, type Result } from "@nuvantre/domain";
+import type { LlmClient, LlmError, LlmRequest, LlmResponse } from "@nuvantre/ports";
 
 /** Scripted LlmClient: queue replies or errors, then assert on the recorded requests. */
 export class FakeLlmClient implements LlmClient {

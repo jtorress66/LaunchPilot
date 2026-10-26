@@ -5,8 +5,8 @@ import {
   type ProductId,
   type Result,
   type Workspace,
-} from "@launchpilot/domain";
-import type { ProductRepository } from "@launchpilot/ports";
+} from "@nuvantre/domain";
+import type { ProductRepository } from "@nuvantre/ports";
 import { failure, type UseCaseError } from "./errors";
 
 /** Loads a product only if it belongs to the workspace; another workspace's product looks missing. */

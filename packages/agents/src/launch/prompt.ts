@@ -1,5 +1,5 @@
-import { listingLimits } from "@launchpilot/domain";
-import type { LaunchKitRequest } from "@launchpilot/ports";
+import { listingLimits } from "@nuvantre/domain";
+import type { LaunchKitRequest } from "@nuvantre/ports";
 
 /** The longest Show HN title Hacker News accepts. */
 export const SHOW_HN_TITLE_MAX = 80;

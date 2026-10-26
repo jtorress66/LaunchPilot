@@ -16,6 +16,6 @@ describe("session cookie", () => {
   });
 
   it("is Secure when the app is served over https", () => {
-    expect(sessionCookieOptions("https://launchpilot.app", expiresAt).secure).toBe(true);
+    expect(sessionCookieOptions("https://nuvantre.app", expiresAt).secure).toBe(true);
   });
 });

@@ -1,4 +1,4 @@
-import type { Calendar, ContentItem } from "@launchpilot/domain";
+import type { Calendar, ContentItem } from "@nuvantre/domain";
 import Link from "next/link";
 import { ContentStatusBadge } from "../content/content-status-badge";
 import { channelName } from "./channel-name";

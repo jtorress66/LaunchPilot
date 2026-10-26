@@ -1,5 +1,5 @@
-import { channels, validateWeekPlan } from "@launchpilot/domain";
-import type { CampaignPlanner, PlanRequest } from "@launchpilot/ports";
+import { channels, validateWeekPlan } from "@nuvantre/domain";
+import type { CampaignPlanner, PlanRequest } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 import { aWeeklyReport } from "../src/fixtures/analytics";
 import { aBriefContent } from "../src/fixtures/entities";

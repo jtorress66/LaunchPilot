@@ -35,7 +35,7 @@ import {
   type WeeklyReport,
   type Workspace,
   validateWeekPlan,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type {
   AutopilotRunRepository,
   BriefRepository,
@@ -51,7 +51,7 @@ import type {
   TaskRepository,
   WeeklyReportRepository,
   WorkspaceRepository,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { loadApprovedBrief } from "./approved-brief";
 import { remainingContentAllowance } from "./content-allowance";
 import type { DrafterRegistry } from "./drafter-registry";

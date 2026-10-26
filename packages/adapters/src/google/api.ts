@@ -1,5 +1,5 @@
-import { err, ok, type Result } from "@launchpilot/domain";
-import type { PortError } from "@launchpilot/ports";
+import { err, ok, type Result } from "@nuvantre/domain";
+import type { PortError } from "@nuvantre/ports";
 import { z } from "zod";
 
 export interface GoogleUrls {

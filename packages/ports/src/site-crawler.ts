@@ -1,4 +1,4 @@
-import type { HttpUrl, Result } from "@launchpilot/domain";
+import type { HttpUrl, Result } from "@nuvantre/domain";
 import type { PortError } from "./port-error";
 
 export interface CrawledPage {

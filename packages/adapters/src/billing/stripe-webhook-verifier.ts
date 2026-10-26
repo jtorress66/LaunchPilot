@@ -5,8 +5,8 @@ import {
   type BillingEvent,
   type Result,
   type SubscriptionStatus,
-} from "@launchpilot/domain";
-import type { BillingError, BillingWebhookVerifier } from "@launchpilot/ports";
+} from "@nuvantre/domain";
+import type { BillingError, BillingWebhookVerifier } from "@nuvantre/ports";
 import type Stripe from "stripe";
 import { planForLookupKey } from "./stripe-plans";
 
@@ -38,7 +38,7 @@ const handlers: Partial<Record<Stripe.Event.Type, (event: Stripe.Event) => Mappe
     const customer = idOf(session.customer);
     const subscription = idOf(session.subscription);
     if (!workspace || (plan !== "starter" && plan !== "growth") || !customer || !subscription) {
-      return misconfigured("Checkout session is missing LaunchPilot metadata");
+      return misconfigured("Checkout session is missing Nuvantre metadata");
     }
     return ok({
       type: "subscription_activated",
@@ -72,7 +72,7 @@ const handlers: Partial<Record<Stripe.Event.Type, (event: Stripe.Event) => Mappe
     }),
 };
 
-/** Verifies Stripe's signature header, then maps the few events LaunchPilot acts on. */
+/** Verifies Stripe's signature header, then maps the few events Nuvantre acts on. */
 export class StripeWebhookVerifier implements BillingWebhookVerifier {
   constructor(
     private readonly stripe: Stripe,

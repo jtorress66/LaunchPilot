@@ -5,8 +5,8 @@ import {
   weeklyChannelCaps,
   type ProposedTask,
   type Result,
-} from "@launchpilot/domain";
-import type { CampaignPlan, CampaignPlanner, PlanError, PlanRequest } from "@launchpilot/ports";
+} from "@nuvantre/domain";
+import type { CampaignPlan, CampaignPlanner, PlanError, PlanRequest } from "@nuvantre/ports";
 
 const ARTICLES = 2;
 

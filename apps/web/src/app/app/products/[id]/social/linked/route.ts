@@ -1,4 +1,4 @@
-import { productId } from "@launchpilot/domain";
+import { productId } from "@nuvantre/domain";
 import { redirect } from "next/navigation";
 import type { NextRequest } from "next/server";
 import { getAppContainer } from "../../../../../../container";

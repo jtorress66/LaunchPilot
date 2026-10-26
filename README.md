@@ -1,6 +1,6 @@
-# LaunchPilot
+# Nuvantre
 
-LaunchPilot is an AI marketing app for SaaS founders. It reads a founder's SaaS, writes a Product
+Nuvantre is an AI marketing app for SaaS founders. It reads a founder's SaaS, writes a Product
 Brief, and runs SEO content, launches/directories, social posting and analytics on a weekly loop.
 The founder approves everything before it is published.
 
@@ -35,6 +35,12 @@ The schema lives in `packages/adapters/src/postgres/migrations/` as ordered, imm
 migrations (Kysely). Besides foreign keys and value checks, the database itself refuses rows that
 break the product safety rules: approved/scheduled/published content without a founder approval, a
 scheduled item without a publish time, and any scheduled or published item on a draft-only channel.
+
+**Renamed from LaunchPilot:** the local Postgres user and database are now `nuvantre`. A volume
+created before the rename still holds the old `launchpilot` role, so reset it once with
+`docker compose down -v && docker compose up -d`, then `pnpm db:migrate`. Stripe subscriptions on
+the old `launchpilot_*_monthly` prices keep mapping to their plans; `pnpm stripe:setup` creates the
+`nuvantre_*_monthly` prices that new checkouts use.
 
 ### Accounts
 
@@ -79,7 +85,7 @@ After adding a product, the founder lands on its **Product Brief** page:
 
 1. **Draft my brief from your site.** `HttpSiteCrawler` reads the home page and up to 7 same-site
    pages (pricing, features, about and FAQ first). It respects `robots.txt` and identifies itself as
-   `LaunchPilotBot/1.0`. It allows 10 seconds and 2 MB per page and 60k characters in total.
+   `NuvantreBot/1.0`. It allows 10 seconds and 2 MB per page and 60k characters in total.
 2. **The brief agent drafts** the audience, problem, solution, differentiators, tone and product
    facts. Every fact must come with a quote copied from the site. Facts whose quote is not on the
    site are dropped (`packages/domain/src/brief/grounding.ts`) and listed for the founder. A draft
@@ -111,7 +117,7 @@ redirect:
 Once the brief is approved, the product's **SEO** page runs the loop:
 
 1. **Connect your blog.** WordPress only for now: the founder enters the site address, a username
-   and an Application Password (WordPress → Users → Profile → Application Passwords). LaunchPilot
+   and an Application Password (WordPress → Users → Profile → Application Passwords). Nuvantre
    checks it with the REST API (the user must be able to publish posts) and stores the password
    encrypted with AES-256-GCM (`TOKEN_ENCRYPTION_KEY`). It is never logged or shown again.
 2. **Plan articles.** The founder enters up to 5 topics. DataForSEO suggests keyword ideas with
@@ -142,10 +148,10 @@ live post.
 
 The product's **Social** page (it needs an approved brief) and the **Inbox** run the loop:
 
-1. **Connect X and LinkedIn.** One button per channel. LaunchPilot creates a
+1. **Connect X and LinkedIn.** One button per channel. Nuvantre creates a
    [Zernio](https://zernio.com) profile for the product, the first time only, then sends the
-   founder to the platform's own sign-in page through Zernio. LaunchPilot never sees their
-   passwords. When the founder comes back, LaunchPilot stores which accounts they linked.
+   founder to the platform's own sign-in page through Zernio. Nuvantre never sees their
+   passwords. When the founder comes back, Nuvantre stores which accounts they linked.
 2. **Draft the week.** The social writer (Claude, or the offline template writer in dev and test)
    drafts 3 X posts and 2 LinkedIn posts. Angles come from the brief's differentiators and facts;
    when a blog article was published, the first post on each channel promotes it, with its link.
@@ -190,7 +196,7 @@ reads Zernio's public API changelog. It is the same feed as Zernio's `api.change
 webhook, but it needs no key and no deployed endpoint. The workflow opens one GitHub issue, labelled
 `zernio-changelog`, for each entry that does any of these:
 
-- changes or removes an endpoint LaunchPilot calls
+- changes or removes an endpoint Nuvantre calls
 - removes a response schema the adapter reads
 - needs action on X or LinkedIn
 - deprecates something on X or LinkedIn
@@ -201,7 +207,7 @@ Actions tab. Once the app is deployed (step 11), the webhook can replace it.
 
 ### Launch module
 
-The product's **Launch** page (it needs an approved brief) has three parts. LaunchPilot never
+The product's **Launch** page (it needs an approved brief) has three parts. Nuvantre never
 submits or posts anything here: the founder submits each listing and community post by hand.
 
 1. **Launch kit.** The launch writer (Claude, or the offline template writer in dev and test)
@@ -243,14 +249,14 @@ tagline limit comes from third-party guides, not from Product Hunt's own documen
 
 The product's **Analytics** page connects read-only sources and shows the weekly report.
 
-1. **Connect Google.** One sign-in covers Search Console and Google Analytics 4. LaunchPilot asks
+1. **Connect Google.** One sign-in covers Search Console and Google Analytics 4. Nuvantre asks
    Google for read-only access (`webmasters.readonly`, `analytics.readonly`, plus `openid email`
    to name the account). The refresh token is encrypted at rest and never logged. The OAuth
    `state` is kept in a short-lived httpOnly cookie and checked on the way back. The founder then
    picks a Search Console property and a GA4 property from the lists Google returns. Either can be
    left empty.
 2. **Connect Plausible.** Site domain plus a Stats API key (Plausible → Settings → API keys).
-   LaunchPilot checks both with one small query before storing the key, encrypted. A self-hosted
+   Nuvantre checks both with one small query before storing the key, encrypted. A self-hosted
    Plausible address is accepted; it goes through the same SSRF guard as founder blog URLs.
 3. **Weekly report.** Weeks run Monday 00:00 to Monday 00:00 UTC. The worker builds last week's
    report for every connected product from Monday 06:00 UTC (and catches up on later runs), at
@@ -301,9 +307,9 @@ whole loop: **report → plan → draft → review → Inbox**. It is off until 
    now** runs it on demand. A week runs once per product: a completed week is never re-run, while a
    skipped week (for example, no approved brief yet) can be retried with **Run this week now**.
 2. **Plan.** The strategist reads the approved brief, last week's report (if there is one), the
-   remaining monthly content allowance and the candidates LaunchPilot offers: up to 6 ranked
+   remaining monthly content allowance and the candidates Nuvantre offers: up to 6 ranked
    keyword opportunities researched from last week's top searches and the brief, and brief-derived
-   angles for X and LinkedIn. LaunchPilot then checks the plan: SEO articles go only to the blog
+   angles for X and LinkedIn. Nuvantre then checks the plan: SEO articles go only to the blog
    and posts only to X or LinkedIn (launch and community work stays with the founder), every task
    must use an offered keyword or angle, no repeats, at most 2 articles, 3 X posts and 2 LinkedIn
    posts a week, and articles first within the allowance. Any other task is dropped with a reason.

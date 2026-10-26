@@ -7,8 +7,8 @@ import {
   type Result,
   type User,
   type Workspace,
-} from "@launchpilot/domain";
-import type { CheckoutProvider } from "@launchpilot/ports";
+} from "@nuvantre/domain";
+import type { CheckoutProvider } from "@nuvantre/ports";
 import { failure, type UseCaseError } from "./errors";
 
 export class StartCheckout {

@@ -1,4 +1,4 @@
-import { productId } from "@launchpilot/domain";
+import { productId } from "@nuvantre/domain";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -7,7 +7,7 @@ import { getAppContainer } from "../../../../../../container";
 import { requireUser } from "../../../../../_lib/auth";
 import { idParam } from "../../../../../_lib/params";
 
-export const metadata: Metadata = { title: "Weekly report — LaunchPilot" };
+export const metadata: Metadata = { title: "Weekly report — Nuvantre" };
 
 const WEEK = /^\d{4}-W\d{2}$/;
 

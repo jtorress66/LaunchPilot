@@ -3,15 +3,15 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: launchpilot
-      POSTGRES_PASSWORD: launchpilot
-      POSTGRES_DB: launchpilot
+      POSTGRES_USER: nuvantre
+      POSTGRES_PASSWORD: nuvantre
+      POSTGRES_DB: nuvantre
     ports:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U launchpilot"]
+      test: ["CMD-SHELL", "pg_isready -U nuvantre"]
       interval: 5s
       retries: 10
 

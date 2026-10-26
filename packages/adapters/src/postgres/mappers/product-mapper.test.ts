@@ -1,5 +1,5 @@
-import { enableAutopilot } from "@launchpilot/domain";
-import { aProduct } from "@launchpilot/testing";
+import { enableAutopilot } from "@nuvantre/domain";
+import { aProduct } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { productMapper } from "./product-mapper";
 

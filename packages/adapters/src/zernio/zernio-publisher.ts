@@ -5,8 +5,8 @@ import {
   type PublishableContentItem,
   type Result,
   type SocialChannel,
-} from "@launchpilot/domain";
-import type { PublishError, PublishReceipt, Publisher } from "@launchpilot/ports";
+} from "@nuvantre/domain";
+import type { PublishError, PublishReceipt, Publisher } from "@nuvantre/ports";
 import { z } from "zod";
 import {
   callZernio,
@@ -76,7 +76,7 @@ export class ZernioPublisher implements Publisher {
       return failure("unavailable", `Zernio is unavailable (HTTP ${String(status)})`, true);
     }
     if (status === 401) {
-      return failure("not_connected", "Zernio did not accept LaunchPilot's API key", false);
+      return failure("not_connected", "Zernio did not accept Nuvantre's API key", false);
     }
     if (status === 402) {
       return failure("not_connected", `Zernio needs a payment method first: ${reason}`, false);

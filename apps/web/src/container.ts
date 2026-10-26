@@ -50,7 +50,7 @@ import {
   MetricsSourceRegistry,
   StartGoogleConnect,
   WeeklyReportBuilder,
-} from "@launchpilot/application";
+} from "@nuvantre/application";
 import {
   ReviewerAgent,
   StrategistAgent,
@@ -66,7 +66,7 @@ import {
   TemplateLaunchKitWriter,
   TemplateArticleWriter,
   TemplatePostWriter,
-} from "@launchpilot/agents";
+} from "@nuvantre/agents";
 import {
   AesGcmTokenCipher,
   DataForSeoKeywordProvider,
@@ -97,8 +97,8 @@ import {
   PlausibleStatsVerifier,
   SearchConsoleSource,
   type GoogleOptions,
-} from "@launchpilot/adapters";
-import type { MetricsSource } from "@launchpilot/ports";
+} from "@nuvantre/adapters";
+import type { MetricsSource } from "@nuvantre/ports";
 import {
   parseWebConfig,
   type ClaudeConfig,
@@ -339,13 +339,13 @@ const build = (config: WebConfig) => {
 export type AppContainer = ReturnType<typeof build>;
 
 // Cached on globalThis so dev-server reloads reuse one connection pool.
-const cache = globalThis as { launchpilotApp?: AppContainer };
+const cache = globalThis as { nuvantreApp?: AppContainer };
 
 /** Builds the app on first use, so `next build` never needs runtime secrets. */
 export const getAppContainer = (): AppContainer => {
-  if (cache.launchpilotApp) return cache.launchpilotApp;
+  if (cache.nuvantreApp) return cache.nuvantreApp;
   const config = parseWebConfig(process.env);
   if (!config.ok) throw new Error(`Invalid configuration: ${config.error}`);
-  cache.launchpilotApp = build(config.value);
-  return cache.launchpilotApp;
+  cache.nuvantreApp = build(config.value);
+  return cache.nuvantreApp;
 };

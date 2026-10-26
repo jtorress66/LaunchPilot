@@ -1,4 +1,4 @@
-import { parseHttpUrl, productId, workspaceId, type Product } from "@launchpilot/domain";
+import { parseHttpUrl, productId, workspaceId, type Product } from "@nuvantre/domain";
 import type { ProductRow } from "../schema";
 
 export const productMapper = {

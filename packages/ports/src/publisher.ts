@@ -1,4 +1,4 @@
-import type { Channel, ProductId, PublishableContentItem, Result } from "@launchpilot/domain";
+import type { Channel, ProductId, PublishableContentItem, Result } from "@nuvantre/domain";
 import type { PortError } from "./port-error";
 
 export interface PublishReceipt {

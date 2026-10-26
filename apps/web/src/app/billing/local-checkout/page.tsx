@@ -1,4 +1,4 @@
-import { plans } from "@launchpilot/domain";
+import { plans } from "@nuvantre/domain";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -6,7 +6,7 @@ import { getAppContainer } from "../../../container";
 import { payLocalCheckoutAction } from "../../_lib/actions";
 import { requireUser } from "../../_lib/auth";
 
-export const metadata: Metadata = { title: "Test checkout — LaunchPilot" };
+export const metadata: Metadata = { title: "Test checkout — Nuvantre" };
 export const dynamic = "force-dynamic";
 
 /** Stand-in for a hosted checkout, available only with BILLING_PROVIDER=local. */
@@ -29,7 +29,7 @@ export default async function LocalCheckoutPage({
         </p>
         <div className="space-y-6 p-6 sm:p-8">
           <div>
-            <h1 className="text-xl font-semibold">Subscribe to LaunchPilot {plan.name}</h1>
+            <h1 className="text-xl font-semibold">Subscribe to Nuvantre {plan.name}</h1>
             <p className="mt-1 text-3xl font-bold">
               ${plan.priceMonthlyUsd}
               <span className="text-base font-normal text-slate-500"> per month</span>

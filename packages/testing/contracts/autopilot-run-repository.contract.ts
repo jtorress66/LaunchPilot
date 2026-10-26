@@ -1,5 +1,5 @@
-import { autopilotRunId, campaignId, productId, type AutopilotRun } from "@launchpilot/domain";
-import type { AutopilotRunRepository } from "@launchpilot/ports";
+import { autopilotRunId, campaignId, productId, type AutopilotRun } from "@nuvantre/domain";
+import type { AutopilotRunRepository } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 
 const week = (start: string) => {

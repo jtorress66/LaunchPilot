@@ -8,8 +8,8 @@ import {
   validateWeekPlan,
   weeklyReportId,
   type Result,
-} from "@launchpilot/domain";
-import type { CampaignPlan, PlanError, PlanRequest } from "@launchpilot/ports";
+} from "@nuvantre/domain";
+import type { CampaignPlan, PlanError, PlanRequest } from "@nuvantre/ports";
 import { z } from "zod";
 import { sourceResultsSchema } from "./analyst-eval";
 

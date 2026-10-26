@@ -1,4 +1,4 @@
-import { productId } from "@launchpilot/domain";
+import { productId } from "@nuvantre/domain";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -9,7 +9,7 @@ import { getAppContainer } from "../../../../../container";
 import { requireUser } from "../../../../_lib/auth";
 import { idParam } from "../../../../_lib/params";
 
-export const metadata: Metadata = { title: "SEO — LaunchPilot" };
+export const metadata: Metadata = { title: "SEO — Nuvantre" };
 
 const card =
   "space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900";

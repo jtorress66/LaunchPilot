@@ -1,8 +1,8 @@
-import { err, ok, type Result } from "@launchpilot/domain";
+import { err, ok, type Result } from "@nuvantre/domain";
 import { z } from "zod";
 import { channelNames } from "./api";
 
-/** The Zernio operations LaunchPilot calls; a change to any of them is worth a look. */
+/** The Zernio operations Nuvantre calls; a change to any of them is worth a look. */
 const OPERATIONS_WE_CALL: readonly string[] = [
   "POST /v1/profiles",
   "GET /v1/profiles",
@@ -25,7 +25,7 @@ const SCHEMAS_WE_READ: readonly string[] = [
   "ErrorResponse",
 ];
 
-/** The changelog's platform slugs for the channels LaunchPilot publishes to. */
+/** The changelog's platform slugs for the channels Nuvantre publishes to. */
 const OUR_PLATFORMS = { x: channelNames.x, linkedin: channelNames.linkedin } as const;
 
 const operation = z.object({ method: z.string(), path: z.string() });
@@ -59,14 +59,14 @@ export type ZernioChangelogEntry = z.infer<typeof entrySchema>;
 
 export interface ZernioChangeAssessment {
   readonly affected: boolean;
-  /** Why the entry matters to LaunchPilot, one line each. */
+  /** Why the entry matters to Nuvantre, one line each. */
   readonly reasons: readonly string[];
 }
 
 const opKey = ({ method, path }: { method: string; path: string }) =>
   `${method.toUpperCase()} ${path.replace(/^\/api(?=\/v\d)/, "")}`;
 
-/** Whether a changelog entry touches what LaunchPilot calls, reads or publishes to. */
+/** Whether a changelog entry touches what Nuvantre calls, reads or publishes to. */
 export const assessZernioChange = (entry: ZernioChangelogEntry): ZernioChangeAssessment => {
   const { endpoints, schemas } = entry.changes;
   const touched = (ops: readonly { method: string; path: string }[]) =>
@@ -77,11 +77,11 @@ export const assessZernioChange = (entry: ZernioChangelogEntry): ZernioChangeAss
   const actionRequired = entry.impact === "action_required" || entry.type === "breaking_change";
 
   const reasons = [
-    ...touched(endpoints.removed).map((op) => `Removes ${op}, which LaunchPilot calls`),
-    ...touched(endpoints.modified).map((op) => `Changes ${op}, which LaunchPilot calls`),
+    ...touched(endpoints.removed).map((op) => `Removes ${op}, which Nuvantre calls`),
+    ...touched(endpoints.modified).map((op) => `Changes ${op}, which Nuvantre calls`),
     ...schemas.removed
       .filter((name) => SCHEMAS_WE_READ.includes(name))
-      .map((name) => `Removes the ${name} schema, which LaunchPilot reads`),
+      .map((name) => `Removes the ${name} schema, which Nuvantre reads`),
     ...(actionRequired ? ours.map((slug) => `Needs action on ${OUR_PLATFORMS[slug]}`) : []),
     ...(entry.type === "deprecation"
       ? ours.map((slug) => `Deprecates something on ${OUR_PLATFORMS[slug]}`)

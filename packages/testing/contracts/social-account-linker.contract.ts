@@ -1,5 +1,5 @@
-import { socialChannels } from "@launchpilot/domain";
-import type { SocialAccountLinker } from "@launchpilot/ports";
+import { socialChannels } from "@nuvantre/domain";
+import type { SocialAccountLinker } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 
 export interface SocialAccountLinkerHarness {

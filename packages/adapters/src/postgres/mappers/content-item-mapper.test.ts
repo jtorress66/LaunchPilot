@@ -1,5 +1,5 @@
-import { contentItemStatuses, withAgentReview } from "@launchpilot/domain";
-import { aContentItem } from "@launchpilot/testing";
+import { contentItemStatuses, withAgentReview } from "@nuvantre/domain";
+import { aContentItem } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { contentItemMapper } from "./content-item-mapper";
 

@@ -1,5 +1,5 @@
-import { campaignId, productId, taskId, workspaceId } from "@launchpilot/domain";
-import { aCampaign, aProduct, aTask, aUser, aWorkspace } from "@launchpilot/testing";
+import { campaignId, productId, taskId, workspaceId } from "@nuvantre/domain";
+import { aCampaign, aProduct, aTask, aUser, aWorkspace } from "@nuvantre/testing";
 import { sql, type Kysely } from "kysely";
 import { inject } from "vitest";
 import { createDatabase, type Database } from "../../src/postgres";

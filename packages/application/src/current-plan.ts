@@ -3,8 +3,8 @@ import {
   freeSubscription,
   type Subscription,
   type Workspace,
-} from "@launchpilot/domain";
-import type { Clock, SubscriptionRepository } from "@launchpilot/ports";
+} from "@nuvantre/domain";
+import type { Clock, SubscriptionRepository } from "@nuvantre/ports";
 
 /** The workspace's subscription, treating a missing record as Free. */
 export const loadSubscription = async (

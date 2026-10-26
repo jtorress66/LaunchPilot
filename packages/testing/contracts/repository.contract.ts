@@ -7,7 +7,7 @@ import type {
   Repository,
   TaskRepository,
   WorkspaceRepository,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import {
   briefId,
   campaignId,
@@ -20,7 +20,7 @@ import {
   userId,
   withAgentReview,
   workspaceId,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import { describe, expect, it } from "vitest";
 import {
   aBlogConnection,

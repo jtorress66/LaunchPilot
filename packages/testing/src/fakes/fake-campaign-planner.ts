@@ -1,5 +1,5 @@
-import { err, ok, type ProposedTask, type Result } from "@launchpilot/domain";
-import type { CampaignPlan, CampaignPlanner, PlanError, PlanRequest } from "@launchpilot/ports";
+import { err, ok, type ProposedTask, type Result } from "@nuvantre/domain";
+import type { CampaignPlan, CampaignPlanner, PlanError, PlanRequest } from "@nuvantre/ports";
 import { NextFailure } from "./next-failure";
 
 /** By default plans two articles and the offered posts, within the allowance; records requests. */

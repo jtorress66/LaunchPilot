@@ -1,6 +1,6 @@
 "use server";
 
-import { contentItemId, productId, socialChannels } from "@launchpilot/domain";
+import { contentItemId, productId, socialChannels } from "@nuvantre/domain";
 import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getAppContainer } from "../../container";

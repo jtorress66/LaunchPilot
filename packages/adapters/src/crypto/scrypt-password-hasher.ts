@@ -5,7 +5,7 @@ import {
   type BinaryLike,
   type ScryptOptions,
 } from "node:crypto";
-import type { PasswordHasher } from "@launchpilot/ports";
+import type { PasswordHasher } from "@nuvantre/ports";
 
 const derive = (password: BinaryLike, salt: Buffer, length: number, options: ScryptOptions) =>
   new Promise<Buffer>((resolve, reject) => {

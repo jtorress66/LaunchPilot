@@ -7,14 +7,14 @@ import {
   createPostgresRepositories,
   migrateDown,
   migrateToLatest,
-} from "@launchpilot/adapters";
+} from "@nuvantre/adapters";
 import {
   aGoogleConnection,
   aPlausibleConnection,
   aProduct,
   aUser,
   aWorkspace,
-} from "@launchpilot/testing";
+} from "@nuvantre/testing";
 import { http, HttpResponse, type JsonBodyType } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";

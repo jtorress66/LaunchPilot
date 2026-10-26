@@ -1,10 +1,10 @@
-import { err } from "@launchpilot/domain";
-import type { CampaignPlanner, ContentReviewer, LlmClient } from "@launchpilot/ports";
-import { aPlanRequest, FakeLlmClient } from "@launchpilot/testing";
+import { err } from "@nuvantre/domain";
+import type { CampaignPlanner, ContentReviewer, LlmClient } from "@nuvantre/ports";
+import { aPlanRequest, FakeLlmClient } from "@nuvantre/testing";
 import {
   describeCampaignPlannerContract,
   describeContentReviewerContract,
-} from "@launchpilot/testing/contracts";
+} from "@nuvantre/testing/contracts";
 import { ReviewerAgent, StrategistAgent, TemplateReviewer, TemplateStrategist } from "../src";
 
 /** The template agents only fail on input they cannot work with, so the harness supplies it. */

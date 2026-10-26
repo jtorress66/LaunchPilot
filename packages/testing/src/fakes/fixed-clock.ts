@@ -1,4 +1,4 @@
-import type { Clock } from "@launchpilot/ports";
+import type { Clock } from "@nuvantre/ports";
 
 /** Deterministic Clock for tests: time only moves when the test moves it. */
 export class FixedClock implements Clock {

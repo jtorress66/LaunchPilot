@@ -7,7 +7,7 @@ import {
   PublishDueContent,
   PublisherRegistry,
   WeeklyReportBuilder,
-} from "@launchpilot/application";
+} from "@nuvantre/application";
 import {
   ReviewerAgent,
   StrategistAgent,
@@ -21,7 +21,7 @@ import {
   LaunchKitWriter,
   SeoArticleWriter,
   SocialPostWriter,
-} from "@launchpilot/agents";
+} from "@nuvantre/agents";
 import {
   AesGcmTokenCipher,
   createPostgresRepositories,
@@ -47,8 +47,8 @@ import {
   UuidIdGenerator,
   type GoogleOptions,
   SeedKeywordProvider,
-} from "@launchpilot/adapters";
-import type { Clock, MetricsSource, TokenCipher } from "@launchpilot/ports";
+} from "@nuvantre/adapters";
+import type { Clock, MetricsSource, TokenCipher } from "@nuvantre/ports";
 import type {
   AnalystConfig,
   DatabaseConfig,

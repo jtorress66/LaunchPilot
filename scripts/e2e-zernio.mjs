@@ -1,4 +1,4 @@
-// A local stand-in for Zernio's REST API, for E2E only. It implements the calls LaunchPilot makes
+// A local stand-in for Zernio's REST API, for E2E only. It implements the calls Nuvantre makes
 // (profiles, connect, accounts, posts), an authorisation page the founder clicks through, and
 // GET /_stub/posts so tests can assert exactly what would have been posted.
 import { randomUUID } from "node:crypto";
@@ -37,7 +37,7 @@ export const startZernioStub = () => {
     if (path === "/authorize" && req.method === "GET") {
       const platform = url.searchParams.get("platform") ?? "";
       return res.writeHead(200, { "content-type": "text/html; charset=utf-8" }).end(
-        `<!doctype html><title>Authorize</title><h1>Authorize LaunchPilot on ${escape(names[platform] ?? platform)}</h1>
+        `<!doctype html><title>Authorize</title><h1>Authorize Nuvantre on ${escape(names[platform] ?? platform)}</h1>
 <form method="post" action="/authorize">
 <input type="hidden" name="platform" value="${escape(platform)}">
 <input type="hidden" name="profileId" value="${escape(url.searchParams.get("profileId") ?? "")}">

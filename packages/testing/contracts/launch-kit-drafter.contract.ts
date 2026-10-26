@@ -1,5 +1,5 @@
-import { communityChannels, validateListing } from "@launchpilot/domain";
-import type { LaunchKitDrafter, LaunchKitRequest } from "@launchpilot/ports";
+import { communityChannels, validateListing } from "@nuvantre/domain";
+import type { LaunchKitDrafter, LaunchKitRequest } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 import { aBriefContent } from "../src/fixtures/entities";
 

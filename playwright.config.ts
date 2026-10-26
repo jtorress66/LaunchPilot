@@ -17,7 +17,7 @@ export default defineConfig({
     { name: "mobile", use: { ...devices["Pixel 7"] } },
   ],
   webServer: {
-    command: "pnpm --filter @launchpilot/web build && pnpm --filter @launchpilot/web start",
+    command: "pnpm --filter @nuvantre/web build && pnpm --filter @nuvantre/web start",
     url: `${baseURL}/api/health`,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,

@@ -1,5 +1,5 @@
-import type { DraftRequest } from "@launchpilot/ports";
-import { aBriefContent, FakeLlmClient } from "@launchpilot/testing";
+import type { DraftRequest } from "@nuvantre/ports";
+import { aBriefContent, FakeLlmClient } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { SeoArticleWriter } from "./seo-article-writer";
 

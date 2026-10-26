@@ -1,4 +1,4 @@
-import type { ReviewRequest } from "@launchpilot/ports";
+import type { ReviewRequest } from "@nuvantre/ports";
 
 /** Frozen: change it only with an eval run (`pnpm eval`). No per-product data, so it caches. */
 export const REVIEWER_SYSTEM_PROMPT = `You review drafts of marketing content for a SaaS founder before the founder reads them. You recommend; the founder decides.

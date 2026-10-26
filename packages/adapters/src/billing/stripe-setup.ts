@@ -1,4 +1,4 @@
-import { err, ok, plans, type Result } from "@launchpilot/domain";
+import { err, ok, plans, type Result } from "@nuvantre/domain";
 import type Stripe from "stripe";
 import { stripeLookupKeys } from "./stripe-plans";
 
@@ -26,7 +26,7 @@ export const ensureStripePrices = async (
         currency: "usd",
         unit_amount: plans[plan].priceMonthlyUsd * 100,
         recurring: { interval: "month" },
-        product_data: { name: `LaunchPilot ${plans[plan].name}` },
+        product_data: { name: `Nuvantre ${plans[plan].name}` },
       });
       created.push(lookupKey);
     }

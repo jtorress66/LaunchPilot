@@ -5,7 +5,7 @@ import type {
   Result,
   WeekCandidates,
   WeeklyReport,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type { PortError } from "./port-error";
 
 export interface PlanRequest {

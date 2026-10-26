@@ -5,8 +5,8 @@ import {
   type LinkedAccount,
   type Result,
   type SocialChannel,
-} from "@launchpilot/domain";
-import type { SocialAccountLinker, SocialLinkError } from "@launchpilot/ports";
+} from "@nuvantre/domain";
+import type { SocialAccountLinker, SocialLinkError } from "@nuvantre/ports";
 import { z } from "zod";
 import {
   callZernio,

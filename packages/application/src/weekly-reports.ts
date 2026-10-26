@@ -16,7 +16,7 @@ import {
   type SourceResult,
   type WeeklyReport,
   type Workspace,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type {
   AnalyticsConnectionRepository,
   BriefRepository,
@@ -26,7 +26,7 @@ import type {
   ProductRepository,
   WeeklyReportAnalyst,
   WeeklyReportRepository,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { failure, type UseCaseError } from "./errors";
 import type { MetricsSourceRegistry } from "./metrics-source-registry";
 import { loadOwnedProduct } from "./owned-product";

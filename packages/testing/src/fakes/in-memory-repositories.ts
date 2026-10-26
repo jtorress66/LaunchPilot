@@ -28,7 +28,7 @@ import type {
   TaskId,
   Workspace,
   WorkspaceId,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type {
   BriefRepository,
   CampaignRepository,
@@ -48,7 +48,7 @@ import type {
   AnalyticsConnectionRepository,
   WeeklyReportRepository,
   AutopilotRunRepository,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { InMemoryStore } from "./in-memory-store";
 
 /** findById/save shared by every in-memory repository, composed around one store. */

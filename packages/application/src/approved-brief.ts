@@ -1,5 +1,5 @@
-import { err, ok, type BriefContent, type ProductId, type Result } from "@launchpilot/domain";
-import type { BriefRepository } from "@launchpilot/ports";
+import { err, ok, type BriefContent, type ProductId, type Result } from "@nuvantre/domain";
+import type { BriefRepository } from "@nuvantre/ports";
 import { failure, type UseCaseError } from "./errors";
 
 /** Agents work only from a brief the founder approved: it holds the only facts they may state. */

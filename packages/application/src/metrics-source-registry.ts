@@ -1,4 +1,4 @@
-import type { MetricsSource } from "@launchpilot/ports";
+import type { MetricsSource } from "@nuvantre/ports";
 
 /**
  * The analytics sources a weekly report reads. A new source is a new registration here, wired

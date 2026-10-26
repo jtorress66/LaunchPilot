@@ -1,4 +1,4 @@
-import type { IdGenerator } from "@launchpilot/ports";
+import type { IdGenerator } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 
 export function describeIdGeneratorContract(name: string, make: () => IdGenerator): void {

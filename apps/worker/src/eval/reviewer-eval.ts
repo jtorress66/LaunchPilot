@@ -1,5 +1,5 @@
-import { channels, err, ok, type Result } from "@launchpilot/domain";
-import type { ReviewError, ReviewRequest, ReviewVerdict } from "@launchpilot/ports";
+import { channels, err, ok, type Result } from "@nuvantre/domain";
+import type { ReviewError, ReviewRequest, ReviewVerdict } from "@nuvantre/ports";
 import { z } from "zod";
 
 const draftSchema = z.object({

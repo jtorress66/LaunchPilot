@@ -9,13 +9,13 @@ import {
   type Task,
   type TaskId,
   type Workspace,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type {
   CampaignRepository,
   ContentItemRepository,
   ProductRepository,
   TaskRepository,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { failure, type UseCaseError } from "./errors";
 
 const taskNotFound = () => err(failure("task_not_found", "This task does not exist"));

@@ -1,4 +1,4 @@
-import type { BriefStatus } from "@launchpilot/domain";
+import type { BriefStatus } from "@nuvantre/domain";
 
 export function BriefStatusBadge({ status }: { readonly status: BriefStatus }) {
   return (

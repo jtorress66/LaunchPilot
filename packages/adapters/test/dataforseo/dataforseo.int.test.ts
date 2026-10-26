@@ -1,5 +1,5 @@
-import type { KeywordIdea } from "@launchpilot/ports";
-import { describeKeywordProviderContract } from "@launchpilot/testing/contracts";
+import type { KeywordIdea } from "@nuvantre/ports";
+import { describeKeywordProviderContract } from "@nuvantre/testing/contracts";
 import { http, HttpResponse, type JsonBodyType } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";

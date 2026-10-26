@@ -1,5 +1,5 @@
-import { parseEmail, workspaceId } from "@launchpilot/domain";
-import type { CheckoutProvider, CheckoutRequest } from "@launchpilot/ports";
+import { parseEmail, workspaceId } from "@nuvantre/domain";
+import type { CheckoutProvider, CheckoutRequest } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 
 export interface CheckoutProviderHarness {
@@ -15,8 +15,8 @@ const request: CheckoutRequest = {
   workspaceId: workspaceId("ws_1"),
   plan: "starter",
   email: email.value,
-  successUrl: "https://app.launchpilot.test/app/billing?checkout=success",
-  cancelUrl: "https://app.launchpilot.test/app/billing?checkout=canceled",
+  successUrl: "https://app.nuvantre.test/app/billing?checkout=success",
+  cancelUrl: "https://app.nuvantre.test/app/billing?checkout=canceled",
 };
 
 export function describeCheckoutProviderContract(

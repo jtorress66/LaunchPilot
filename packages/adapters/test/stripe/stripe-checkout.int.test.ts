@@ -1,5 +1,5 @@
-import { parseEmail, workspaceId } from "@launchpilot/domain";
-import { describeCheckoutProviderContract } from "@launchpilot/testing/contracts";
+import { parseEmail, workspaceId } from "@nuvantre/domain";
+import { describeCheckoutProviderContract } from "@nuvantre/testing/contracts";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import Stripe from "stripe";
@@ -50,8 +50,8 @@ const request = {
   workspaceId: workspaceId("ws_1"),
   plan: "starter" as const,
   email: email.value,
-  successUrl: "https://app.launchpilot.test/app/billing?checkout=success",
-  cancelUrl: "https://app.launchpilot.test/app/billing?checkout=canceled",
+  successUrl: "https://app.nuvantre.test/app/billing?checkout=success",
+  cancelUrl: "https://app.nuvantre.test/app/billing?checkout=canceled",
 };
 
 describe("StripeCheckoutProvider", () => {
@@ -72,7 +72,7 @@ describe("StripeCheckoutProvider", () => {
     const result = await provider().createCheckout(request);
 
     expect(result).toEqual({ ok: true, value: { url: checkoutSession.url } });
-    expect(decodeURIComponent(priceQuery)).toContain("lookup_keys[0]=launchpilot_starter_monthly");
+    expect(decodeURIComponent(priceQuery)).toContain("lookup_keys[0]=nuvantre_starter_monthly");
     expect(Object.fromEntries(sessionBody)).toMatchObject({
       mode: "subscription",
       "line_items[0][price]": "price_1QStarterMonthly",

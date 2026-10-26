@@ -1,4 +1,4 @@
-import { aBlogConnection } from "@launchpilot/testing";
+import { aBlogConnection } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { channelConnectionMapper } from "./channel-connection-mapper";
 

@@ -1,4 +1,4 @@
-import type { BriefContent, QuotedFact, Result } from "@launchpilot/domain";
+import type { BriefContent, QuotedFact, Result } from "@nuvantre/domain";
 import type { LlmError } from "./llm-client";
 import type { PortError } from "./port-error";
 import type { CrawledSite } from "./site-crawler";

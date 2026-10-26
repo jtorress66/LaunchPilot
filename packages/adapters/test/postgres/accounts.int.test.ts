@@ -1,5 +1,5 @@
-import { userId, workspaceId } from "@launchpilot/domain";
-import { aSession, aSubscription, aUser } from "@launchpilot/testing";
+import { userId, workspaceId } from "@nuvantre/domain";
+import { aSession, aSubscription, aUser } from "@nuvantre/testing";
 import { sql } from "kysely";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { PostgresSessionRepository, PostgresUserRepository } from "../../src/postgres";

@@ -1,5 +1,5 @@
-import type { LaunchKitRequest } from "@launchpilot/ports";
-import { aBriefContent, aListing, FakeLlmClient } from "@launchpilot/testing";
+import type { LaunchKitRequest } from "@nuvantre/ports";
+import { aBriefContent, aListing, FakeLlmClient } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { LaunchKitWriter } from "./launch-kit-writer";
 

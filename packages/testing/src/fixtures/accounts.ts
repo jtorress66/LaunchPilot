@@ -13,7 +13,7 @@ import {
   type User,
   type UserId,
   type WorkspaceId,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import { fixtureNow, unwrap } from "./entities";
 
 export const aUser = (

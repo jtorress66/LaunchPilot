@@ -1,4 +1,4 @@
-import { err, ok, type Result } from "@launchpilot/domain";
+import { err, ok, type Result } from "@nuvantre/domain";
 import type {
   ContentReviewer,
   LlmClient,
@@ -6,7 +6,7 @@ import type {
   ReviewError,
   ReviewRequest,
   ReviewVerdict,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { draftBlockers, isEmptyDraft } from "./draft-checks";
 import { REVIEWER_SYSTEM_PROMPT, reviewerUserMessage } from "./prompt";
 import { verdictAnswer, verdictAnswerJsonSchema } from "./schema";

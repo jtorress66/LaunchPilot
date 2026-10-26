@@ -19,7 +19,7 @@ const PLAUSIBLE_SITE = "acme.dev";
 const PLAUSIBLE_KEY_PREFIX = "plausible-e2e-";
 
 const DAY = 86_400_000;
-/** Monday of the last complete UTC week, as LaunchPilot computes it. */
+/** Monday of the last complete UTC week, as Nuvantre computes it. */
 const reportWeekStart = () => {
   const now = new Date();
   const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
@@ -58,7 +58,7 @@ export const startAnalyticsStub = () => {
       const redirect = url.searchParams.get("redirect_uri") ?? "/";
       const state = url.searchParams.get("state") ?? "";
       return res.writeHead(200, { "content-type": "text/html; charset=utf-8" }).end(
-        `<!doctype html><title>Sign in with Google</title><h1>LaunchPilot wants read-only access</h1>
+        `<!doctype html><title>Sign in with Google</title><h1>Nuvantre wants read-only access</h1>
 <p>${escape(url.searchParams.get("scope") ?? "")}</p>
 <form method="post" action="/o/oauth2/v2/auth">
 <input type="hidden" name="redirect" value="${escape(redirect)}">

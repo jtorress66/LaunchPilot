@@ -1,5 +1,5 @@
-import { productId } from "@launchpilot/domain";
-import { aDirectory, aSubmission } from "@launchpilot/testing";
+import { productId } from "@nuvantre/domain";
+import { aDirectory, aSubmission } from "@nuvantre/testing";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import {
   PostgresDirectoryCatalog,

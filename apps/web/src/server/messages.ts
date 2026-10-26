@@ -57,7 +57,7 @@ const UNREACHABLE = "The analytics service could not be reached. Try again in a 
 const analyticsMessages: Partial<Record<string, string>> = {
   invalid_grant: "The Google sign-in expired. Try connecting again.",
   denied: "Google access was not granted.",
-  missing_scope: "Allow LaunchPilot to see Search Console or Analytics data to connect Google.",
+  missing_scope: "Allow Nuvantre to see Search Console or Analytics data to connect Google.",
   oauth_state_mismatch: "The Google sign-in could not be checked. Try connecting again.",
   invalid_credentials: "The key was rejected. Check it and try again.",
   site_not_found: "No site with that domain was found for this key.",

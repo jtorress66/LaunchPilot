@@ -1,12 +1,12 @@
-import { err, ok, type HttpUrl, type Result } from "@launchpilot/domain";
-import type { CrawledPage, CrawledSite, CrawlError, SiteCrawler } from "@launchpilot/ports";
+import { err, ok, type HttpUrl, type Result } from "@nuvantre/domain";
+import type { CrawledPage, CrawledSite, CrawlError, SiteCrawler } from "@nuvantre/ports";
 import { httpGet, type SafeHttpOptions } from "../net/safe-http";
 import { parseHtmlPage } from "./html-page";
 import { pickLinks } from "./link-picker";
 import { parseRobots } from "./robots";
 
-export const CRAWLER_USER_AGENT = "LaunchPilotBot/1.0 (+https://launchpilot.app/bot)";
-const ROBOTS_TOKEN = "LaunchPilotBot";
+export const CRAWLER_USER_AGENT = "NuvantreBot/1.0 (+https://nuvantre.app/bot)";
+const ROBOTS_TOKEN = "NuvantreBot";
 
 export interface HttpSiteCrawlerOptions {
   /** Development and test only: lets the crawler reach localhost and LAN addresses. */

@@ -11,14 +11,14 @@ import {
   type Result,
   type SocialChannel,
   type Workspace,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type {
   BriefRepository,
   Clock,
   ContentItemRepository,
   ProductRepository,
   SocialProfileRepository,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import type { UseCaseError } from "./errors";
 import { loadOwnedProduct } from "./owned-product";
 

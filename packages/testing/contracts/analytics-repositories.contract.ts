@@ -1,5 +1,5 @@
-import { productId, withAnalystNotes, type ReportWeek } from "@launchpilot/domain";
-import type { AnalyticsConnectionRepository, WeeklyReportRepository } from "@launchpilot/ports";
+import { productId, withAnalystNotes, type ReportWeek } from "@nuvantre/domain";
+import type { AnalyticsConnectionRepository, WeeklyReportRepository } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 import {
   aGoogleConnection,

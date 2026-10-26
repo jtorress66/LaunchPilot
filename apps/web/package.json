@@ -1,5 +1,5 @@
 {
-  "name": "@launchpilot/web",
+  "name": "@nuvantre/web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,11 +10,11 @@
     "typecheck": "tsc --noEmit -p ."
   },
   "dependencies": {
-    "@launchpilot/adapters": "workspace:*",
-    "@launchpilot/agents": "workspace:*",
-    "@launchpilot/application": "workspace:*",
-    "@launchpilot/domain": "workspace:*",
-    "@launchpilot/ports": "workspace:*",
+    "@nuvantre/adapters": "workspace:*",
+    "@nuvantre/agents": "workspace:*",
+    "@nuvantre/application": "workspace:*",
+    "@nuvantre/domain": "workspace:*",
+    "@nuvantre/ports": "workspace:*",
     "next": "15.5.27",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -22,7 +22,7 @@
     "zod": "3.25.76"
   },
   "devDependencies": {
-    "@launchpilot/testing": "workspace:*",
+    "@nuvantre/testing": "workspace:*",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "22.20.5",
     "@types/react": "19.2.18",

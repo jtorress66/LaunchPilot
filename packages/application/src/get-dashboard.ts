@@ -7,14 +7,14 @@ import {
   type Product,
   type SubscriptionStatus,
   type Workspace,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type {
   BriefRepository,
   Clock,
   ContentItemRepository,
   ProductRepository,
   SubscriptionRepository,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { loadSubscription } from "./current-plan";
 
 export interface Dashboard {

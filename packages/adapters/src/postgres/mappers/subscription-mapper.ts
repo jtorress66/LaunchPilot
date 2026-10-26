@@ -1,4 +1,4 @@
-import { planIds, subscriptionStatuses, workspaceId, type Subscription } from "@launchpilot/domain";
+import { planIds, subscriptionStatuses, workspaceId, type Subscription } from "@nuvantre/domain";
 import type { SubscriptionRow } from "../schema";
 import { oneOf } from "./columns";
 

@@ -1,4 +1,4 @@
-import { productId } from "@launchpilot/domain";
+import { productId } from "@nuvantre/domain";
 import { NextResponse, type NextRequest } from "next/server";
 import { getAppContainer } from "../../../../container";
 import { GOOGLE_STATE_COOKIE, readGoogleState } from "../../../../server/oauth-state-cookie";

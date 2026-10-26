@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { approveLaunchKit, generateLaunchKit, onLaunchPage, trackerRow } from "./helpers";
 
-test("a Show HN draft is approved in the inbox and posted by hand, never published by LaunchPilot", async ({
+test("a Show HN draft is approved in the inbox and posted by hand, never published by Nuvantre", async ({
   page,
 }) => {
   await onLaunchPage(page);

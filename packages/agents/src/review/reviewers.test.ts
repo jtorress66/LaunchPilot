@@ -1,5 +1,5 @@
-import type { ReviewRequest } from "@launchpilot/ports";
-import { aBriefContent, FakeLlmClient } from "@launchpilot/testing";
+import type { ReviewRequest } from "@nuvantre/ports";
+import { aBriefContent, FakeLlmClient } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { ReviewerAgent } from "./reviewer-agent";
 import { TemplateReviewer } from "./template-reviewer";

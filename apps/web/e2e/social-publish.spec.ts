@@ -16,7 +16,7 @@ test("a founder links X through Zernio, approves a drafted post from the inbox a
 
   // Link X on the platform's consent page (through Zernio) and come back.
   await page.getByRole("button", { name: "Connect X" }).click();
-  await expect(page.getByRole("heading", { name: "Authorize LaunchPilot on X" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Authorize Nuvantre on X" })).toBeVisible();
   await page.getByRole("button", { name: "Authorize" }).click();
   await expect(page).toHaveURL(/\/social\?linked=1$/);
   await expect(page.getByRole("status")).toContainText("Linked: X");

@@ -5,8 +5,8 @@ import {
   SystemClock,
   UuidIdGenerator,
   RandomTokenGenerator,
-} from "@launchpilot/adapters";
-import { ExtractiveBriefDrafter } from "@launchpilot/agents";
+} from "@nuvantre/adapters";
+import { ExtractiveBriefDrafter } from "@nuvantre/agents";
 import {
   ApproveBrief,
   CreateProduct,
@@ -14,8 +14,8 @@ import {
   GetBrief,
   SignUp,
   UpdateBrief,
-} from "@launchpilot/application";
-import { FakeSiteCrawler } from "@launchpilot/testing";
+} from "@nuvantre/application";
+import { FakeSiteCrawler } from "@nuvantre/testing";
 import { afterAll, describe, expect, it } from "vitest";
 import { inject } from "vitest";
 

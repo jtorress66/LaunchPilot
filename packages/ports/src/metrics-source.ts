@@ -1,4 +1,4 @@
-import type { MetricsSnapshot, ProductId, Result } from "@launchpilot/domain";
+import type { MetricsSnapshot, ProductId, Result } from "@nuvantre/domain";
 import type { PortError } from "./port-error";
 
 export interface MetricsQuery {

@@ -1,5 +1,5 @@
-import { err, ok, type BillingEvent, type Result } from "@launchpilot/domain";
-import type { BillingError, BillingWebhookVerifier } from "@launchpilot/ports";
+import { err, ok, type BillingEvent, type Result } from "@nuvantre/domain";
+import type { BillingError, BillingWebhookVerifier } from "@nuvantre/ports";
 
 const IGNORED = "fake.ignored_event";
 

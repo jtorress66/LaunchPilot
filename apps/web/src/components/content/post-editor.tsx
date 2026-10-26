@@ -1,6 +1,6 @@
 "use client";
 
-import { maxLengthOf, type ContentItemStatus, type SocialChannel } from "@launchpilot/domain";
+import { maxLengthOf, type ContentItemStatus, type SocialChannel } from "@nuvantre/domain";
 import { useActionState, useState } from "react";
 import { approveArticleAction, type ContentActionState } from "../../app/_lib/content-actions";
 import {

@@ -28,8 +28,8 @@ export function BlogConnectionForm({
       ) : (
         <p className="text-sm text-slate-600 dark:text-slate-400">
           In WordPress, open <em>Users → Profile → Application Passwords</em>, create one named
-          &ldquo;LaunchPilot&rdquo; and paste it here. It is stored encrypted and used only to
-          publish articles you approve.
+          &ldquo;Nuvantre&rdquo; and paste it here. It is stored encrypted and used only to publish
+          articles you approve.
         </p>
       )}
       <form action={action} className="space-y-4" noValidate>

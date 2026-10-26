@@ -1,5 +1,5 @@
-import { weeklyChannelCaps } from "@launchpilot/domain";
-import type { PlanRequest } from "@launchpilot/ports";
+import { weeklyChannelCaps } from "@nuvantre/domain";
+import type { PlanRequest } from "@nuvantre/ports";
 import { reportLines } from "../analytics/prompt";
 
 /** Frozen: change it only with an eval run (`pnpm eval`). No per-product data, so it caches. */

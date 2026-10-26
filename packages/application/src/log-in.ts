@@ -1,11 +1,11 @@
-import { err, ok, parseEmail, startSession, type Result, type Session } from "@launchpilot/domain";
+import { err, ok, parseEmail, startSession, type Result, type Session } from "@nuvantre/domain";
 import type {
   Clock,
   PasswordHasher,
   SessionRepository,
   TokenGenerator,
   UserRepository,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { failure, type UseCaseError } from "./errors";
 
 export interface LogInDeps {

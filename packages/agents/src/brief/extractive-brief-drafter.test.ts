@@ -1,6 +1,6 @@
-import { isGrounded } from "@launchpilot/domain";
-import type { CrawledSite } from "@launchpilot/ports";
-import { briefDrafterContractSite as site } from "@launchpilot/testing/contracts";
+import { isGrounded } from "@nuvantre/domain";
+import type { CrawledSite } from "@nuvantre/ports";
+import { briefDrafterContractSite as site } from "@nuvantre/testing/contracts";
 import { describe, expect, it } from "vitest";
 import { ExtractiveBriefDrafter } from "./extractive-brief-drafter";
 

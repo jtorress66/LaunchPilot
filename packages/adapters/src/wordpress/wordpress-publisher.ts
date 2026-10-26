@@ -1,11 +1,5 @@
-import {
-  err,
-  ok,
-  parseHttpUrl,
-  type PublishableContentItem,
-  type Result,
-} from "@launchpilot/domain";
-import type { Clock, PublishError, PublishReceipt, Publisher } from "@launchpilot/ports";
+import { err, ok, parseHttpUrl, type PublishableContentItem, type Result } from "@nuvantre/domain";
+import type { Clock, PublishError, PublishReceipt, Publisher } from "@nuvantre/ports";
 import { z } from "zod";
 import { safeRequest } from "../net/safe-http";
 import { markdownToHtml } from "./markdown-to-html";

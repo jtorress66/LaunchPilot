@@ -1,11 +1,11 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { err, ok, type BillingEvent, type Result } from "@launchpilot/domain";
+import { err, ok, type BillingEvent, type Result } from "@nuvantre/domain";
 import type {
   BillingError,
   BillingWebhookVerifier,
   CheckoutProvider,
   CheckoutRequest,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 
 /**
  * Development and E2E stand-in for a payment provider. The checkout is a page inside the app that

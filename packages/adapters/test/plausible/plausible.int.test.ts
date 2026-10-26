@@ -1,13 +1,13 @@
-import { productId, type MetricsSnapshot } from "@launchpilot/domain";
+import { productId, type MetricsSnapshot } from "@nuvantre/domain";
 import {
   aPlausibleConnection,
   FakeTokenCipher,
   InMemoryAnalyticsConnectionRepository,
-} from "@launchpilot/testing";
+} from "@nuvantre/testing";
 import {
   describeMetricsSourceContract,
   describePlausibleSiteVerifierContract,
-} from "@launchpilot/testing/contracts";
+} from "@nuvantre/testing/contracts";
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";

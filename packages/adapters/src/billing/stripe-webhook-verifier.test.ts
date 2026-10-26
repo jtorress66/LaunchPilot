@@ -11,7 +11,7 @@ const deliver = (body: Record<string, unknown>) => {
   return verifier.verify(payload, stripe.webhooks.generateTestHeaderString({ payload, secret }));
 };
 
-const subscriptionUpdate = (status: string, lookupKey = "launchpilot_starter_monthly") => ({
+const subscriptionUpdate = (status: string, lookupKey = "nuvantre_starter_monthly") => ({
   type: "customer.subscription.updated",
   data: {
     object: {
@@ -56,12 +56,23 @@ describe("StripeWebhookVerifier mapping", () => {
     expect(result).toEqual({ ok: true, value: null });
   });
 
+  it.each([
+    ["launchpilot_starter_monthly", "starter"],
+    ["launchpilot_growth_monthly", "growth"],
+  ])(
+    "keeps recognising %s, a price created before the rename to Nuvantre, as %s",
+    async (lookupKey, plan) => {
+      const result = await deliver(subscriptionUpdate("active", lookupKey));
+      expect(result).toMatchObject({ ok: true, value: { type: "subscription_updated", plan } });
+    },
+  );
+
   it("reports a price whose lookup key it does not know as a configuration problem", async () => {
     const result = await deliver(subscriptionUpdate("active", "someone_elses_price"));
     expect(result).toMatchObject({ ok: false, error: { code: "misconfigured" } });
   });
 
-  it("reports a completed checkout without LaunchPilot metadata as a configuration problem", async () => {
+  it("reports a completed checkout without Nuvantre metadata as a configuration problem", async () => {
     const result = await deliver({
       type: "checkout.session.completed",
       data: {

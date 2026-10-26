@@ -1,5 +1,5 @@
-import { maxLengthOf, type BriefContent } from "@launchpilot/domain";
-import type { ReviewIssue, ReviewRequest } from "@launchpilot/ports";
+import { maxLengthOf, type BriefContent } from "@nuvantre/domain";
+import type { ReviewIssue, ReviewRequest } from "@nuvantre/ports";
 
 /** Launch-day hype no channel should carry. Lower case; matched as substrings. */
 export const HYPE_WORDS = [

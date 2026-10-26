@@ -1,4 +1,4 @@
-import { userId, workspaceId, type Workspace } from "@launchpilot/domain";
+import { userId, workspaceId, type Workspace } from "@nuvantre/domain";
 import type { WorkspaceRow } from "../schema";
 
 export const workspaceMapper = {

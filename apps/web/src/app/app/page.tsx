@@ -6,7 +6,7 @@ import { ProductForm } from "../../components/forms/product-form";
 import { getAppContainer } from "../../container";
 import { requireUser } from "../_lib/auth";
 
-export const metadata: Metadata = { title: "Dashboard — LaunchPilot" };
+export const metadata: Metadata = { title: "Dashboard — Nuvantre" };
 
 const briefLinkLabel = {
   none: "Draft brief",
@@ -25,7 +25,7 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-            Add the products you want LaunchPilot to market.
+            Add the products you want Nuvantre to market.
           </p>
         </div>
         <div className="flex items-center gap-3">

@@ -1,10 +1,10 @@
-import { err, ok, type Result } from "@launchpilot/domain";
+import { err, ok, type Result } from "@nuvantre/domain";
 import type {
   Analysis,
   AnalysisError,
   AnalysisRequest,
   WeeklyReportAnalyst,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { NextFailure } from "./next-failure";
 
 /** Fixed notes naming the week; records requests. */

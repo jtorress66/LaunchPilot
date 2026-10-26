@@ -1,4 +1,4 @@
-import { parseEmail, userId, type User } from "@launchpilot/domain";
+import { parseEmail, userId, type User } from "@nuvantre/domain";
 import type { UserRow } from "../schema";
 
 export const userMapper = {

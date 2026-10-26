@@ -1,4 +1,4 @@
-import type { BillingEvent, Email, PlanId, Result, WorkspaceId } from "@launchpilot/domain";
+import type { BillingEvent, Email, PlanId, Result, WorkspaceId } from "@nuvantre/domain";
 import type { PortError } from "./port-error";
 
 export type BillingError = PortError<"provider_error" | "invalid_signature" | "misconfigured">;
@@ -18,7 +18,7 @@ export interface CheckoutProvider {
 
 /**
  * Checks a webhook's signature and translates it into a provider-neutral BillingEvent.
- * Returns `null` for event types LaunchPilot does not act on.
+ * Returns `null` for event types Nuvantre does not act on.
  */
 export interface BillingWebhookVerifier {
   verify(payload: string, signature: string): Promise<Result<BillingEvent | null, BillingError>>;

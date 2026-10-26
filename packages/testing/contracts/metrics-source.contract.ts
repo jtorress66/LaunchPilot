@@ -1,5 +1,5 @@
-import { productId, type MetricName, type MetricsSnapshot } from "@launchpilot/domain";
-import type { MetricsSource } from "@launchpilot/ports";
+import { productId, type MetricName, type MetricsSnapshot } from "@nuvantre/domain";
+import type { MetricsSource } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 
 export interface MetricsSourceHarness {

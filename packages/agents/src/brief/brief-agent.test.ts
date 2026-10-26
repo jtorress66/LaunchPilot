@@ -1,6 +1,6 @@
-import type { BriefDraftRequest } from "@launchpilot/ports";
-import { FakeLlmClient } from "@launchpilot/testing";
-import { briefDrafterContractSite } from "@launchpilot/testing/contracts";
+import type { BriefDraftRequest } from "@nuvantre/ports";
+import { FakeLlmClient } from "@nuvantre/testing";
+import { briefDrafterContractSite } from "@nuvantre/testing/contracts";
 import { describe, expect, it } from "vitest";
 import { BriefAgent } from "./brief-agent";
 

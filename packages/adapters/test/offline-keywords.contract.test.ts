@@ -1,4 +1,4 @@
-import { describeKeywordProviderContract } from "@launchpilot/testing/contracts";
+import { describeKeywordProviderContract } from "@nuvantre/testing/contracts";
 import { SeedKeywordProvider } from "../src";
 
 describeKeywordProviderContract("SeedKeywordProvider", () => ({

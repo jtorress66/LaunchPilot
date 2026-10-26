@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("landing page", () => {
-  test("shows the LaunchPilot headline and a primary call to action", async ({ page }) => {
+  test("shows the Nuvantre headline and a primary call to action", async ({ page }) => {
     await page.goto("/");
-    await expect(page).toHaveTitle(/LaunchPilot/);
+    await expect(page).toHaveTitle(/Nuvantre/);
     await expect(page.getByRole("heading", { level: 1 })).toContainText("marketing team");
     await expect(page.getByRole("link", { name: "Start free" }).first()).toBeVisible();
   });

@@ -1,11 +1,11 @@
-import { err, maxLengthOf, ok, type Result } from "@launchpilot/domain";
+import { err, maxLengthOf, ok, type Result } from "@nuvantre/domain";
 import type {
   ContentReviewer,
   ReviewError,
   ReviewIssue,
   ReviewRequest,
   ReviewVerdict,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { NextFailure } from "./next-failure";
 
 /** The scripted verdict, plus the checks every reviewer must make: length and a required link. */

@@ -1,7 +1,7 @@
-import { TemplateReviewer } from "@launchpilot/agents";
+import { TemplateReviewer } from "@nuvantre/agents";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { ReviewError, ReviewVerdict } from "@launchpilot/ports";
+import type { ReviewError, ReviewVerdict } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 import {
   parseReviewerEvalCase,

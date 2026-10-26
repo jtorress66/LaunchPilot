@@ -1,5 +1,5 @@
-import type { AnalysisRequest } from "@launchpilot/ports";
-import { aBriefContent, aWeeklyReport, FakeLlmClient } from "@launchpilot/testing";
+import type { AnalysisRequest } from "@nuvantre/ports";
+import { aBriefContent, aWeeklyReport, FakeLlmClient } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { AnalystAgent } from "./analyst-agent";
 

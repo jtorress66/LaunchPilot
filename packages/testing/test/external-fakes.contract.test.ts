@@ -1,4 +1,4 @@
-import { channels } from "@launchpilot/domain";
+import { channels } from "@nuvantre/domain";
 import {
   describeBlogConnectionVerifierContract,
   describeSocialAccountLinkerContract,
@@ -23,8 +23,8 @@ import {
   FakeAnalyticsPropertyLister,
   FakePlausibleSiteVerifier,
 } from "../src";
-import { productId } from "@launchpilot/domain";
-import { isAutoPublishable } from "@launchpilot/domain";
+import { productId } from "@nuvantre/domain";
+import { isAutoPublishable } from "@nuvantre/domain";
 
 const outage = { code: "unavailable", message: "Simulated outage", retryable: true } as const;
 

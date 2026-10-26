@@ -1,4 +1,4 @@
-import { communityChannels, err, ok, type Result } from "@launchpilot/domain";
+import { communityChannels, err, ok, type Result } from "@nuvantre/domain";
 import type {
   DraftError,
   LaunchKitDraft,
@@ -7,7 +7,7 @@ import type {
   LlmClient,
   LlmError,
   LlmMessage,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { kitProblems } from "./kit-rules";
 import { LAUNCH_SYSTEM_PROMPT, launchUserMessage, rewriteMessage } from "./prompt";
 import { kitAnswer, kitAnswerJsonSchema, type KitAnswer } from "./schema";

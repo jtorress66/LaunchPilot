@@ -1,5 +1,5 @@
-import type { ProductId } from "@launchpilot/domain";
-import type { PublisherProvider } from "@launchpilot/ports";
+import type { ProductId } from "@nuvantre/domain";
+import type { PublisherProvider } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 
 export interface PublisherProviderHarness {

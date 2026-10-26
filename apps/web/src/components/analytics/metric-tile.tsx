@@ -1,9 +1,4 @@
-import {
-  formatChange,
-  formatMetricValue,
-  metricLabels,
-  type ReportMetric,
-} from "@launchpilot/domain";
+import { formatChange, formatMetricValue, metricLabels, type ReportMetric } from "@nuvantre/domain";
 import { sourceName } from "./source-name";
 
 /** Up is good except for search position, where a lower number is better. */

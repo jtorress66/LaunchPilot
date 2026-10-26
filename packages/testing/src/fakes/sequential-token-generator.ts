@@ -1,4 +1,4 @@
-import type { TokenGenerator } from "@launchpilot/ports";
+import type { TokenGenerator } from "@nuvantre/ports";
 
 /** Predictable 32-character tokens: `token_0000…0001`, `token_0000…0002`, … */
 export class SequentialTokenGenerator implements TokenGenerator {

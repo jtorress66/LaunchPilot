@@ -14,7 +14,7 @@ import {
   type SubmissionEvent,
   type SubmissionId,
   type Workspace,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type {
   Clock,
   ContentItemRepository,
@@ -23,7 +23,7 @@ import type {
   LaunchKitRepository,
   ProductRepository,
   SubmissionRepository,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { failure, type UseCaseError } from "./errors";
 import { loadOwnedProduct } from "./owned-product";
 

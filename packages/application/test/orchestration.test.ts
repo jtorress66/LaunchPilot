@@ -1,7 +1,7 @@
-import { contentItemId, type Product, type User, type Workspace } from "@launchpilot/domain";
-import { aContentItem, aWeeklyReport } from "@launchpilot/testing";
+import { contentItemId, type Product, type User, type Workspace } from "@nuvantre/domain";
+import { aContentItem, aWeeklyReport } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
-import { FakeContentDrafter } from "@launchpilot/testing";
+import { FakeContentDrafter } from "@nuvantre/testing";
 import {
   DrafterRegistry,
   ApproveBrief,

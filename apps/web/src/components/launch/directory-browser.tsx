@@ -1,4 +1,4 @@
-import type { DirectoryEntry } from "@launchpilot/application";
+import type { DirectoryEntry } from "@nuvantre/application";
 import Link from "next/link";
 import type { DirectoryFilter } from "../../server/forms";
 import { AddDirectoryButton } from "./add-directory-button";

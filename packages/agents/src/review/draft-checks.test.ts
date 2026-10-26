@@ -1,4 +1,4 @@
-import { aBriefContent } from "@launchpilot/testing";
+import { aBriefContent } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { draftBlockers } from "./draft-checks";
 

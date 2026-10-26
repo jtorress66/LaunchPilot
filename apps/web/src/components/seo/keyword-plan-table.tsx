@@ -1,4 +1,4 @@
-import type { SeoOverview } from "@launchpilot/application";
+import type { SeoOverview } from "@nuvantre/application";
 import Link from "next/link";
 import { ContentStatusBadge } from "../content/content-status-badge";
 import { DraftArticleButton } from "./draft-article-button";

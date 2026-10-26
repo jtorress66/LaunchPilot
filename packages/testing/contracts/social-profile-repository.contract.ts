@@ -1,5 +1,5 @@
-import { productId, socialProfileId, withLinkedAccounts } from "@launchpilot/domain";
-import type { SocialProfileRepository } from "@launchpilot/ports";
+import { productId, socialProfileId, withLinkedAccounts } from "@nuvantre/domain";
+import type { SocialProfileRepository } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 import { aSocialProfile } from "../src/fixtures/entities";
 

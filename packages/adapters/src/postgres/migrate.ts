@@ -1,4 +1,4 @@
-import { err, ok, type Result } from "@launchpilot/domain";
+import { err, ok, type Result } from "@nuvantre/domain";
 import { Migrator, NO_MIGRATIONS, type Kysely, type MigrationResultSet } from "kysely";
 import { migrationProvider } from "./migrations";
 import type { Database } from "./schema";

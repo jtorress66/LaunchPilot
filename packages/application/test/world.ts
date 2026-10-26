@@ -39,7 +39,7 @@ import {
   InMemoryWorkspaceRepository,
   SequentialIdGenerator,
   SequentialTokenGenerator,
-} from "@launchpilot/testing";
+} from "@nuvantre/testing";
 import { DrafterRegistry, MetricsSourceRegistry, PublisherRegistry, SignUp } from "../src";
 
 /** Every port a use case may need, backed by in-memory fakes. */
@@ -68,7 +68,7 @@ export const makeWorld = () => {
     drafter: new FakeBriefDrafter(),
     checkout: new FakeCheckoutProvider(),
     verifier: new FakeWebhookVerifier(),
-    appUrl: "https://app.launchpilot.test",
+    appUrl: "https://app.nuvantre.test",
     campaigns: new InMemoryCampaignRepository(),
     tasks: new InMemoryTaskRepository(),
     contentItems: new InMemoryContentItemRepository(),

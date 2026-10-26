@@ -1,9 +1,9 @@
-import { err, ok, type Result } from "@launchpilot/domain";
+import { err, ok, type Result } from "@nuvantre/domain";
 import type {
   PlausibleCredentials,
   PlausibleSiteVerifier,
   PlausibleVerifyError,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { queryStats, type PlausibleNetwork, type StatsFailure } from "./stats-api";
 
 const verifyError = (failure: StatsFailure): PlausibleVerifyError => {

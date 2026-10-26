@@ -1,5 +1,5 @@
-import type { Product, ProductId, WorkspaceId } from "@launchpilot/domain";
-import type { ProductRepository } from "@launchpilot/ports";
+import type { Product, ProductId, WorkspaceId } from "@nuvantre/domain";
+import type { ProductRepository } from "@nuvantre/ports";
 import type { Kysely } from "kysely";
 import { productMapper } from "../mappers/product-mapper";
 import type { Database } from "../schema";

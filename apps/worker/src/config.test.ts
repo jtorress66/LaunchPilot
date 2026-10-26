@@ -8,15 +8,15 @@ import {
 } from "./config";
 
 describe("parseDatabaseConfig", () => {
-  it.each([
-    "postgres://app:secret@localhost:5432/launchpilot",
-    "postgresql://db.internal/launchpilot",
-  ])("accepts %s", (url) => {
-    expect(parseDatabaseConfig({ DATABASE_URL: url })).toEqual({
-      ok: true,
-      value: { connectionString: url },
-    });
-  });
+  it.each(["postgres://app:secret@localhost:5432/nuvantre", "postgresql://db.internal/nuvantre"])(
+    "accepts %s",
+    (url) => {
+      expect(parseDatabaseConfig({ DATABASE_URL: url })).toEqual({
+        ok: true,
+        value: { connectionString: url },
+      });
+    },
+  );
 
   it("explains that DATABASE_URL is required when it is missing", () => {
     expect(parseDatabaseConfig({})).toEqual({
@@ -60,7 +60,7 @@ describe("parseStripeSetupConfig", () => {
 describe("parsePublisherConfig", () => {
   const KEY = Buffer.alloc(32, 7).toString("base64");
   const env = {
-    DATABASE_URL: "postgres://localhost/launchpilot",
+    DATABASE_URL: "postgres://localhost/nuvantre",
     TOKEN_ENCRYPTION_KEY: KEY,
     ZERNIO_API_KEY: "sk_test_zernio",
   };
@@ -69,7 +69,7 @@ describe("parsePublisherConfig", () => {
     expect(parsePublisherConfig(env)).toEqual({
       ok: true,
       value: {
-        connectionString: "postgres://localhost/launchpilot",
+        connectionString: "postgres://localhost/nuvantre",
         tokenEncryptionKey: KEY,
         allowPrivateNetwork: false,
         intervalMs: 60_000,

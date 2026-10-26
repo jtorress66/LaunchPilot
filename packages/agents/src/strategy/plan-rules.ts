@@ -3,8 +3,8 @@ import {
   validateWeekPlan,
   type DropReason,
   type ProposedTask,
-} from "@launchpilot/domain";
-import type { CampaignPlan, PlanRequest } from "@launchpilot/ports";
+} from "@nuvantre/domain";
+import type { CampaignPlan, PlanRequest } from "@nuvantre/ports";
 import { HYPE_WORDS } from "../review/draft-checks";
 
 const NUMBER = /\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?/g;

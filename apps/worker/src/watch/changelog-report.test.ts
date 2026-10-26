@@ -8,7 +8,7 @@ const change: FlaggedChange = {
   url: "https://docs.zernio.com/changelog#chg_posts_field_removed",
   publishedAt: "2026-10-11T09:00:00.000Z",
   message: "**Posts:** `platformPostUrl` moves to `post.results[]`.\n\nThanks @zernio-team!",
-  reasons: ["Changes POST /v1/posts, which LaunchPilot calls", "Needs action on X"],
+  reasons: ["Changes POST /v1/posts, which Nuvantre calls", "Needs action on X"],
 };
 
 describe("toIssue", () => {
@@ -26,9 +26,7 @@ describe("toIssue", () => {
 
   it("explains why it matters, links the entry and quotes it without pinging anyone", () => {
     const { body } = toIssue(change);
-    expect(body).toContain(
-      "- Changes POST /v1/posts, which LaunchPilot calls\n- Needs action on X",
-    );
+    expect(body).toContain("- Changes POST /v1/posts, which Nuvantre calls\n- Needs action on X");
     expect(body).toContain("breaking_change · impact: action_required · published 2026-10-11");
     expect(body).toContain(change.url);
     expect(body).toContain("> **Posts:**");

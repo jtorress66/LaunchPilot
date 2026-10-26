@@ -1,6 +1,6 @@
 "use client";
 
-import type { BriefContent, BriefStatus } from "@launchpilot/domain";
+import type { BriefContent, BriefStatus } from "@nuvantre/domain";
 import { useActionState, useState } from "react";
 import {
   approveBriefAction,

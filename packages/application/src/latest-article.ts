@@ -1,4 +1,4 @@
-import type { ContentItem } from "@launchpilot/domain";
+import type { ContentItem } from "@nuvantre/domain";
 
 /** The newest published blog article, which the week's first posts promote. */
 export const latestArticle = (items: readonly ContentItem[]) => {

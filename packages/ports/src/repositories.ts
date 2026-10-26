@@ -28,7 +28,7 @@ import type {
   WeeklyReport,
   Workspace,
   WorkspaceId,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 
 /**
  * Persistence for one aggregate. Infrastructure failures reject the promise;

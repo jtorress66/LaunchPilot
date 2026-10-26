@@ -1,4 +1,4 @@
-import type { JsonSchema } from "@launchpilot/ports";
+import type { JsonSchema } from "@nuvantre/ports";
 import { z } from "zod";
 
 /** The model's answer, validated at the edge. Counts and numbers are checked by the agent. */

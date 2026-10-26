@@ -5,8 +5,8 @@ import {
   type ContentItemId,
   type Result,
   type Workspace,
-} from "@launchpilot/domain";
-import type { Clock, ContentItemRepository, ProductRepository } from "@launchpilot/ports";
+} from "@nuvantre/domain";
+import type { Clock, ContentItemRepository, ProductRepository } from "@nuvantre/ports";
 import type { UseCaseError } from "./errors";
 import { loadOwnedItem } from "./owned-content";
 

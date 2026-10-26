@@ -1,4 +1,4 @@
-/** A Zernio changelog entry that affects LaunchPilot's integration, with the reasons. */
+/** A Zernio changelog entry that affects Nuvantre's integration, with the reasons. */
 export interface FlaggedChange {
   readonly id: string;
   readonly type: string;
@@ -43,7 +43,7 @@ export const toIssue = (change: FlaggedChange): ChangelogIssue => {
     id: change.id,
     title: `${prefix}${short}${suffix}`,
     body: [
-      "Zernio published an API change that affects LaunchPilot's social publishing.",
+      "Zernio published an API change that affects Nuvantre's social publishing.",
       "",
       "**Why it matters**",
       change.reasons.map((reason) => `- ${reason}`).join("\n"),

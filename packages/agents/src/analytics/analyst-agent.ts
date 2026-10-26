@@ -1,4 +1,4 @@
-import { err, ok, type Result } from "@launchpilot/domain";
+import { err, ok, type Result } from "@nuvantre/domain";
 import type {
   Analysis,
   AnalysisError,
@@ -7,7 +7,7 @@ import type {
   LlmError,
   LlmMessage,
   WeeklyReportAnalyst,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { notesProblems } from "./notes-rules";
 import { ANALYST_SYSTEM_PROMPT, analystUserMessage, rewriteMessage } from "./prompt";
 import { notesAnswer, notesAnswerJsonSchema, type NotesAnswer } from "./schema";

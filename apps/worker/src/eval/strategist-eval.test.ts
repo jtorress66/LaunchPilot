@@ -1,7 +1,7 @@
-import { TemplateStrategist } from "@launchpilot/agents";
+import { TemplateStrategist } from "@nuvantre/agents";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { CampaignPlan, PlanError } from "@launchpilot/ports";
+import type { CampaignPlan, PlanError } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 import {
   parseStrategistEvalCase,

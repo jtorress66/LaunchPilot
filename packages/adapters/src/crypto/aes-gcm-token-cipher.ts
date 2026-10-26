@@ -1,4 +1,4 @@
-import type { TokenCipher } from "@launchpilot/ports";
+import type { TokenCipher } from "@nuvantre/ports";
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 
 const ALGORITHM = "aes-256-gcm";

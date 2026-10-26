@@ -1,4 +1,4 @@
-import { maxLengthOf } from "@launchpilot/domain";
+import { maxLengthOf } from "@nuvantre/domain";
 import { AgentReviewNote } from "../../../components/autopilot/agent-review-note";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -7,7 +7,7 @@ import { channelName } from "../../../components/social/channel-name";
 import { getAppContainer } from "../../../container";
 import { requireUser } from "../../_lib/auth";
 
-export const metadata: Metadata = { title: "Inbox — LaunchPilot" };
+export const metadata: Metadata = { title: "Inbox — Nuvantre" };
 
 const PREVIEW = 600;
 

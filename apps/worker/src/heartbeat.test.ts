@@ -1,4 +1,4 @@
-import { FixedClock } from "@launchpilot/testing";
+import { FixedClock } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { createHeartbeat } from "./heartbeat";
 

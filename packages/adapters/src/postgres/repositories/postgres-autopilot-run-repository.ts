@@ -4,8 +4,8 @@ import {
   type AutopilotRun,
   type AutopilotRunOutcome,
   type ProductId,
-} from "@launchpilot/domain";
-import type { AutopilotRunRepository } from "@launchpilot/ports";
+} from "@nuvantre/domain";
+import type { AutopilotRunRepository } from "@nuvantre/ports";
 import type { Kysely } from "kysely";
 import { readJson, toJson } from "../mappers/columns";
 import type { AutopilotRunRow, Database } from "../schema";

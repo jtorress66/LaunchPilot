@@ -8,7 +8,7 @@ export interface Step {
 export const steps: readonly Step[] = [
   {
     title: "Paste your URL",
-    body: "LaunchPilot reads your site and drafts a Product Brief: who it's for, the problem it solves, and how it's different.",
+    body: "Nuvantre reads your site and drafts a Product Brief: who it's for, the problem it solves, and how it's different.",
   },
   {
     title: "Get a weekly plan",

@@ -8,7 +8,7 @@ import {
   type Product,
   type User,
   type Workspace,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import { describe, expect, it } from "vitest";
 import {
   ApproveBrief,
@@ -35,7 +35,7 @@ interface Setup {
 }
 
 const HOUR = 60 * 60 * 1000;
-const RETURN_URL = "https://app.launchpilot.test/app/products/p/social?linked=1";
+const RETURN_URL = "https://app.nuvantre.test/app/products/p/social?linked=1";
 
 const setUp = async ({ approveBrief = true } = {}): Promise<Setup> => {
   const world = makeWorld();

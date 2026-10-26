@@ -1,4 +1,4 @@
-import { err, ok, type ProposedTask, type Result } from "@launchpilot/domain";
+import { err, ok, type ProposedTask, type Result } from "@nuvantre/domain";
 import type {
   CampaignPlan,
   CampaignPlanner,
@@ -7,7 +7,7 @@ import type {
   LlmMessage,
   PlanError,
   PlanRequest,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { planProblems } from "./plan-rules";
 import { rewriteMessage, STRATEGIST_SYSTEM_PROMPT, strategistUserMessage } from "./prompt";
 import { planAnswer, planAnswerJsonSchema, type PlanAnswer } from "./schema";

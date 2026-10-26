@@ -5,7 +5,7 @@ import {
   userId,
   type Brief,
   type BriefContent,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type { BriefRow } from "../schema";
 import { oneOf, readJson, toJson } from "./columns";
 

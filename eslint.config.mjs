@@ -17,8 +17,8 @@ const forbid = (packages, extraPatterns = []) => ({
     {
       patterns: [
         ...packages.map((name) => ({
-          group: [`@launchpilot/${name}`, `@launchpilot/${name}/*`],
-          message: `This layer must not depend on @launchpilot/${name} (see CLAUDE.md dependency rule).`,
+          group: [`@nuvantre/${name}`, `@nuvantre/${name}/*`],
+          message: `This layer must not depend on @nuvantre/${name} (see CLAUDE.md dependency rule).`,
         })),
         ...extraPatterns,
       ],
@@ -116,7 +116,7 @@ export default tseslint.config(
     ),
   },
   {
-    // Tests in application and agents may use fakes from @launchpilot/testing.
+    // Tests in application and agents may use fakes from @nuvantre/testing.
     files: ["packages/application/src/**/*.ts"],
     ignores: ["**/*.test.ts"],
     rules: forbid(["agents", "adapters", "testing", "web", "worker"], noFrameworksOrIo),

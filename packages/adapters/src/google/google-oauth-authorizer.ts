@@ -1,5 +1,5 @@
-import { err, ok, type Result } from "@launchpilot/domain";
-import type { GoogleAuthError, GoogleAuthorizer, GoogleGrant } from "@launchpilot/ports";
+import { err, ok, type Result } from "@nuvantre/domain";
+import type { GoogleAuthError, GoogleAuthorizer, GoogleGrant } from "@nuvantre/ports";
 import { z } from "zod";
 import { callGoogle, GOOGLE_SCOPES, unreachable, urlsOf, type GoogleOptions } from "./api";
 
@@ -79,7 +79,7 @@ export class GoogleOAuthAuthorizer implements GoogleAuthorizer {
     if (!READ_SCOPES.some((s) => granted.includes(s))) {
       return failure(
         "missing_scope",
-        "Allow LaunchPilot to see Search Console or Analytics data to connect Google",
+        "Allow Nuvantre to see Search Console or Analytics data to connect Google",
       );
     }
     const accountEmail = emailOf(parsed.data.id_token);

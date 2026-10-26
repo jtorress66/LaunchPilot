@@ -12,7 +12,7 @@ export const channels = [
 export type Channel = (typeof channels)[number];
 
 interface ChannelPolicy {
-  /** True only when LaunchPilot may publish through an official API after founder approval. */
+  /** True only when Nuvantre may publish through an official API after founder approval. */
   readonly autoPublish: boolean;
   /** Longest body the channel accepts, in characters. */
   readonly maxLength: number;

@@ -5,13 +5,13 @@ import {
   type DomainError,
   type Result,
   type Workspace,
-} from "@launchpilot/domain";
+} from "@nuvantre/domain";
 import type {
   Clock,
   ContentItemRepository,
   ProductRepository,
   SubscriptionRepository,
-} from "@launchpilot/ports";
+} from "@nuvantre/ports";
 import { currentPlan } from "./current-plan";
 
 /** Whether the workspace may draft `needed` more content items this month under its plan. */

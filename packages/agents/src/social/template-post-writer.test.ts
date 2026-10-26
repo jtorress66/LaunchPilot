@@ -1,6 +1,6 @@
-import { maxLengthOf } from "@launchpilot/domain";
-import type { DraftRequest } from "@launchpilot/ports";
-import { aBriefContent } from "@launchpilot/testing";
+import { maxLengthOf } from "@nuvantre/domain";
+import type { DraftRequest } from "@nuvantre/ports";
+import { aBriefContent } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { TemplatePostWriter } from "./template-post-writer";
 
