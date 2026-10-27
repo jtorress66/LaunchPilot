@@ -5,6 +5,8 @@ import { join } from "node:path";
 import { createLaunchEvalWriter } from "../container";
 import { parseEvalConfig } from "./brief-eval";
 import { parseLaunchEvalCase, scoreKit, summariseKits, type KitScore } from "./launch-eval";
+import { EVAL_RESULTS_FILE, recordEvalResult } from "./results";
+import { evalThresholds } from "./thresholds";
 
 const PRICES: Partial<Record<string, { inputPerMillion: number; outputPerMillion: number }>> = {
   "claude-opus-5-5": { inputPerMillion: 4, outputPerMillion: 20 },
@@ -39,9 +41,15 @@ for (const file of files) {
 const summary = summariseKits(scores);
 const prices = PRICES[config.value.model];
 console.log(
-  `\nLaunch kit eval on ${config.value.model}: ${summary.kits} kits, pass ${percent(summary.passRate)} (threshold 100%)`,
+  `\nLaunch kit eval on ${config.value.model}: ${summary.kits} kits, pass ${percent(summary.passRate)} (threshold ${percent(evalThresholds.launch.pass)})`,
 );
 console.log(
   `Usage: ${meter.usage.calls} calls, ${meter.usage.inputTokens} input + ${meter.usage.outputTokens} output tokens${prices ? `, about $${meter.costUsd(prices).toFixed(2)}` : ""}`,
 );
+await recordEvalResult(EVAL_RESULTS_FILE, "launch", {
+  model: config.value.model,
+  cases: summary.kits,
+  rates: { pass: summary.passRate },
+  passed: summary.meetsThresholds,
+});
 if (!summary.meetsThresholds) fail("scores are below the thresholds");

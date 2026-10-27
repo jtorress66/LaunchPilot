@@ -57,9 +57,7 @@ export const briefForm = z.object({
 });
 
 export const blogPlatformForm = z.object({
-  platform: z.enum(blogPlatformIds, {
-    errorMap: () => ({ message: "Choose the platform your blog runs on" }),
-  }),
+  platform: z.enum(blogPlatformIds, { error: "Choose the platform your blog runs on" }),
 });
 
 const withArticle = (noun: string) => `${/^[aeiou]/i.test(noun) ? "an" : "a"} ${noun}`;
@@ -133,7 +131,7 @@ export const upgradeForm = z.object({ plan: z.enum(["starter", "growth"]) });
 export type FieldErrors = Partial<Record<string, string>>;
 
 /** Edge validation for Server Actions: shape and size only; the domain checks meaning. */
-export const parseForm = <T extends z.ZodTypeAny>(
+export const parseForm = <T extends z.ZodType>(
   schema: T,
   data: FormData,
 ): Result<z.infer<T>, FieldErrors> => {
@@ -141,7 +139,7 @@ export const parseForm = <T extends z.ZodTypeAny>(
     [...data.entries()].filter(([, value]) => typeof value === "string"),
   );
   const parsed = schema.safeParse(raw);
-  if (parsed.success) return ok(parsed.data as z.infer<T>);
+  if (parsed.success) return ok(parsed.data);
   const errors: FieldErrors = {};
   for (const issue of parsed.error.issues) {
     const field = String(issue.path[0] ?? "form");

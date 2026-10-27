@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
 
+// Every page renders per request, so Next can put the CSP nonce from middleware on its scripts.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Nuvantre — Your AI marketing team for SaaS",
   description:

@@ -12,6 +12,7 @@ import {
   type FieldErrors,
 } from "../../server/forms";
 import { fieldFor } from "../../server/messages";
+import { refusedByLimit, requestAddress } from "./limits";
 import { requireUser, setSessionCookie, takeSessionCookie } from "./auth";
 
 export interface FormState {
@@ -26,6 +27,8 @@ const failed = (error: { code: string; message: string }): FormState => ({
 export async function signUpAction(_state: FormState, data: FormData): Promise<FormState> {
   const form = parseForm(signUpForm, data);
   if (!form.ok) return { errors: form.error };
+  const limited = await refusedByLimit("signup", await requestAddress());
+  if (limited) return { errors: { form: limited } };
   const result = await getAppContainer().signUp.execute(form.value);
   if (!result.ok) return failed(result.error);
   await setSessionCookie(result.value.session);
@@ -35,6 +38,9 @@ export async function signUpAction(_state: FormState, data: FormData): Promise<F
 export async function logInAction(_state: FormState, data: FormData): Promise<FormState> {
   const form = parseForm(logInForm, data);
   if (!form.ok) return { errors: form.error };
+  // Per address and email: slows guessing one account's password without locking others out.
+  const limited = await refusedByLimit("login", await requestAddress(), form.value.email);
+  if (limited) return { errors: { form: limited } };
   const result = await getAppContainer().logIn.execute(form.value);
   if (!result.ok) return failed(result.error);
   await setSessionCookie(result.value);

@@ -11,6 +11,8 @@ import {
   summarise,
   type CaseScore,
 } from "./brief-eval";
+import { EVAL_RESULTS_FILE, recordEvalResult } from "./results";
+import { evalThresholds } from "./thresholds";
 
 /** Published per-million-token prices, for the cost line of the report. */
 const PRICES: Partial<Record<string, { inputPerMillion: number; outputPerMillion: number }>> = {
@@ -50,9 +52,15 @@ for (const file of files) {
 const summary = summarise(scores);
 const prices = PRICES[model];
 console.log(
-  `\nBrief eval on ${model}: ${summary.cases} sites, grounding ${percent(summary.groundingRate)} (threshold 100%), pass ${percent(summary.passRate)} (threshold 100%)`,
+  `\nBrief eval on ${model}: ${summary.cases} sites, grounding ${percent(summary.groundingRate)} (threshold ${percent(evalThresholds.brief.grounding)}), pass ${percent(summary.passRate)} (threshold ${percent(evalThresholds.brief.pass)})`,
 );
 console.log(
   `Usage: ${meter.usage.calls} calls, ${meter.usage.inputTokens} input + ${meter.usage.outputTokens} output tokens${prices ? `, about $${meter.costUsd(prices).toFixed(2)}` : ""}`,
 );
+await recordEvalResult(EVAL_RESULTS_FILE, "brief", {
+  model,
+  cases: summary.cases,
+  rates: { grounding: summary.groundingRate, pass: summary.passRate },
+  passed: summary.meetsThresholds,
+});
 if (!summary.meetsThresholds) fail("scores are below the thresholds");

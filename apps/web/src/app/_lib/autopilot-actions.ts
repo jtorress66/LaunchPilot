@@ -4,6 +4,7 @@ import { productId } from "@nuvantre/domain";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getAppContainer } from "../../container";
+import { refusedByLimit } from "./limits";
 import { requireUser } from "./auth";
 import { idParam } from "./params";
 
@@ -29,6 +30,8 @@ export async function setAutopilotAction(rawId: string, enabled: unknown): Promi
 export async function runAutopilotNowAction(rawId: string): Promise<AutopilotActionState> {
   const id = idParam(rawId);
   const { workspace } = await requireUser();
+  const limited = await refusedByLimit("draft", workspace.id);
+  if (limited) return { error: limited };
   const result = await getAppContainer().runAutopilotNow.execute({
     workspace,
     productId: productId(id),

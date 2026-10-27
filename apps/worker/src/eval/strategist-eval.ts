@@ -12,6 +12,7 @@ import {
 import type { CampaignPlan, PlanError, PlanRequest } from "@nuvantre/ports";
 import { z } from "zod";
 import { sourceResultsSchema } from "./analyst-eval";
+import { evalThresholds, meets } from "./thresholds";
 
 const date = z.coerce.date();
 const week = z.object({ start: date, end: date });
@@ -175,5 +176,9 @@ export interface PlanSummary {
 /** Threshold: every week's plan passes every check (two of them are safety rules). */
 export const summarisePlans = (scores: readonly PlanScore[]): PlanSummary => {
   const passRate = scores.length === 0 ? 0 : scores.filter((s) => s.passed).length / scores.length;
-  return { plans: scores.length, passRate, meetsThresholds: scores.length > 0 && passRate === 1 };
+  return {
+    plans: scores.length,
+    passRate,
+    meetsThresholds: meets(scores.length, { pass: passRate }, evalThresholds.strategist),
+  };
 };

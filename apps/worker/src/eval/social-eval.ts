@@ -3,11 +3,12 @@ import type { Draft, DraftError } from "@nuvantre/ports";
 import { z } from "zod";
 import { writesIn } from "./language-check";
 import { localeOf } from "./seo-eval";
+import { evalThresholds, meets } from "./thresholds";
 
 const angleSchema = z.object({
   channel: z.enum(["x", "linkedin"]),
   angle: z.string().min(1),
-  link: z.string().url().optional(),
+  link: z.url().optional(),
 });
 
 /** One recorded brief and the post angles the social writer is evaluated on. */
@@ -114,5 +115,9 @@ export interface PostSummary {
 /** Threshold: every post passes every check (the brief-facts rule is a safety rule). */
 export const summarisePosts = (scores: readonly PostScore[]): PostSummary => {
   const passRate = scores.length === 0 ? 0 : scores.filter((s) => s.passed).length / scores.length;
-  return { posts: scores.length, passRate, meetsThresholds: scores.length > 0 && passRate === 1 };
+  return {
+    posts: scores.length,
+    passRate,
+    meetsThresholds: meets(scores.length, { pass: passRate }, evalThresholds.social),
+  };
 };

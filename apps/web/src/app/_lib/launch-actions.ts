@@ -12,6 +12,7 @@ import {
   type FieldErrors,
 } from "../../server/forms";
 import { draftFailureMessage } from "../../server/messages";
+import { refusedByLimit } from "./limits";
 import { requireUser } from "./auth";
 import { idParam } from "./params";
 
@@ -30,6 +31,8 @@ const done = (id: string): LaunchActionState => {
 
 export async function generateLaunchKitAction(id: string): Promise<LaunchActionState> {
   const { workspace } = await requireUser();
+  const limited = await refusedByLimit("draft", workspace.id);
+  if (limited) return formError(limited);
   const result = await getAppContainer().generateLaunchKit.execute({
     workspace,
     productId: productId(idParam(id)),

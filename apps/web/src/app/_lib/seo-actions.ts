@@ -13,6 +13,7 @@ import {
   type FieldErrors,
 } from "../../server/forms";
 import { draftFailureMessage, keywordFailureMessage } from "../../server/messages";
+import { refusedByLimit } from "./limits";
 import { requireUser } from "./auth";
 import { idParam } from "./params";
 
@@ -36,6 +37,8 @@ export async function connectBlogAction(
   if (!choice.ok) return { errors: choice.error };
   const form = parseForm(blogConnectionFormFor(choice.value.platform), data);
   if (!form.ok) return { errors: form.error };
+  const limitedConnect = await refusedByLimit("connect", workspace.id);
+  if (limitedConnect) return formError(limitedConnect);
   const result = await getAppContainer().connectBlog.execute({
     workspace,
     productId: productId(idParam(id)),
@@ -54,6 +57,8 @@ export async function planSeoAction(
   const { workspace } = await requireUser();
   const form = parseForm(seedKeywordsForm, data);
   if (!form.ok) return { errors: form.error };
+  const limitedPlan = await refusedByLimit("draft", workspace.id);
+  if (limitedPlan) return formError(limitedPlan);
   const result = await getAppContainer().planSeoContent.execute({
     workspace,
     productId: productId(idParam(id)),
@@ -84,6 +89,8 @@ export async function setLocaleAction(
 
 export async function draftArticleAction(id: string): Promise<SeoActionState> {
   const { workspace } = await requireUser();
+  const limited = await refusedByLimit("draft", workspace.id);
+  if (limited) return formError(limited);
   const result = await getAppContainer().draftSeoArticle.execute({
     workspace,
     taskId: taskId(idParam(id)),

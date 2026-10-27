@@ -35,6 +35,29 @@ jobs:
           path: coverage/
           retention-days: 7
 
+  security:
+    name: Dependency audit and secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The whole history, so a secret committed and later removed is still found.
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Audit production dependencies
+        run: pnpm audit --audit-level high --prod
+      - name: Scan for secrets (gitleaks, config in .gitleaks.toml)
+        env:
+          GITLEAKS_VERSION: 8.21.2
+        run: |
+          curl -sSfL -o gitleaks.tar.gz "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          tar -xzf gitleaks.tar.gz gitleaks
+          ./gitleaks detect --source . --config .gitleaks.toml --redact --no-banner -v
+
   integration:
     name: Integration tests (Testcontainers)
     runs-on: ubuntu-latest
@@ -94,6 +117,13 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm eval
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-results
+          path: evals/results.json
+          if-no-files-found: ignore
+          retention-days: 30
 
   dataforseo-smoke:
     name: DataForSEO smoke check (real API)

@@ -21,7 +21,7 @@ import { accountList, isUsable } from "./schemas";
 
 const createdProfile = z.object({ profile: z.object({ _id: z.string().min(1) }) });
 const existingProfile = z.object({ details: z.object({ existingProfileId: z.string().min(1) }) });
-const connect = z.object({ authUrl: z.string().url() });
+const connect = z.object({ authUrl: z.url() });
 
 const failure = (code: SocialLinkError["code"], message: string, retryable: boolean) =>
   err<SocialLinkError>({ code, message, retryable });

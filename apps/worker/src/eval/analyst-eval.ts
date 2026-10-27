@@ -11,13 +11,14 @@ import {
 } from "@nuvantre/domain";
 import type { Analysis, AnalysisError } from "@nuvantre/ports";
 import { z } from "zod";
+import { evalThresholds, meets } from "./thresholds";
 
 const date = z.coerce.date();
 const snapshot = z.object({
   source: z.string(),
   from: date,
   to: date,
-  values: z.record(z.enum(metricNames), z.number().nonnegative()),
+  values: z.partialRecord(z.enum(metricNames), z.number().nonnegative()),
   topPages: z.array(z.object({ url: z.string(), visitors: z.number().nonnegative() })),
   topQueries: z.array(
     z.object({
@@ -159,5 +160,9 @@ export interface AnalysisSummary {
 /** Threshold: every report passes every check (two of them are safety rules). */
 export const summariseAnalyses = (scores: readonly AnalysisScore[]): AnalysisSummary => {
   const passRate = scores.length === 0 ? 0 : scores.filter((s) => s.passed).length / scores.length;
-  return { reports: scores.length, passRate, meetsThresholds: scores.length > 0 && passRate === 1 };
+  return {
+    reports: scores.length,
+    passRate,
+    meetsThresholds: meets(scores.length, { pass: passRate }, evalThresholds.analyst),
+  };
 };

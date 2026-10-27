@@ -6,6 +6,8 @@ import { createSocialEvalWriter } from "../container";
 import { parseEvalConfig } from "./brief-eval";
 import { localeOf } from "./seo-eval";
 import { parseSocialEvalCase, scorePost, summarisePosts, type PostScore } from "./social-eval";
+import { EVAL_RESULTS_FILE, recordEvalResult } from "./results";
+import { evalThresholds } from "./thresholds";
 
 const PRICES: Partial<Record<string, { inputPerMillion: number; outputPerMillion: number }>> = {
   "claude-opus-5-5": { inputPerMillion: 4, outputPerMillion: 20 },
@@ -52,9 +54,15 @@ for (const file of files) {
 const summary = summarisePosts(scores);
 const prices = PRICES[config.value.model];
 console.log(
-  `\nSocial post eval on ${config.value.model}: ${summary.posts} posts, pass ${percent(summary.passRate)} (threshold 100%)`,
+  `\nSocial post eval on ${config.value.model}: ${summary.posts} posts, pass ${percent(summary.passRate)} (threshold ${percent(evalThresholds.social.pass)})`,
 );
 console.log(
   `Usage: ${meter.usage.calls} calls, ${meter.usage.inputTokens} input + ${meter.usage.outputTokens} output tokens${prices ? `, about $${meter.costUsd(prices).toFixed(2)}` : ""}`,
 );
+await recordEvalResult(EVAL_RESULTS_FILE, "social", {
+  model: config.value.model,
+  cases: summary.posts,
+  rates: { pass: summary.passRate },
+  passed: summary.meetsThresholds,
+});
 if (!summary.meetsThresholds) fail("scores are below the thresholds");

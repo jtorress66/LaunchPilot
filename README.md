@@ -402,6 +402,29 @@ whole loop: **report → plan → draft → review → Inbox**. It is off until 
    rest of the week; the card shows the run's summary (drafts waiting, rewritten after review,
    failed, stopped at the plan's monthly limit).
 
+### Hardening for beta
+
+- **Rate limits** (Postgres counters, fixed windows; `packages/application/src/rate-limits.ts`):
+  login 10 per 15 minutes per address and email, sign-up 5 per hour per address, AI drafting 30
+  and connecting accounts 20 per hour per workspace, webhooks 120 per minute per address. A
+  refusal reads "Too many attempts. Try again in N minutes." (HTTP 429 with `Retry-After` on the
+  webhook). The worker purges old counters hourly.
+- **Monitoring:** every response carries an `x-request-id`. Errors in pages, actions, route
+  handlers and worker jobs go to the `ErrorReporter`: one JSON line on stderr, plus Sentry when
+  `SENTRY_DSN` is set (no PII, secrets scrubbed). `GET /api/health` is liveness;
+  `GET /api/health/ready` returns 503 when Postgres does not answer. The worker heartbeat lists
+  each job's last success.
+- **Worker lock:** each job runs under a Postgres advisory lock, so a second worker skips a job the
+  first is running and nothing publishes twice.
+- **Activity** (`/app/activity`): who signed in, added, archived or activated a product,
+  approved a brief or content, published, scheduled, connected an account, changed plan or
+  autopilot, newest first. Entries hold only a short label, never post text or secrets.
+- **Security:** a nonce-based Content-Security-Policy and HSTS (over https) on every page, a
+  `__Host-` session cookie over https, and a CI `security` job: `pnpm audit --audit-level high
+--prod` and a gitleaks secret scan of the whole history (`.gitleaks.toml` allows test fixtures).
+
+The beta checklist, with the proof for each item, is in `docs/BETA_CHECKLIST.md`.
+
 ### LLM evals
 
 `pnpm eval` drafts a brief with real Claude for each recorded site in `evals/brief/sites/*.json`.
@@ -450,7 +473,10 @@ Last comes the **reviewer** suite: the reviewer checks hand-labelled drafts in
 and a draft in the wrong language, which only the model can catch).
 Its verdict must match every label, and a held-back draft must name at least one blocker.
 
-The thresholds are 100% for every suite. Below them, the command exits non-zero. It also prints
+The thresholds live in `evals/thresholds.json` (100% for every suite today); a unit test fails if a
+suite has no entry or one drops below the last agreed value. Below them, the command exits
+non-zero. Each suite's scores are written to `evals/results.json`, which CI keeps as the
+`eval-results` artifact. It also prints
 token usage and an estimated cost: a few cents per run. Run it whenever a prompt in
 `packages/agents/src/*/prompt.ts` changes.
 
@@ -565,6 +591,9 @@ The rule is enforced twice: by ESLint `no-restricted-imports` per layer, and by
 | `STRATEGIST`            | `claude`          | web, worker: `claude` or `template` (development and test only)                       |
 | `REVIEWER`              | `claude`          | web, worker: `claude` or `template` (development and test only)                       |
 | `LOOP_INTERVAL_MS`      | `3600000`         | worker: how often it checks for due autopilot weeks (at least 60000)                  |
+| `SENTRY_DSN`            | none              | web, worker: report errors to Sentry too (secrets scrubbed); without it, JSON logs    |
+| `TRUST_PROXY`           | `false`           | web: `true` takes the client address from `X-Forwarded-For` (only behind a proxy)     |
+| `RATE_LIMIT_OVERRIDES`  | none              | web: raise limits, e.g. `signup=1000,draft=500` (development and test only)           |
 
 All configuration is validated with Zod when the app first handles a request; an invalid value
 fails fast with a message naming the variable.

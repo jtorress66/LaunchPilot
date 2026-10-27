@@ -28,6 +28,7 @@ import {
   GenerateBrief,
   GetBrief,
   ArchiveProduct,
+  GetActivity,
   GetDashboard,
   GetProductLineup,
   RestoreProduct,
@@ -74,6 +75,7 @@ import {
 } from "@nuvantre/agents";
 import {
   AesGcmTokenCipher,
+  createSentryErrorReporter,
   JsonLogErrorReporter,
   PostgresAuditTrail,
   PostgresRateLimiter,
@@ -124,6 +126,7 @@ import {
   type GoogleConfig,
   type WebConfig,
 } from "./server/config";
+import { createRateGuard } from "./server/rate-limit";
 import type { HealthHandlerDeps } from "./server/health-handler";
 
 /** Composition root: the only place in the web app where concrete adapters are created. */
@@ -202,15 +205,17 @@ const repositoriesFor = (config: WebConfig) => {
     audit: new PostgresAuditTrail(db),
     limiter: new PostgresRateLimiter(db, container.clock),
     readiness: new PostgresReadinessProbe(db),
-    errors: errorReporterFor(),
+    errors: errorReporterFor(config),
   };
 };
 
-/** One scrubbed JSON line per unexpected error. */
-const errorReporterFor = (): ErrorReporter =>
-  new JsonLogErrorReporter((line) => {
-    process.stderr.write(`${line}\n`);
-  });
+/** Sentry when SENTRY_DSN is set, else one scrubbed JSON line per unexpected error. */
+const errorReporterFor = ({ monitoring }: WebConfig): ErrorReporter =>
+  monitoring.sentry
+    ? createSentryErrorReporter(monitoring.sentry)
+    : new JsonLogErrorReporter((line) => {
+        process.stderr.write(`${line}\n`);
+      });
 
 type Repositories = ReturnType<typeof repositoriesFor>;
 
@@ -362,6 +367,14 @@ const build = (config: WebConfig) => {
   });
   return {
     appUrl: config.appUrl,
+    trustProxy: config.hardening.trustProxy,
+    rateGuard: createRateGuard({
+      limiter: repositories.limiter,
+      overrides: config.hardening.rateLimitOverrides,
+    }),
+    errors: repositories.errors,
+    readiness: [repositories.readiness],
+    getActivity: new GetActivity(deps),
     webhookSignatureHeader: billing.webhookSignatureHeader,
     localCheckout: billing.localCheckout,
     signUp: new SignUp(deps),

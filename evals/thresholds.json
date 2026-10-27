@@ -1,0 +1,9 @@
+{
+  "brief": { "grounding": 1, "pass": 1 },
+  "seo": { "facts": 1, "pass": 1 },
+  "social": { "pass": 1 },
+  "launch": { "pass": 1 },
+  "analyst": { "pass": 1 },
+  "strategist": { "pass": 1 },
+  "reviewer": { "pass": 1 }
+}

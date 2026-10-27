@@ -11,6 +11,8 @@ import {
   type AnalysisScore,
 } from "./analyst-eval";
 import { parseEvalConfig } from "./brief-eval";
+import { EVAL_RESULTS_FILE, recordEvalResult } from "./results";
+import { evalThresholds } from "./thresholds";
 
 const PRICES: Partial<Record<string, { inputPerMillion: number; outputPerMillion: number }>> = {
   "claude-opus-5-5": { inputPerMillion: 4, outputPerMillion: 20 },
@@ -50,9 +52,15 @@ for (const file of files) {
 const summary = summariseAnalyses(scores);
 const prices = PRICES[config.value.model];
 console.log(
-  `\nAnalyst eval on ${config.value.model}: ${summary.reports} reports, pass ${percent(summary.passRate)} (threshold 100%)`,
+  `\nAnalyst eval on ${config.value.model}: ${summary.reports} reports, pass ${percent(summary.passRate)} (threshold ${percent(evalThresholds.analyst.pass)})`,
 );
 console.log(
   `Usage: ${meter.usage.calls} calls, ${meter.usage.inputTokens} input + ${meter.usage.outputTokens} output tokens${prices ? `, about $${meter.costUsd(prices).toFixed(2)}` : ""}`,
 );
+await recordEvalResult(EVAL_RESULTS_FILE, "analyst", {
+  model: config.value.model,
+  cases: summary.reports,
+  rates: { pass: summary.passRate },
+  passed: summary.meetsThresholds,
+});
 if (!summary.meetsThresholds) fail("scores are below the thresholds");

@@ -16,7 +16,7 @@ import { httpGet, safeRequest } from "../net/safe-http";
 import { parseGhostAdminKey } from "./ghost-admin-token";
 import { adminHeaders, adminUrl, type GhostNetwork } from "./ghost-api";
 
-const siteInfo = z.object({ site: z.object({ title: z.string().min(1), url: z.string().url() }) });
+const siteInfo = z.object({ site: z.object({ title: z.string().min(1), url: z.url() }) });
 
 /** Checks a Ghost site and a custom integration's Admin API key before Nuvantre stores them. */
 export class GhostConnectionVerifier implements BlogConnectionVerifier {

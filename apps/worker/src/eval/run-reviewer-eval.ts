@@ -11,6 +11,8 @@ import {
   summariseReviews,
   type ReviewScore,
 } from "./reviewer-eval";
+import { EVAL_RESULTS_FILE, recordEvalResult } from "./results";
+import { evalThresholds } from "./thresholds";
 
 const PRICES: Partial<Record<string, { inputPerMillion: number; outputPerMillion: number }>> = {
   "claude-opus-5-5": { inputPerMillion: 4, outputPerMillion: 20 },
@@ -52,9 +54,15 @@ for (const file of files) {
 const summary = summariseReviews(scores);
 const prices = PRICES[config.value.model];
 console.log(
-  `\nReviewer eval on ${config.value.model}: ${summary.drafts} drafts, pass ${percent(summary.passRate)} (threshold 100%)`,
+  `\nReviewer eval on ${config.value.model}: ${summary.drafts} drafts, pass ${percent(summary.passRate)} (threshold ${percent(evalThresholds.reviewer.pass)})`,
 );
 console.log(
   `Usage: ${meter.usage.calls} calls, ${meter.usage.inputTokens} input + ${meter.usage.outputTokens} output tokens${prices ? `, about $${meter.costUsd(prices).toFixed(2)}` : ""}`,
 );
+await recordEvalResult(EVAL_RESULTS_FILE, "reviewer", {
+  model: config.value.model,
+  cases: summary.drafts,
+  rates: { pass: summary.passRate },
+  passed: summary.meetsThresholds,
+});
 if (!summary.meetsThresholds) fail("scores are below the thresholds");

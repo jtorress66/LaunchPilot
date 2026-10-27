@@ -1,11 +1,12 @@
 import { communityChannels, err, ok, validateListing, type Result } from "@nuvantre/domain";
 import type { DraftError, LaunchKitDraft } from "@nuvantre/ports";
 import { z } from "zod";
+import { evalThresholds, meets } from "./thresholds";
 
 /** One recorded brief the launch kit writer is evaluated on. */
 const launchEvalCaseSchema = z.object({
   name: z.string().min(1),
-  product: z.object({ name: z.string().min(1), url: z.string().url() }),
+  product: z.object({ name: z.string().min(1), url: z.url() }),
   /** Claims the brief never makes; none may appear anywhere in the kit. */
   forbidden: z.array(z.string().min(1)),
   brief: z.object({
@@ -151,5 +152,9 @@ export interface KitSummary {
 /** Threshold: every kit passes every check (the brief-facts rule is a safety rule). */
 export const summariseKits = (scores: readonly KitScore[]): KitSummary => {
   const passRate = scores.length === 0 ? 0 : scores.filter((s) => s.passed).length / scores.length;
-  return { kits: scores.length, passRate, meetsThresholds: scores.length > 0 && passRate === 1 };
+  return {
+    kits: scores.length,
+    passRate,
+    meetsThresholds: meets(scores.length, { pass: passRate }, evalThresholds.launch),
+  };
 };

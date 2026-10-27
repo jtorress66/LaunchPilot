@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { getAppContainer } from "../../container";
 import { briefForm, parseForm, type FieldErrors } from "../../server/forms";
 import { draftFailureMessage } from "../../server/messages";
+import { refusedByLimit } from "./limits";
 import { requireUser } from "./auth";
 import { idParam } from "./params";
 
@@ -26,6 +27,8 @@ const formError = (message: string): BriefActionState => ({ errors: { form: mess
 
 export async function draftBriefAction(id: string): Promise<BriefActionState> {
   const { workspace, productId } = await target(id);
+  const limited = await refusedByLimit("draft", workspace.id);
+  if (limited) return formError(limited);
   const result = await getAppContainer().generateBrief.execute({ workspace, productId });
   if (!result.ok) return formError(draftFailureMessage(result.error));
   revalidatePath(briefPath(id));
