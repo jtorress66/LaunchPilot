@@ -44,10 +44,10 @@ jobs:
           # The whole history, so a secret committed and later removed is still found.
           fetch-depth: 0
       - uses: pnpm/action-setup@v4
+      # No pnpm cache: the audit reads the lockfile and installs nothing, so there is no store to save.
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: pnpm
       - name: Audit production dependencies
         run: pnpm audit --audit-level high --prod
       - name: Scan for secrets (gitleaks, config in .gitleaks.toml)
