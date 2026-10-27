@@ -1,0 +1,15 @@
+{
+  "data": null,
+  "errors": [
+    {
+      "message": "Access denied for blogs field. Required access: `read_content` access scope.",
+      "locations": [{ "line": 1, "column": 52 }],
+      "path": ["blogs"],
+      "extensions": {
+        "code": "ACCESS_DENIED",
+        "documentation": "https://shopify.dev/api/usage/access-scopes",
+        "requiredAccess": "`read_content` access scope."
+      }
+    }
+  ]
+}

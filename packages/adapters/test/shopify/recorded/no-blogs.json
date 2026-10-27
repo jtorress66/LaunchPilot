@@ -1,0 +1,6 @@
+{
+  "data": {
+    "shop": { "name": "Acme Store", "primaryDomain": { "url": "https://shop.acme.dev" } },
+    "blogs": { "nodes": [] }
+  }
+}

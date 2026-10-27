@@ -1,0 +1,25 @@
+{
+  "data": {
+    "shop": {
+      "name": "Acme Store",
+      "primaryDomain": { "url": "https://shop.acme.dev" }
+    },
+    "blogs": {
+      "nodes": [
+        { "id": "gid://shopify/Blog/84123123", "handle": "news", "title": "News" },
+        { "id": "gid://shopify/Blog/84123124", "handle": "guides", "title": "Guides" }
+      ]
+    }
+  },
+  "extensions": {
+    "cost": {
+      "requestedQueryCost": 4,
+      "actualQueryCost": 3,
+      "throttleStatus": {
+        "maximumAvailable": 2000.0,
+        "currentlyAvailable": 1997,
+        "restoreRate": 100.0
+      }
+    }
+  }
+}

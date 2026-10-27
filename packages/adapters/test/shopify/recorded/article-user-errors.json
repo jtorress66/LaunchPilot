@@ -1,0 +1,14 @@
+{
+  "data": {
+    "articleCreate": {
+      "article": null,
+      "userErrors": [
+        {
+          "field": ["article", "handle"],
+          "message": "Handle has already been taken",
+          "code": "TAKEN"
+        }
+      ]
+    }
+  }
+}
