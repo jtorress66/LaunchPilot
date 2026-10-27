@@ -85,17 +85,26 @@ export const aWorkspace = (
   );
 
 export const aProduct = (
-  overrides: Partial<{ id: ProductId; workspaceId: WorkspaceId; name: string; url: string }> = {},
-): Product =>
-  unwrap(
+  overrides: Partial<{
+    id: ProductId;
+    workspaceId: WorkspaceId;
+    name: string;
+    url: string;
+    createdAt: Date;
+    archivedAt: Date | null;
+  }> = {},
+): Product => {
+  const product = unwrap(
     createProduct({
       id: overrides.id ?? productId("prod_1"),
       workspaceId: overrides.workspaceId ?? workspaceId("ws_1"),
       name: overrides.name ?? "Acme Analytics",
       url: overrides.url ?? "https://acme.dev",
-      now: fixtureNow,
+      now: overrides.createdAt ?? fixtureNow,
     }),
   );
+  return { ...product, archivedAt: overrides.archivedAt ?? null };
+};
 
 export const aBriefContent = (overrides: Partial<BriefContent> = {}): BriefContent => ({
   audience: "Solo SaaS founders",

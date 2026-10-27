@@ -11,9 +11,9 @@ describe("checkCanCreateProduct", () => {
   });
 
   it.each([
-    ["free", 1, "The Free plan includes 1 product. Upgrade to add more."],
-    ["starter", 1, "The Starter plan includes 1 product. Upgrade to add more."],
-    ["growth", 3, "The Growth plan includes 3 products. Upgrade to add more."],
+    ["free", 1, "The Free plan includes 1 product. Upgrade or archive one to add more."],
+    ["starter", 1, "The Starter plan includes 1 product. Upgrade or archive one to add more."],
+    ["growth", 3, "The Growth plan includes 3 products. Upgrade or archive one to add more."],
   ] as const)("stops a %s workspace at %i products", (plan, count, message) => {
     expect(checkCanCreateProduct(plan, count)).toEqual({
       ok: false,

@@ -9,6 +9,7 @@ export * from "./shared/state-machine";
 export * from "./channels/channel";
 export * from "./workspace/workspace";
 export * from "./product/product";
+export * from "./product/product-slots";
 export * from "./brief/brief";
 export * from "./campaign/campaign";
 export * from "./task/task";

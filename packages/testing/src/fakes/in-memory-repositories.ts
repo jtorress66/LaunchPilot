@@ -38,6 +38,8 @@ import type {
   LaunchKitRepository,
   SubmissionRepository,
   ContentItemRepository,
+  ProductCount,
+  StatusCount,
   ProductRepository,
   Repository,
   SessionRepository,
@@ -205,6 +207,30 @@ export class InMemoryContentItemRepository implements ContentItemRepository {
         (i) => productIds.includes(i.productId) && i.createdAt.getTime() >= since.getTime(),
       ).length,
     );
+  }
+
+  countByStatus(productIds: readonly ProductId[]): Promise<readonly StatusCount[]> {
+    const counts = new Map<string, StatusCount>();
+    for (const item of this.base.store.filter((i) => productIds.includes(i.productId))) {
+      const key = `${item.productId}:${item.status}`;
+      const count = (counts.get(key)?.count ?? 0) + 1;
+      counts.set(key, { productId: item.productId, status: item.status, count });
+    }
+    return Promise.resolve([...counts.values()]);
+  }
+
+  countPublishedSince(
+    productIds: readonly ProductId[],
+    since: Date,
+  ): Promise<readonly ProductCount[]> {
+    const counts = new Map<ProductId, number>();
+    for (const item of this.base.store.filter(() => true)) {
+      const at = item.publication?.at.getTime();
+      if (!productIds.includes(item.productId) || at === undefined || at < since.getTime())
+        continue;
+      counts.set(item.productId, (counts.get(item.productId) ?? 0) + 1);
+    }
+    return Promise.resolve([...counts].map(([productId, count]) => ({ productId, count })));
   }
 }
 

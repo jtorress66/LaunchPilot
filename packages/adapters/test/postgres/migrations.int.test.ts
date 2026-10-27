@@ -48,6 +48,7 @@ describe("migrations", () => {
           "0007_orchestration",
           "0008_seo_polish",
           "0009_blog_platforms",
+          "0010_product_slots",
         ],
       },
     });
@@ -102,6 +103,7 @@ describe("migrations", () => {
       ok: true,
       value: {
         applied: [
+          "0010_product_slots",
           "0009_blog_platforms",
           "0008_seo_polish",
           "0007_orchestration",
@@ -144,6 +146,37 @@ describe("migrations", () => {
       SELECT username FROM channel_connections`.execute(blogs);
     await blogs.destroy();
     expect(reverted.rows).toEqual([{ username: "admin" }]);
+  });
+
+  it("gives existing products their creation time as slot order, and archives none", async () => {
+    const slots = await scratchDatabase("migrations_slots");
+    const until = (name: string) =>
+      new Migrator({ db: slots, provider: migrationProvider }).migrateTo(name);
+    await until("0009_blog_platforms");
+    await sql`INSERT INTO users (id, email, password_hash, created_at)
+      VALUES ('usr_1', 'a@acme.dev', 'x', now())`.execute(slots);
+    await sql`INSERT INTO workspaces (id, owner_id, name, created_at)
+      VALUES ('ws_1', 'usr_1', 'Acme', now())`.execute(slots);
+    await sql`INSERT INTO products (id, workspace_id, name, url, created_at)
+      VALUES ('prod_1', 'ws_1', 'Acme', 'https://acme.dev/', '2026-03-04T05:06:07Z')`.execute(
+      slots,
+    );
+
+    await until("0010_product_slots");
+    const migrated = await sql<{ archived_at: Date | null; slot_order: Date }>`
+      SELECT archived_at, slot_order FROM products`.execute(slots);
+    expect(migrated.rows).toEqual([
+      { archived_at: null, slot_order: new Date("2026-03-04T05:06:07Z") },
+    ]);
+
+    await until("0009_blog_platforms");
+    const columns = await sql<{ column_name: string }>`
+      SELECT column_name FROM information_schema.columns
+      WHERE table_name = 'products' AND column_name IN ('archived_at', 'slot_order')`.execute(
+      slots,
+    );
+    await slots.destroy();
+    expect(columns.rows).toEqual([]);
   });
 
   it("reports a migration that fails as an error result instead of throwing", async () => {

@@ -23,6 +23,8 @@ describe("product", () => {
         createdAt: now,
         autopilotSince: null,
         locale: { language: "en", market: "US" },
+        archivedAt: null,
+        slotOrder: now,
       },
     });
   });

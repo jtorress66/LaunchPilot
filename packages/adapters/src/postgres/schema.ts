@@ -16,6 +16,8 @@ export interface ProductRow {
   autopilot_since: Date | null;
   /** "pt-BR"; defaults to "en-US" for products created before languages. */
   locale: string;
+  archived_at: Date | null;
+  slot_order: Date;
 }
 
 export interface BriefRow {

@@ -14,7 +14,18 @@ describe("productMapper", () => {
       created_at: product.createdAt,
       autopilot_since: null,
       locale: "en-US",
+      archived_at: null,
+      slot_order: product.slotOrder,
     });
+  });
+
+  it("round-trips an archived product and its place in the plan's slots", () => {
+    const product = {
+      ...aProduct(),
+      archivedAt: new Date("2026-10-20T10:00:00.000Z"),
+      slotOrder: new Date("2026-10-21T11:00:00.000Z"),
+    };
+    expect(productMapper.fromRow(productMapper.toRow(product))).toEqual(product);
   });
 
   it("stores the language and market as a tag and reads it back", () => {
