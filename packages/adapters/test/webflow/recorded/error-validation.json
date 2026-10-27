@@ -1,0 +1,11 @@
+{
+  "message": "Validation Error",
+  "code": "validation_error",
+  "externalReference": null,
+  "details": [
+    {
+      "param": "slug",
+      "description": "Unique value is already in database: 'cookieless-analytics'"
+    }
+  ]
+}
