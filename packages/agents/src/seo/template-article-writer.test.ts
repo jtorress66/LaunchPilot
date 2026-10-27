@@ -17,6 +17,25 @@ const draft = async (req: DraftRequest = request) => {
 };
 
 describe("TemplateArticleWriter", () => {
+  it("gives the article a slug from its keyword and an excerpt from the brief's solution", async () => {
+    const { seo } = await draft();
+    expect(seo?.slug).toBe("cookieless-analytics");
+    expect(seo?.excerpt).toBe(aBriefContent().solution);
+  });
+
+  it("links up to three published articles under Related reading", async () => {
+    const links = Array.from({ length: 4 }, (_, i) => ({
+      title: `Guide ${String(i)}`,
+      url: `https://acme.dev/blog/guide-${String(i)}`,
+    }));
+    const { body } = await draft({ ...request, internalLinks: links });
+    expect(body).toContain("## Related reading");
+    expect(body).toContain("- [Guide 0](https://acme.dev/blog/guide-0)");
+    expect(body).toContain("- [Guide 2](https://acme.dev/blog/guide-2)");
+    expect(body).not.toContain("guide-3");
+    expect((await draft()).body).not.toContain("Related reading");
+  });
+
   it("titles the article after the target keyword", async () => {
     expect((await draft()).title).toBe(
       "Cookieless analytics: a practical guide for Solo SaaS founders",

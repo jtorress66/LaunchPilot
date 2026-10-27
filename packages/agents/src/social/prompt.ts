@@ -1,4 +1,4 @@
-import { maxLengthOf, type Channel } from "@nuvantre/domain";
+import { defaultLocale, describeLocale, maxLengthOf, type Channel } from "@nuvantre/domain";
 import type { DraftRequest } from "@nuvantre/ports";
 
 /**
@@ -14,6 +14,7 @@ Channel guidance:
 - LinkedIn: open with a short hook line, then a few short paragraphs separated by line breaks. Prefer under 1,300 characters. At most 3 hashtags at the end.
 
 Rules:
+- Write entirely in the language given, for readers in the market given.
 - Stay within the character limit given in the request.
 - Product facts: you may state facts about the product only if they appear in the list of approved facts, quoted or closely paraphrased. List every approved fact you used in "citedFacts", copied exactly as given.
 - Do not invent statistics, customer names, testimonials, prices, integrations or certifications.
@@ -24,9 +25,10 @@ Rules:
 const channelNames: Partial<Record<Channel, string>> = { x: "X", linkedin: "LinkedIn" };
 
 /** The per-post message: the channel and its limit, the angle, the approved brief and its facts. */
-export const socialUserMessage = ({ brief, channel, task, link }: DraftRequest): string =>
+export const socialUserMessage = ({ brief, channel, task, link, locale }: DraftRequest): string =>
   [
     `Channel: ${channelNames[channel] ?? channel} (at most ${String(maxLengthOf(channel))} characters)`,
+    `Language and market: ${describeLocale(locale ?? defaultLocale)}`,
     `Angle: ${task.title}`,
     ...(link === undefined ? [] : [`Include this link exactly: ${link}`]),
     `Audience: ${brief.audience}`,

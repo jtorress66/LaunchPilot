@@ -34,8 +34,10 @@ describeContentDrafterContract("TemplateArticleWriter", () => {
 /** A plausible model answer that also cites a fact the brief does not have. */
 const modelReply = JSON.stringify({
   title: "SaaS marketing for solo founders",
-  body: "## Why saas marketing is hard\n\nIt takes time.\n\n## What helps\n\nA Free 14-day trial.",
+  body: "## Why saas marketing is hard\n\nIt takes time. See [a rival](https://rival.io).\n\n## What helps\n\nA Free 14-day trial.",
   citedFacts: ["Free 14-day trial", "Trusted by 10,000 teams"],
+  slug: "SaaS Marketing",
+  excerpt: "How solo founders can market a SaaS without a team.",
 });
 
 describeContentDrafterContract("SeoArticleWriter with a scripted model", () => {

@@ -1,4 +1,4 @@
-import { err, ok, type Result } from "@nuvantre/domain";
+import { err, ok, unlinkOutside, type Result } from "@nuvantre/domain";
 import type {
   ContentDrafter,
   Draft,
@@ -9,6 +9,7 @@ import type {
 } from "@nuvantre/ports";
 import { SEO_SYSTEM_PROMPT, seoUserMessage } from "./prompt";
 import { articleAnswer, articleAnswerJsonSchema, type ArticleAnswer } from "./schema";
+import { searchMetadata } from "./search-metadata";
 
 const MAX_TOKENS = 16_000;
 
@@ -62,8 +63,10 @@ export class SeoArticleWriter implements ContentDrafter {
     }
     return ok({
       title: answer.value.title,
-      body: answer.value.body,
+      // Links are allowed only to the product's published articles; anything else becomes text.
+      body: unlinkOutside(answer.value.body, request.internalLinks ?? []),
       citedFacts: answer.value.citedFacts.filter((fact) => request.brief.facts.includes(fact)),
+      seo: searchMetadata(answer.value, answer.value.title),
     });
   }
 }
