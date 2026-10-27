@@ -39,6 +39,7 @@ import {
   RunAutopilotNow,
   RunWeeklyLoop,
   SetAutopilot,
+  SetProductLocale,
   ChooseAnalyticsProperties,
   CompleteGoogleConnect,
   ConnectPlausible,
@@ -331,6 +332,7 @@ const build = (config: WebConfig) => {
     getLaunchOverview: new GetLaunchOverview(deps),
     analytics: analyticsFor(config, repositories, cipher, deps),
     setAutopilot: new SetAutopilot(deps),
+    setProductLocale: new SetProductLocale(deps),
     runAutopilotNow: new RunAutopilotNow({ ...deps, loop }),
     getAutopilotStatus: new GetAutopilotStatus(deps),
   };

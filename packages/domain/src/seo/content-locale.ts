@@ -18,6 +18,26 @@ const languageNames = new Intl.DisplayNames(["en"], { type: "language", fallback
 const regionNames = new Intl.DisplayNames(["en"], { type: "region", fallback: "none" });
 const TAG = /^([a-z]{2,3})[-_]([a-z]{2})$/i;
 
+/** Region codes that name a group of countries or a test locale, not a market. */
+const NOT_A_MARKET = new Set(["EU", "EZ", "UN", "QO", "XA", "XB", "ZZ"]);
+
+const LETTERS = "abcdefghijklmnopqrstuvwxyz".split("");
+const TWO_LETTERS = LETTERS.flatMap((a) => LETTERS.map((b) => `${a}${b}`));
+const named = (names: Intl.DisplayNames, code: string) => {
+  const name = names.of(code);
+  return name !== undefined && name !== code;
+};
+
+/** Two-letter language codes the runtime can name: "pt", "de", … */
+export const contentLanguages: readonly string[] = TWO_LETTERS.filter((code) =>
+  named(languageNames, code),
+);
+
+/** Country codes the runtime can name, without groupings such as EU or UN: "BR", "DE", … */
+export const contentMarkets: readonly string[] = TWO_LETTERS.map((code) =>
+  code.toUpperCase(),
+).filter((code) => !NOT_A_MARKET.has(code) && named(regionNames, code));
+
 const invalid = (value: string) =>
   err(
     domainError("invalid_locale", `"${value}" is not a language and market such as en-US or pt-BR`),
@@ -28,7 +48,7 @@ export const parseContentLocale = (value: string): Result<ContentLocale, DomainE
   if (!match?.[1] || !match[2]) return invalid(value);
   const language = match[1].toLowerCase();
   const market = match[2].toUpperCase();
-  if (languageNames.of(language) === undefined || regionNames.of(market) === undefined) {
+  if (!named(languageNames, language) || !named(regionNames, market) || NOT_A_MARKET.has(market)) {
     return invalid(value);
   }
   return ok({ language, market });

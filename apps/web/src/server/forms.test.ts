@@ -3,6 +3,7 @@ import {
   articleForm,
   launchKitForm,
   liveForm,
+  localeForm,
   analyticsPropertiesForm,
   plausibleForm,
   parseDirectoryFilter,
@@ -158,6 +159,35 @@ describe("form parsing", () => {
     expect(parseForm(articleForm, form({ title: "x".repeat(201), body: "b" }))).toEqual({
       ok: false,
       error: { title: "Use at most 200 characters" },
+    });
+  });
+
+  it("keeps an article's slug and excerpt when given, and leaves blank ones out", () => {
+    expect(
+      parseForm(
+        articleForm,
+        form({ title: "T", body: "B", slug: " cookieless-analytics ", excerpt: "Short." }),
+      ),
+    ).toEqual({
+      ok: true,
+      value: { title: "T", body: "B", slug: "cookieless-analytics", excerpt: "Short." },
+    });
+    expect(parseForm(articleForm, form({ title: "T", body: "B", slug: " ", excerpt: "" }))).toEqual(
+      { ok: true, value: { title: "T", body: "B" } },
+    );
+    expect(
+      parseForm(articleForm, form({ title: "T", body: "B", excerpt: "x".repeat(301) })),
+    ).toEqual({ ok: false, error: { excerpt: "Use at most 300 characters" } });
+  });
+
+  it("joins the chosen language and market into one locale", () => {
+    expect(parseForm(localeForm, form({ language: "pt", market: "BR" }))).toEqual({
+      ok: true,
+      value: { locale: "pt-BR" },
+    });
+    expect(parseForm(localeForm, form({ language: "pt" }))).toEqual({
+      ok: false,
+      error: { market: "Choose a market" },
     });
   });
 });

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BlogConnectionForm } from "../../../../../components/seo/blog-connection-form";
 import { KeywordPlanTable } from "../../../../../components/seo/keyword-plan-table";
+import { LocaleForm } from "../../../../../components/seo/locale-form";
 import { SeoPlanForm } from "../../../../../components/seo/seo-plan-form";
 import { getAppContainer } from "../../../../../container";
 import { requireUser } from "../../../../_lib/auth";
@@ -68,12 +69,24 @@ export default async function SeoPage({ params }: { readonly params: Promise<{ i
           ))}
         </div>
 
-        <section aria-labelledby="blog" className={`h-fit ${card}`}>
-          <h2 id="blog" className="text-lg font-semibold">
-            Your blog
-          </h2>
-          <BlogConnectionForm productId={product.id} connected={connection} />
-        </section>
+        <div className="space-y-8">
+          <section aria-labelledby="blog" className={`h-fit ${card}`}>
+            <h2 id="blog" className="text-lg font-semibold">
+              Your blog
+            </h2>
+            <BlogConnectionForm productId={product.id} connected={connection} />
+          </section>
+          <section aria-labelledby="language" className={`h-fit ${card}`}>
+            <h2 id="language" className="text-lg font-semibold">
+              Language and market
+            </h2>
+            <LocaleForm
+              productId={product.id}
+              language={product.locale.language}
+              market={product.locale.market}
+            />
+          </section>
+        </div>
       </div>
     </div>
   );

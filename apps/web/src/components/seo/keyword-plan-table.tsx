@@ -23,7 +23,9 @@ export function KeywordPlanTable({ tasks }: { readonly tasks: readonly PlannedTa
                 {number.format(task.seo.monthlySearches)} searches/month · difficulty{" "}
                 {task.seo.difficulty}/100
               </p>
-            ) : null}
+            ) : (
+              <p className="text-xs text-slate-500">No search data for this market yet</p>
+            )}
           </div>
           {item ? (
             <div className="flex items-center gap-3">

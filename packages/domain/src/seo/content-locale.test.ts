@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { defaultLocale, describeLocale, formatLocale, parseContentLocale } from "./content-locale";
+import {
+  contentLanguages,
+  contentMarkets,
+  defaultLocale,
+  describeLocale,
+  formatLocale,
+  parseContentLocale,
+} from "./content-locale";
 
 describe("parseContentLocale", () => {
   it.each([
@@ -11,15 +18,25 @@ describe("parseContentLocale", () => {
     expect(parseContentLocale(input)).toEqual({ ok: true, value: locale });
   });
 
-  it.each(["", "pt", "BR", "xx-BR", "pt-XX", "pt-BR-x", "english-US", "pt-419"])(
-    "refuses %j: a known language and a known country are both needed",
-    (input) => {
-      expect(parseContentLocale(input)).toMatchObject({
-        ok: false,
-        error: { code: "invalid_locale" },
-      });
-    },
-  );
+  it.each([
+    "",
+    "pt",
+    "BR",
+    "xx-BR",
+    "pt-XX",
+    "pt-BR-x",
+    "english-US",
+    "pt-419",
+    "en-EU",
+    "en-UN",
+    "en-ZZ",
+    "en-XA",
+  ])("refuses %j: a known language and a known country are both needed", (input) => {
+    expect(parseContentLocale(input)).toMatchObject({
+      ok: false,
+      error: { code: "invalid_locale" },
+    });
+  });
 });
 
 describe("describeLocale", () => {
@@ -34,5 +51,17 @@ describe("formatLocale", () => {
   it("writes the tag the rest of the app stores: language-MARKET", () => {
     expect(formatLocale({ language: "pt", market: "BR" })).toBe("pt-BR");
     expect(formatLocale(defaultLocale)).toBe("en-US");
+  });
+});
+
+describe("contentLanguages and contentMarkets", () => {
+  it("list every language and country the runtime can name, and no groupings of countries", () => {
+    expect(contentLanguages.length).toBeGreaterThan(150);
+    expect(contentLanguages).toContain("pt");
+    expect(contentMarkets.length).toBeGreaterThan(240);
+    expect(contentMarkets).toContain("BR");
+    for (const grouping of ["EU", "EZ", "UN", "QO", "XA", "XB", "ZZ"]) {
+      expect(contentMarkets).not.toContain(grouping);
+    }
   });
 });

@@ -59,10 +59,35 @@ export const seedKeywordsForm = z.object({
   seeds: lines(5, 80).refine((items) => items.length > 0, "Enter at least one topic"),
 });
 
-export const articleForm = z.object({
-  title: text("Enter a title", 200),
-  body: text("The article needs a body", 100_000),
-});
+/** An empty select or input means "none". */
+const optional = (max: number) =>
+  z
+    .string()
+    .max(max, `Use at most ${max} characters`)
+    .default("")
+    .transform((value) => (value.trim() === "" ? null : value.trim()));
+
+export const articleForm = z
+  .object({
+    title: text("Enter a title", 200),
+    body: text("The article needs a body", 100_000),
+    slug: optional(75),
+    excerpt: optional(300),
+  })
+  .transform(({ slug, excerpt, ...rest }) => ({
+    ...rest,
+    // A blank field keeps the article's current value.
+    ...(slug === null ? {} : { slug }),
+    ...(excerpt === null ? {} : { excerpt }),
+  }));
+
+/** The language and market selects; the domain checks the combination. */
+export const localeForm = z
+  .object({
+    language: text("Choose a language", 3),
+    market: text("Choose a market", 2),
+  })
+  .transform(({ language, market }) => ({ locale: `${language}-${market}` }));
 
 export const upgradeForm = z.object({ plan: z.enum(["starter", "growth"]) });
 
@@ -155,14 +180,6 @@ export const parseDirectoryFilter = (
     ...(topic ? { topic } : {}),
   };
 };
-
-/** An empty select or input means "none". */
-const optional = (max: number) =>
-  z
-    .string()
-    .max(max, `Use at most ${max} characters`)
-    .default("")
-    .transform((value) => (value.trim() === "" ? null : value.trim()));
 
 export const plausibleForm = z.object({
   siteId: text("Enter the domain Plausible shows for your site", 253),
