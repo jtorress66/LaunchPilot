@@ -36,7 +36,7 @@ import type {
 import { loadApprovedBrief } from "./approved-brief";
 import { checkContentAllowance } from "./content-allowance";
 import type { UseCaseError } from "./errors";
-import { loadOwnedProduct } from "./owned-product";
+import { loadActiveProduct } from "./active-product";
 
 const POSTS_PER_WEEK = { x: 3, linkedin: 2 } as const;
 
@@ -71,7 +71,7 @@ export class DraftSocialWeek {
     workspace: Workspace;
     productId: ProductId;
   }): Promise<Result<SocialWeek, UseCaseError | DraftError>> {
-    const product = await loadOwnedProduct(this.deps.products, input.workspace, input.productId);
+    const product = await loadActiveProduct(this.deps, input.workspace, input.productId);
     if (!product.ok) return product;
     const brief = await loadApprovedBrief(this.deps.briefs, product.value.id);
     if (!brief.ok) return brief;

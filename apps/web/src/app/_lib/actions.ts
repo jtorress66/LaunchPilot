@@ -70,6 +70,15 @@ export async function upgradeAction(data: FormData): Promise<void> {
   redirect(result.ok ? result.value.url : "/app/billing?checkout=unavailable");
 }
 
+/** Test-mode "Cancel plan": drops to Free, as a cancellation would. Unavailable with Stripe. */
+export async function cancelLocalPlanAction(): Promise<void> {
+  const { workspace } = await requireUser();
+  const simulator = getAppContainer().localCheckout;
+  if (!simulator) redirect("/app/billing");
+  const result = await simulator.cancel({ workspaceId: workspace.id });
+  redirect(result.ok ? "/app/billing?checkout=canceled_plan" : "/app/billing?checkout=unavailable");
+}
+
 /** The "Pay" button of the local test-mode checkout. Unavailable when Stripe is configured. */
 export async function payLocalCheckoutAction(data: FormData): Promise<void> {
   const { workspace } = await requireUser();

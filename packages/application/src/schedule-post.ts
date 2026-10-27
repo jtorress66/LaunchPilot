@@ -6,13 +6,20 @@ import {
   type Result,
   type Workspace,
 } from "@nuvantre/domain";
-import type { Clock, ContentItemRepository, ProductRepository } from "@nuvantre/ports";
+import type {
+  Clock,
+  ContentItemRepository,
+  ProductRepository,
+  SubscriptionRepository,
+} from "@nuvantre/ports";
+import { ensureActive } from "./active-product";
 import type { UseCaseError } from "./errors";
 import { loadOwnedItem } from "./owned-content";
 
 interface Deps {
   readonly contentItems: ContentItemRepository;
   readonly products: ProductRepository;
+  readonly subscriptions: SubscriptionRepository;
   readonly clock: Clock;
 }
 
@@ -24,6 +31,11 @@ const apply = async (
 ): Promise<Result<ContentItem, UseCaseError>> => {
   const owned = await loadOwnedItem(deps, workspace, itemId);
   if (!owned.ok) return owned;
+  // Taking a post off the calendar stays possible for a paused product; putting one on does not.
+  if (event.type === "schedule") {
+    const active = await ensureActive(deps, owned.value.product);
+    if (!active.ok) return active;
+  }
   const next = transition(owned.value.item, event, { now: deps.clock.now() });
   if (next.ok) await deps.contentItems.save(next.value);
   return next;

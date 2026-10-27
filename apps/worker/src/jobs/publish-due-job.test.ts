@@ -10,15 +10,29 @@ const setup = (run: () => Promise<PublishRunSummary>) => {
 
 describe("publish-due job", () => {
   it("logs one line with the run's counts", async () => {
-    const { job, lines } = setup(() => Promise.resolve({ published: 2, retrying: 1, failed: 0 }));
+    const { job, lines } = setup(() =>
+      Promise.resolve({ published: 2, retrying: 1, failed: 0, held: 0 }),
+    );
     await job.run();
     expect(lines.map((l) => JSON.parse(l) as unknown)).toEqual([
-      { event: "worker.publish_due", published: 2, retrying: 1, failed: 0 },
+      { event: "worker.publish_due", published: 2, retrying: 1, failed: 0, held: 0 },
+    ]);
+  });
+
+  it("logs a run that only held a paused product's posts", async () => {
+    const { job, lines } = setup(() =>
+      Promise.resolve({ published: 0, retrying: 0, failed: 0, held: 2 }),
+    );
+    await job.run();
+    expect(lines.map((l) => JSON.parse(l) as unknown)).toEqual([
+      { event: "worker.publish_due", published: 0, retrying: 0, failed: 0, held: 2 },
     ]);
   });
 
   it("stays quiet when nothing was due", async () => {
-    const { job, lines } = setup(() => Promise.resolve({ published: 0, retrying: 0, failed: 0 }));
+    const { job, lines } = setup(() =>
+      Promise.resolve({ published: 0, retrying: 0, failed: 0, held: 0 }),
+    );
     await job.run();
     expect(lines).toEqual([]);
   });
@@ -29,7 +43,7 @@ describe("publish-due job", () => {
       calls += 1;
       return calls === 1
         ? Promise.reject(new Error("connect ECONNREFUSED postgres://app:secret@db"))
-        : Promise.resolve({ published: 1, retrying: 0, failed: 0 });
+        : Promise.resolve({ published: 1, retrying: 0, failed: 0, held: 0 });
     });
     await job.run();
     await job.run();
@@ -45,7 +59,7 @@ describe("publish-due job", () => {
       calls += 1;
       return new Promise((resolve) => {
         release = () => {
-          resolve({ published: 0, retrying: 0, failed: 0 });
+          resolve({ published: 0, retrying: 0, failed: 0, held: 0 });
         };
       });
     });

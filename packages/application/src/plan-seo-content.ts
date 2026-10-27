@@ -23,11 +23,12 @@ import type {
   KeywordError,
   KeywordProvider,
   ProductRepository,
+  SubscriptionRepository,
   TaskRepository,
 } from "@nuvantre/ports";
 import { loadApprovedBrief } from "./approved-brief";
 import { failure, type UseCaseError } from "./errors";
-import { loadOwnedProduct } from "./owned-product";
+import { loadActiveProduct } from "./active-product";
 
 const ARTICLES_PER_PLAN = 4;
 const IDEAS_TO_CONSIDER = 50;
@@ -55,6 +56,7 @@ export class PlanSeoContent {
   constructor(
     private readonly deps: {
       readonly products: ProductRepository;
+      readonly subscriptions: SubscriptionRepository;
       readonly briefs: BriefRepository;
       readonly campaigns: CampaignRepository;
       readonly tasks: TaskRepository;
@@ -69,7 +71,7 @@ export class PlanSeoContent {
     productId: ProductId;
     seeds: readonly string[];
   }): Promise<Result<SeoPlan, UseCaseError | KeywordError>> {
-    const product = await loadOwnedProduct(this.deps.products, input.workspace, input.productId);
+    const product = await loadActiveProduct(this.deps, input.workspace, input.productId);
     if (!product.ok) return product;
     const brief = await loadApprovedBrief(this.deps.briefs, product.value.id);
     if (!brief.ok) return brief;

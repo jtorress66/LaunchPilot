@@ -22,7 +22,8 @@ export type ApplicationErrorCode =
   | "submission_not_found"
   | "analytics_not_connected"
   | "oauth_state_mismatch"
-  | "report_not_found";
+  | "report_not_found"
+  | "invalid_swap";
 
 /** What a use case can report: a broken domain rule or an application-level refusal. */
 export type UseCaseError =

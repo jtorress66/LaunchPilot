@@ -3,8 +3,16 @@ import {
   transition,
   type ContentItem,
   type ContentItemEvent,
+  type ProductId,
 } from "@nuvantre/domain";
-import type { Clock, ContentItemRepository, TaskRepository } from "@nuvantre/ports";
+import type {
+  Clock,
+  ContentItemRepository,
+  ProductRepository,
+  SubscriptionRepository,
+  TaskRepository,
+} from "@nuvantre/ports";
+import { ensureActive } from "./active-product";
 import { completeTaskOf } from "./complete-task";
 import type { PublisherRegistry } from "./publisher-registry";
 
@@ -16,6 +24,8 @@ export interface PublishRunSummary {
   readonly published: number;
   readonly retrying: number;
   readonly failed: number;
+  /** Due, but its product is paused or archived: left scheduled until it is active again. */
+  readonly held: number;
 }
 
 type Outcome = keyof PublishRunSummary;
@@ -24,12 +34,14 @@ type Outcome = keyof PublishRunSummary;
  * The scheduler's job: publishes scheduled posts whose time has come, earliest first.
  * Only founder-approved items reach a publisher (`toPublishable`). A temporary failure keeps
  * the post scheduled for the next run, up to 3 attempts; anything else marks it failed so
- * the founder can see why and retry.
+ * the founder can see why and retry. A paused or archived product's posts wait, still scheduled.
  */
 export class PublishDueContent {
   constructor(
     private readonly deps: {
       readonly contentItems: ContentItemRepository;
+      readonly products: ProductRepository;
+      readonly subscriptions: SubscriptionRepository;
       readonly tasks: TaskRepository;
       readonly publishers: PublisherRegistry;
       readonly clock: Clock;
@@ -42,9 +54,19 @@ export class PublishDueContent {
       .filter((item) => item.publishAt !== null && item.publishAt.getTime() <= now.getTime())
       .sort((a, b) => (a.publishAt?.getTime() ?? 0) - (b.publishAt?.getTime() ?? 0))
       .slice(0, BATCH_SIZE);
-    const summary = { published: 0, retrying: 0, failed: 0 };
-    for (const item of due) summary[await this.publishOne(item)] += 1;
+    const summary = { published: 0, retrying: 0, failed: 0, held: 0 };
+    const active = new Map<ProductId, boolean>();
+    for (const item of due) {
+      if (!active.has(item.productId))
+        active.set(item.productId, await this.isActive(item.productId));
+      summary[active.get(item.productId) ? await this.publishOne(item) : "held"] += 1;
+    }
     return summary;
+  }
+
+  private async isActive(id: ProductId): Promise<boolean> {
+    const product = await this.deps.products.findById(id);
+    return product ? (await ensureActive(this.deps, product)).ok : true;
   }
 
   private async publishOne(item: ContentItem): Promise<Outcome> {

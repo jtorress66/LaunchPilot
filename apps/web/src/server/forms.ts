@@ -86,6 +86,14 @@ export const blogConnectionFormFor = (platform: BlogPlatform) => {
     }));
 };
 
+/** "Make active": the active product that is paused in its place. */
+export const swapProductForm = z.object({
+  pause: z
+    .string()
+    .default("")
+    .refine((value) => /^[\w-]{1,100}$/.test(value), "Choose which product to pause"),
+});
+
 export const seedKeywordsForm = z.object({
   seeds: lines(5, 80).refine((items) => items.length > 0, "Enter at least one topic"),
 });

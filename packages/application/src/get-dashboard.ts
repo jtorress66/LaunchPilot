@@ -1,31 +1,51 @@
 import {
-  type BriefStatus,
+  allocateSlots,
   effectivePlan,
-  startOfUtcMonth,
   plans,
+  slotsInUse,
+  startOfUtcMonth,
+  type BriefStatus,
   type Plan,
   type Product,
+  type ProductStanding,
   type SubscriptionStatus,
   type Workspace,
 } from "@nuvantre/domain";
 import type {
   BriefRepository,
+  ChannelConnectionRepository,
   Clock,
   ContentItemRepository,
   ProductRepository,
   SubscriptionRepository,
+  WeeklyReportRepository,
 } from "@nuvantre/ports";
 import { loadSubscription } from "./current-plan";
 
+/** What is going on with one product, at a glance. */
+export interface ProductCard {
+  readonly product: Product;
+  readonly standing: Exclude<ProductStanding, "archived">;
+  /** "none" until a brief is drafted. */
+  readonly briefStatus: BriefStatus | "none";
+  readonly waitingForApproval: number;
+  readonly scheduled: number;
+  readonly publishedThisMonth: number;
+  readonly blogConnected: boolean;
+  /** Visitors in the latest weekly report, with the change on the week before; null without one. */
+  readonly visitors: { readonly value: number; readonly change: number | null } | null;
+}
+
 export interface Dashboard {
   readonly workspace: Workspace;
-  readonly products: readonly Product[];
   readonly plan: Plan;
   readonly subscriptionStatus: SubscriptionStatus;
+  /** Archived products do not count against the plan. */
   readonly usage: { readonly products: number; readonly contentItemsThisMonth: number };
   readonly canAddProduct: boolean;
-  /** Brief status per product id; "none" until a brief is drafted. */
-  readonly briefStatus: Readonly<Record<string, BriefStatus | "none">>;
+  /** Active products first, then paused ones, each in slot order. */
+  readonly cards: readonly ProductCard[];
+  readonly archived: readonly Product[];
 }
 
 export class GetDashboard {
@@ -35,6 +55,8 @@ export class GetDashboard {
       readonly briefs: BriefRepository;
       readonly contentItems: ContentItemRepository;
       readonly subscriptions: SubscriptionRepository;
+      readonly connections: ChannelConnectionRepository;
+      readonly weeklyReports: WeeklyReportRepository;
       readonly clock: Clock;
     },
   ) {}
@@ -42,27 +64,56 @@ export class GetDashboard {
   async execute(workspace: Workspace): Promise<Dashboard> {
     const products = await this.deps.products.listByWorkspace(workspace.id);
     const subscription = await loadSubscription(this.deps, workspace);
-    const plan = plans[effectivePlan(subscription, this.deps.clock.now())];
-    const statuses = await Promise.all(
-      products.map(async (product) => {
-        const brief = await this.deps.briefs.findLatestForProduct(product.id);
-        return [product.id, brief?.status ?? "none"] as const;
-      }),
-    );
+    const now = this.deps.clock.now();
+    const plan = plans[effectivePlan(subscription, now)];
+    const allocation = allocateSlots(products, plan);
+    const ids = products.map((p) => p.id);
+    const [byStatus, published] = await Promise.all([
+      this.deps.contentItems.countByStatus(ids),
+      this.deps.contentItems.countPublishedSince(ids, startOfUtcMonth(now)),
+    ]);
+    const countOf = (product: Product, status: "in_review" | "scheduled") =>
+      byStatus.find((c) => c.productId === product.id && c.status === status)?.count ?? 0;
+
+    const card = async (
+      product: Product,
+      standing: ProductCard["standing"],
+    ): Promise<ProductCard> => {
+      const [brief, blog, reports] = await Promise.all([
+        this.deps.briefs.findLatestForProduct(product.id),
+        this.deps.connections.findByProductAndChannel(product.id, "blog"),
+        this.deps.weeklyReports.listByProduct(product.id),
+      ]);
+      const visitors = reports[0]?.metrics.find((m) => m.name === "visitors");
+      return {
+        product,
+        standing,
+        briefStatus: brief?.status ?? "none",
+        waitingForApproval: countOf(product, "in_review"),
+        scheduled: countOf(product, "scheduled"),
+        publishedThisMonth: published.find((c) => c.productId === product.id)?.count ?? 0,
+        blogConnected: blog !== undefined,
+        visitors: visitors ? { value: visitors.value, change: visitors.change } : null,
+      };
+    };
+
     return {
       workspace,
-      products,
       plan,
       subscriptionStatus: subscription.status,
       usage: {
-        products: products.length,
+        products: slotsInUse(products),
         contentItemsThisMonth: await this.deps.contentItems.countCreatedSince(
-          products.map((p) => p.id),
-          startOfUtcMonth(this.deps.clock.now()),
+          ids,
+          startOfUtcMonth(now),
         ),
       },
-      canAddProduct: products.length < plan.limits.products,
-      briefStatus: Object.fromEntries(statuses),
+      canAddProduct: slotsInUse(products) < plan.limits.products,
+      cards: await Promise.all([
+        ...allocation.active.map((p) => card(p, "active")),
+        ...allocation.paused.map((p) => card(p, "paused")),
+      ]),
+      archived: allocation.archived,
     };
   }
 }

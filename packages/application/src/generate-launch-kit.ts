@@ -38,7 +38,7 @@ import type {
 import { loadApprovedBrief } from "./approved-brief";
 import { checkContentAllowance } from "./content-allowance";
 import type { UseCaseError } from "./errors";
-import { loadOwnedProduct } from "./owned-product";
+import { loadActiveProduct } from "./active-product";
 
 export interface GeneratedLaunchKit {
   readonly kit: LaunchKit;
@@ -74,7 +74,7 @@ export class GenerateLaunchKit {
     workspace: Workspace;
     productId: ProductId;
   }): Promise<Result<GeneratedLaunchKit, UseCaseError | DraftError>> {
-    const product = await loadOwnedProduct(this.deps.products, input.workspace, input.productId);
+    const product = await loadActiveProduct(this.deps, input.workspace, input.productId);
     if (!product.ok) return product;
     const brief = await loadApprovedBrief(this.deps.briefs, product.value.id);
     if (!brief.ok) return brief;

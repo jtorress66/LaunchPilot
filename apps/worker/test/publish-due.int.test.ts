@@ -58,6 +58,8 @@ describe("publish-due job on Postgres", () => {
     const job = createPublishDueJob({
       publishDue: new PublishDueContent({
         contentItems: repos.contentItems,
+        products: repos.products,
+        subscriptions: repos.subscriptions,
         tasks: repos.tasks,
         publishers: new PublisherRegistry([x]),
         clock,
@@ -69,7 +71,13 @@ describe("publish-due job on Postgres", () => {
 
     // The earliest (flaky) one is tried first and fails; the other publishes.
     expect(lines).toEqual([
-      JSON.stringify({ event: "worker.publish_due", published: 1, retrying: 1, failed: 0 }),
+      JSON.stringify({
+        event: "worker.publish_due",
+        published: 1,
+        retrying: 1,
+        failed: 0,
+        held: 0,
+      }),
     ]);
     expect(await repos.contentItems.findById(contentItemId("item_flaky"))).toMatchObject({
       status: "scheduled",

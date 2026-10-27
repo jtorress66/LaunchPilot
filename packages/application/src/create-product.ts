@@ -1,6 +1,7 @@
 import {
   checkCanCreateProduct,
   createProduct,
+  slotsInUse,
   productId,
   type Product,
   type Result,
@@ -34,7 +35,7 @@ export class CreateProduct {
     const existing = await this.deps.products.listByWorkspace(input.workspace.id);
     const allowed = checkCanCreateProduct(
       await currentPlan(this.deps, input.workspace),
-      existing.length,
+      slotsInUse(existing),
     );
     if (!allowed.ok) return allowed;
     const product = createProduct({

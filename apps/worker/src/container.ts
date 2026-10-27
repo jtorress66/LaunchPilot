@@ -195,6 +195,8 @@ export const createPublishDue = (config: PublisherConfig) => {
   return {
     publishDue: new PublishDueContent({
       contentItems: repositories.contentItems,
+      products: repositories.products,
+      subscriptions: repositories.subscriptions,
       tasks: repositories.tasks,
       publishers,
       clock: container.clock,
@@ -284,6 +286,7 @@ export const createWeeklyReports = (publisher: PublisherConfig, reports: Reports
     builder,
     buildDue: new BuildDueReports({
       products: repositories.products,
+      subscriptions: repositories.subscriptions,
       analyticsConnections: repositories.analyticsConnections,
       weeklyReports: repositories.weeklyReports,
       builder,

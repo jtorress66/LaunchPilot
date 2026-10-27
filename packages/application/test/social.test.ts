@@ -398,7 +398,7 @@ describe("PublishDueContent", () => {
     }
     s.world.clock.advance(3 * HOUR);
 
-    expect(await publishDue(s)).toEqual({ published: 2, retrying: 0, failed: 0 });
+    expect(await publishDue(s)).toEqual({ published: 2, retrying: 0, failed: 0, held: 0 });
     expect(s.world.xPublisher.publisher.published.map((i) => i.id)).toEqual([b.id, a.id]);
     expect((await stored(s, a))?.status).toBe("published");
     expect((await stored(s, a))?.publication?.externalUrl).toBe(`https://example.com/x/${a.id}`);
@@ -416,14 +416,14 @@ describe("PublishDueContent", () => {
 
     for (const attempt of [1, 2]) {
       s.world.xPublisher.publisher.failNext(outage);
-      expect(await publishDue(s)).toEqual({ published: 0, retrying: 1, failed: 0 });
+      expect(await publishDue(s)).toEqual({ published: 0, retrying: 1, failed: 0, held: 0 });
       expect(await stored(s, post)).toMatchObject({
         status: "scheduled",
         publishAttempts: attempt,
       });
     }
     s.world.xPublisher.publisher.failNext(outage);
-    expect(await publishDue(s)).toEqual({ published: 0, retrying: 0, failed: 1 });
+    expect(await publishDue(s)).toEqual({ published: 0, retrying: 0, failed: 1, held: 0 });
     expect(await stored(s, post)).toMatchObject({
       status: "failed",
       failure: { reason: "Zernio is down" },
@@ -440,7 +440,7 @@ describe("PublishDueContent", () => {
       message: "X rejected the post: Duplicate content",
       retryable: false,
     });
-    expect(await publishDue(s)).toEqual({ published: 0, retrying: 0, failed: 1 });
+    expect(await publishDue(s)).toEqual({ published: 0, retrying: 0, failed: 1, held: 0 });
     expect((await stored(s, post))?.status).toBe("failed");
   });
 
@@ -448,7 +448,7 @@ describe("PublishDueContent", () => {
     const s = await setUp();
     const post = await scheduledPost(s);
     s.world.clock.advance(2 * HOUR);
-    expect(await publishDue(s)).toEqual({ published: 0, retrying: 0, failed: 1 });
+    expect(await publishDue(s)).toEqual({ published: 0, retrying: 0, failed: 1, held: 0 });
     expect((await stored(s, post))?.failure?.reason).toBe("Connect your x first");
   });
 
@@ -459,7 +459,7 @@ describe("PublishDueContent", () => {
     await s.world.contentItems.save(sneaky);
     await s.world.contentItems.save({ ...post, status: "approved", publishAt: null });
     s.world.clock.advance(2 * HOUR);
-    expect(await publishDue(s)).toEqual({ published: 0, retrying: 0, failed: 1 });
+    expect(await publishDue(s)).toEqual({ published: 0, retrying: 0, failed: 1, held: 0 });
     expect(s.world.xPublisher.publisher.published).toEqual([]);
     expect((await s.world.contentItems.findById(sneaky.id))?.status).toBe("failed");
   });
