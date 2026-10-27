@@ -22,3 +22,8 @@ export type * from "./google-authorizer";
 export type * from "./analytics-property-lister";
 export type * from "./plausible-site-verifier";
 export type * from "./weekly-report-analyst";
+export type * from "./rate-limiter";
+export type * from "./error-reporter";
+export type * from "./audit-trail";
+export type * from "./job-lock";
+export type * from "./readiness-probe";
