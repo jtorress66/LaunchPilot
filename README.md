@@ -120,21 +120,33 @@ Once the brief is approved, the product's **SEO** page runs the loop:
    and an Application Password (WordPress → Users → Profile → Application Passwords). Nuvantre
    checks it with the REST API (the user must be able to publish posts) and stores the password
    encrypted with AES-256-GCM (`TOKEN_ENCRYPTION_KEY`). It is never logged or shown again.
-2. **Plan articles.** The founder enters up to 5 topics. DataForSEO suggests keyword ideas with
-   search volume and difficulty; the domain keeps realistic ones (difficulty ≤ 60, ≥ 10 searches a
-   month) and plans one article for each of the best 4, ranked by volume ÷ (difficulty + 10).
-3. **Draft.** The SEO writer (Claude, or the offline template writer in dev and test) writes a
-   Markdown article for the keyword from the approved brief. It may state only the brief's facts;
-   cited facts that are not in the brief are dropped. The article goes to review. Each draft counts
-   against the plan's monthly content allowance.
-4. **Edit, approve, publish.** The founder edits (which sends it back to review), approves, then
-   publishes. Publishing goes through the `PublisherRegistry`, which only accepts approved items on
-   auto-publish channels, and posts the article to WordPress as HTML (raw HTML in the Markdown is
-   escaped). A failed attempt leaves the article approved, so it can simply be retried.
+2. **Choose the language and market.** Each product has one (US English by default), set under
+   **Language and market**: any language and country the runtime's Unicode data names. Articles,
+   social posts and reviews are written in it, and keyword research targets that market.
+3. **Plan articles.** The founder enters up to 5 topics. DataForSEO suggests keyword ideas with
+   search volume and difficulty for the product's market; the domain keeps realistic ones
+   (difficulty ≤ 60, ≥ 10 searches a month) and plans one article for each of the best 4, ranked by
+   volume ÷ (difficulty + 10). Which markets have keyword data comes from DataForSEO's own
+   `locations_and_languages` list, read once per process. In a market it does not cover, each topic
+   becomes an article without search figures, labelled "No search data for this market yet".
+4. **Draft.** The SEO writer (Claude, or the offline template writer in dev and test) writes a
+   Markdown article for the keyword from the approved brief, in the product's language. It may
+   state only the brief's facts; cited facts that are not in the brief are dropped. It also gives a
+   URL slug and an excerpt for search results, and may link only to the product's own published
+   articles (up to 10, newest first): any other link is turned into plain text in code. The article
+   goes to review. Each draft counts against the plan's monthly content allowance.
+5. **Edit, approve, publish.** The founder edits the title, article, URL slug or excerpt (which
+   sends it back to review), approves, then publishes. Publishing goes through the
+   `PublisherRegistry`, which only accepts approved items on auto-publish channels, and posts the
+   article to WordPress as HTML (raw HTML in the Markdown is escaped) with its slug and excerpt.
+   WordPress adds `-2` to a slug that is taken. Many themes and SEO plugins use the excerpt as the
+   meta description; Yoast and Rank Math's own meta fields need their REST extensions, so they are
+   not set. A failed attempt leaves the article approved, so it can simply be retried.
 
 **DataForSEO account:** sign up at dataforseo.com and copy the API login and password from the
 dashboard (API Access). Set `DATAFORSEO_LOGIN` and `DATAFORSEO_PASSWORD`. Each plan costs about one
-cent. **CI secrets:** the `dataforseo-smoke` job makes one real call; add `DATAFORSEO_LOGIN` and
+cent. **CI secrets:** the `dataforseo-smoke` job researches one US English and one Brazilian
+Portuguese topic for real; add `DATAFORSEO_LOGIN` and
 `DATAFORSEO_PASSWORD` under **Settings → Secrets and variables → Actions**. Until then that job
 fails with a message saying the secrets are missing. To use DataForSEO's free Sandbox (made-up
 data, no charge), also add the repository **variable** `DATAFORSEO_BASE_URL` =
@@ -342,12 +354,18 @@ Each brief is scored on four checks:
 
 It then runs the **seo-article** suite: the SEO writer drafts one article per recorded brief in
 `evals/seo/cases/*.json`, scored on: cites only brief facts, no "forbidden" claims, the keyword in
-the title or first heading, at least 900 words, and at least 3 sections.
+the title or first heading, at least 900 words, at least 3 sections, a valid slug with a keyword word
+and an excerpt of at most 160 characters, links only to the case's published articles (judged on the
+model's own answer, before the writer unlinks anything), at least one such link when the case offers
+some, and the case's language. Cases cover English, German (`de-DE`) and Brazilian Portuguese
+(`pt-BR`). The language check counts common words for English, German, Portuguese and Spanish, and
+the length check counts words, so languages written without spaces (Chinese, Japanese) are not
+evaluated yet.
 
 Then comes the **social-post** suite: the social writer drafts the X and LinkedIn angles in
 `evals/social/cases/*.json`. Each post must stay within its channel's limit, cite only brief facts,
-avoid the "forbidden" claims, use at most 2 hashtags on X (3 on LinkedIn), and include the link when
-the angle has one.
+avoid the "forbidden" claims, use at most 2 hashtags on X (3 on LinkedIn), include the link when
+the angle has one, and be in the case's language (one case is German).
 
 Then comes the **launch-kit** suite: the launch writer drafts one kit per recorded brief in
 `evals/launch/cases/*.json`. Each kit must keep every listing field within its limit, cite only
@@ -368,7 +386,8 @@ and the weekly channel caps, state only figures from the report, the keyword res
 have a goal, avoid hype, and mix articles and posts.
 
 Last comes the **reviewer** suite: the reviewer checks hand-labelled drafts in
-`evals/review/cases/*.json` (3 good; 4 bad: an invented fact, over length, hype, a missing link).
+`evals/review/cases/*.json` (3 good; 5 bad: an invented fact, over length, hype, a missing link,
+and a draft in the wrong language, which only the model can catch).
 Its verdict must match every label, and a held-back draft must name at least one blocker.
 
 The thresholds are 100% for every suite. Below them, the command exits non-zero. It also prints
