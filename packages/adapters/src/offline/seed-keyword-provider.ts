@@ -23,8 +23,10 @@ export class SeedKeywordProvider implements KeywordProvider {
         err({ code: "invalid_request", message: "Enter at least one topic", retryable: false }),
       );
     }
+    // The phrase patterns are English; elsewhere only the founder's own phrases are researched.
+    const phrasing = query.locale.language === "en" ? patterns : patterns.slice(0, 1);
     const ideas = seeds.flatMap((seed) =>
-      patterns.map(([phrase, monthlySearches, difficulty]) => ({
+      phrasing.map(([phrase, monthlySearches, difficulty]) => ({
         keyword: phrase(seed),
         monthlySearches,
         difficulty,

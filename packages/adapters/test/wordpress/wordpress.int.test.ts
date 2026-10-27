@@ -1,4 +1,4 @@
-import { productId } from "@nuvantre/domain";
+import { productId, type PublishableContentItem } from "@nuvantre/domain";
 import {
   aBlogConnection,
   aPublishableItem,
@@ -211,6 +211,18 @@ describe("WordPressPublisher", () => {
       title: item.title,
       content: `<p>${item.body}</p>\n`,
       status: "publish",
+    });
+  });
+
+  it("sends the article's URL slug and excerpt when it has them", async () => {
+    const item = {
+      ...aPublishableItem("blog"),
+      seo: { slug: "cookieless-analytics", excerpt: "Five numbers a week, no cookies." },
+    } as PublishableContentItem;
+    await publisher().publish(item);
+    expect(JSON.parse(blog.received[0]?.body ?? "{}")).toMatchObject({
+      slug: "cookieless-analytics",
+      excerpt: "Five numbers a week, no cookies.",
     });
   });
 

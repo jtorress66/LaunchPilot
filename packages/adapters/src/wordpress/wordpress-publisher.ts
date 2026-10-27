@@ -46,6 +46,8 @@ export class WordPressPublisher implements Publisher {
           title: item.title,
           content: markdownToHtml(item.body),
           status: "publish",
+          // WordPress shows the excerpt in post lists and many themes' meta descriptions.
+          ...(item.seo ? { slug: item.seo.slug, excerpt: item.seo.excerpt } : {}),
         }),
       },
       httpOptions(this.options),

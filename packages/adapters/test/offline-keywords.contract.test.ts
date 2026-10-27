@@ -6,5 +6,5 @@ describeKeywordProviderContract("SeedKeywordProvider", () => ({
   givenIdeas: () => {
     // Offline: ideas always come from the seeds themselves.
   },
-  givenFailure: () => ({ seeds: [], locale: "en-US", limit: 5 }),
+  givenFailure: () => ({ seeds: [], locale: { language: "en", market: "US" }, limit: 5 }),
 }));

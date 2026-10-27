@@ -14,6 +14,8 @@ export interface ProductRow {
   url: string;
   created_at: Date;
   autopilot_since: Date | null;
+  /** "pt-BR"; defaults to "en-US" for products created before languages. */
+  locale: string;
 }
 
 export interface BriefRow {
@@ -82,6 +84,8 @@ export interface ContentItemRow {
   publish_attempts: number;
   /** jsonb: AgentReview with an ISO timestamp; text on the way in. */
   agent_review: string | null;
+  /** { slug, excerpt } for blog articles. */
+  seo: string | null;
 }
 
 export interface SocialProfileRow {

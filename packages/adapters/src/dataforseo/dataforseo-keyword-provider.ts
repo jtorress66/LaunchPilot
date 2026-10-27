@@ -1,7 +1,7 @@
-import { err, ok, type Result } from "@nuvantre/domain";
+import { describeLocale, err, ok, type Result } from "@nuvantre/domain";
 import type { KeywordError, KeywordIdea, KeywordProvider, KeywordQuery } from "@nuvantre/ports";
 import { z } from "zod";
-import { dataForSeoLocation } from "./locales";
+import { marketFor, parseMarkets, type DataForSeoMarkets } from "./markets";
 
 export interface DataForSeoOptions {
   readonly login: string;
@@ -62,25 +62,65 @@ const toIdea = ({
   difficulty: keyword_properties?.keyword_difficulty ?? 100,
 });
 
-/** Keyword ideas with search volume and difficulty from DataForSEO Labs (Google data). */
+/**
+ * Keyword ideas with search volume and difficulty from DataForSEO Labs (Google data), in any
+ * market DataForSEO lists. The list is read from DataForSEO once per provider and kept.
+ */
 export class DataForSeoKeywordProvider implements KeywordProvider {
+  private markets: Promise<Result<DataForSeoMarkets, KeywordError>> | undefined;
+
   constructor(private readonly options: DataForSeoOptions) {}
 
-  async suggest(query: KeywordQuery): Promise<Result<readonly KeywordIdea[], KeywordError>> {
-    const location = dataForSeoLocation(query.locale);
-    if (!location) {
-      return failure("invalid_request", `Keyword data is not available for ${query.locale}`, false);
+  private get base() {
+    return this.options.baseUrl ?? "https://api.dataforseo.com";
+  }
+
+  private request(path: string, init: { method: "GET" | "POST"; body?: string }) {
+    return fetch(`${this.base}${path}`, {
+      ...init,
+      signal: AbortSignal.timeout(this.options.timeoutMs ?? 30_000),
+      headers: {
+        authorization: `Basic ${Buffer.from(`${this.options.login}:${this.options.password}`).toString("base64")}`,
+        "content-type": "application/json",
+      },
+    });
+  }
+
+  private async fetchMarkets(): Promise<Result<DataForSeoMarkets, KeywordError>> {
+    try {
+      const response = await this.request("/v3/dataforseo_labs/locations_and_languages", {
+        method: "GET",
+      });
+      const markets = parseMarkets(await response.json().catch(() => undefined));
+      return markets.ok ? markets : failure("unavailable", markets.error, true);
+    } catch {
+      return failure("unavailable", "DataForSEO could not be reached", true);
     }
-    const base = this.options.baseUrl ?? "https://api.dataforseo.com";
+  }
+
+  /** Kept after the first success; a failed read is tried again on the next call. */
+  private async loadMarkets(): Promise<Result<DataForSeoMarkets, KeywordError>> {
+    this.markets ??= this.fetchMarkets();
+    const markets = await this.markets;
+    if (!markets.ok) this.markets = undefined;
+    return markets;
+  }
+
+  async suggest(query: KeywordQuery): Promise<Result<readonly KeywordIdea[], KeywordError>> {
+    const markets = await this.loadMarkets();
+    if (!markets.ok) return markets;
+    const location = marketFor(markets.value, query.locale);
+    if (!location) {
+      return failure(
+        "unsupported_market",
+        `DataForSEO has no keyword data for ${describeLocale(query.locale)}`,
+        false,
+      );
+    }
     let response: Response;
     try {
-      response = await fetch(`${base}/v3/dataforseo_labs/google/keyword_ideas/live`, {
+      response = await this.request("/v3/dataforseo_labs/google/keyword_ideas/live", {
         method: "POST",
-        signal: AbortSignal.timeout(this.options.timeoutMs ?? 30_000),
-        headers: {
-          authorization: `Basic ${Buffer.from(`${this.options.login}:${this.options.password}`).toString("base64")}`,
-          "content-type": "application/json",
-        },
         body: JSON.stringify([
           { keywords: query.seeds, ...location, limit: query.limit, include_seed_keyword: true },
         ]),

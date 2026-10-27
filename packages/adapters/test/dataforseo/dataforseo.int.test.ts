@@ -7,6 +7,7 @@ import { DataForSeoKeywordProvider } from "../../src";
 import authFailed from "./recorded/auth-failed.json";
 import insufficientFunds from "./recorded/insufficient-funds.json";
 import keywordIdeas from "./recorded/keyword-ideas.json";
+import locationsAndLanguages from "./recorded/locations-and-languages.json";
 import serverError from "./recorded/server-error.json";
 import taskError from "./recorded/task-error.json";
 
@@ -15,12 +16,22 @@ const endpoint = `${BASE}/v3/dataforseo_labs/google/keyword_ideas/live`;
 const LOGIN = "founder@acme.dev";
 const PASSWORD = "dfs-recorded-password";
 
-const server = setupServer();
+const listingEndpoint = `${BASE}/v3/dataforseo_labs/locations_and_languages`;
+let listingRequests = 0;
+
+/** DataForSEO Labs' market list; reset to this after every test. */
+const server = setupServer(
+  http.get(listingEndpoint, () => {
+    listingRequests += 1;
+    return HttpResponse.json(locationsAndLanguages);
+  }),
+);
 beforeAll(() => {
   server.listen({ onUnhandledRequest: "error" });
 });
 afterEach(() => {
   server.resetHandlers();
+  listingRequests = 0;
 });
 afterAll(() => {
   server.close();
@@ -74,9 +85,14 @@ describeKeywordProviderContract("DataForSeoKeywordProvider (recorded API)", () =
     respondWith(serverError, 500);
     return undefined;
   },
+  unsupportedMarket: { language: "fr", market: "FR" },
 }));
 
-const query = { seeds: ["privacy analytics"], locale: "en-US", limit: 3 };
+const query = {
+  seeds: ["privacy analytics"],
+  locale: { language: "en", market: "US" },
+  limit: 3,
+};
 
 describe("DataForSeoKeywordProvider", () => {
   it("asks DataForSEO Labs for keyword ideas with Basic auth", async () => {
@@ -135,20 +151,54 @@ describe("DataForSeoKeywordProvider", () => {
     });
   });
 
-  it("refuses a locale it cannot map without calling the API", async () => {
-    expect(await provider().suggest({ ...query, locale: "xx-YY" })).toEqual({
+  it("researches Brazilian Portuguese with Brazil's location and the Portuguese language", async () => {
+    const captured = respondWith(keywordIdeas);
+    await provider().suggest({ ...query, locale: { language: "pt", market: "BR" } });
+    expect(captured.body).toMatchObject([{ location_code: 2076, language_code: "pt" }]);
+  });
+
+  it("says there is no keyword data for a market DataForSEO does not list, without asking for ideas", async () => {
+    expect(
+      await provider().suggest({ ...query, locale: { language: "fr", market: "FR" } }),
+    ).toEqual({
       ok: false,
       error: {
-        code: "invalid_request",
-        message: "Keyword data is not available for xx-YY",
+        code: "unsupported_market",
+        message: "DataForSEO has no keyword data for French (France)",
         retryable: false,
       },
     });
   });
 
+  it("reads the market list once per provider", async () => {
+    respondWith(keywordIdeas);
+    const shared = provider();
+    await shared.suggest(query);
+    await shared.suggest(query);
+    expect(listingRequests).toBe(1);
+  });
+
+  it("reports a market list it cannot read as unavailable, and asks again next time", async () => {
+    const shared = provider();
+    server.use(
+      http.get(listingEndpoint, () => HttpResponse.json(serverError, { status: 500 }), {
+        once: true,
+      }),
+    );
+    expect(await shared.suggest(query)).toMatchObject({
+      ok: false,
+      error: { code: "unavailable", retryable: true },
+    });
+    respondWith(keywordIdeas);
+    expect((await shared.suggest(query)).ok).toBe(true);
+  });
+
   it("uses a configured base URL", async () => {
     const other = "https://dataforseo.stub.test";
     server.use(
+      http.get(`${other}/v3/dataforseo_labs/locations_and_languages`, () =>
+        HttpResponse.json(locationsAndLanguages),
+      ),
       http.post(`${other}/v3/dataforseo_labs/google/keyword_ideas/live`, () =>
         HttpResponse.json(keywordIdeas),
       ),
