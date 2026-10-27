@@ -1,0 +1,32 @@
+{
+  "name": "acme-analytics-links",
+  "keyword": "privacy friendly analytics",
+  "forbidden": ["SOC 2", "HIPAA", "Fortune 500", "customers trust", "% of"],
+  "brief": {
+    "audience": "Founders of small SaaS companies who want simple, privacy-friendly website analytics",
+    "problem": "Founders waste hours in bloated dashboards that track everything but answer nothing",
+    "solution": "Acme shows the five numbers that matter in one weekly email, without cookies",
+    "differentiators": ["No cookie banners needed", "Setup takes two minutes with one script tag"],
+    "tone": "Plain, calm and practical",
+    "facts": [
+      "Free 14-day trial, no credit card required",
+      "Starter is $9 per month for up to 100k pageviews",
+      "GDPR compliant and hosted in the EU",
+      "Integrates with Stripe to show revenue per traffic source"
+    ]
+  },
+  "internalLinks": [
+    {
+      "title": "Cookieless analytics: a practical guide for SaaS founders",
+      "url": "https://blog.acme.dev/cookieless-analytics"
+    },
+    {
+      "title": "GDPR-compliant analytics without the legal headache",
+      "url": "https://blog.acme.dev/gdpr-analytics"
+    },
+    {
+      "title": "The five numbers every SaaS founder should track weekly",
+      "url": "https://blog.acme.dev/five-numbers"
+    }
+  ]
+}

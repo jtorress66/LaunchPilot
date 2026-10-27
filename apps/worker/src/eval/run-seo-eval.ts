@@ -4,7 +4,14 @@ import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { createSeoEvalWriter } from "../container";
 import { parseEvalConfig } from "./brief-eval";
-import { parseSeoEvalCase, scoreArticle, summariseArticles, type ArticleScore } from "./seo-eval";
+import {
+  localeOf,
+  parseSeoEvalCase,
+  rawBody,
+  scoreArticle,
+  summariseArticles,
+  type ArticleScore,
+} from "./seo-eval";
 
 const PRICES: Partial<Record<string, { inputPerMillion: number; outputPerMillion: number }>> = {
   "claude-opus-5-5": { inputPerMillion: 4, outputPerMillion: 20 },
@@ -29,18 +36,18 @@ for (const file of files) {
   const evalCase = parseSeoEvalCase(JSON.parse(await readFile(join(casesDir, file), "utf8")));
   if (!evalCase.ok) fail(`${file}: ${evalCase.error}`);
   const c = evalCase.value;
-  const score = scoreArticle(
-    c,
-    await writer.draft({
-      brief: c.brief,
-      channel: "blog",
-      task: { kind: "seo_article", title: `Article: ${c.keyword}` },
-      keywords: [c.keyword],
-    }),
-  );
+  const result = await writer.draft({
+    brief: c.brief,
+    channel: "blog",
+    task: { kind: "seo_article", title: `Article: ${c.keyword}` },
+    keywords: [c.keyword],
+    locale: localeOf(c),
+    internalLinks: c.internalLinks ?? [],
+  });
+  const score = scoreArticle(c, result, rawBody(meter.lastText));
   scores.push(score);
   console.log(
-    `${mark(score.passed)} ${score.name.padEnd(18)} brief facts only ${mark(score.citesOnlyBriefFacts)}  no invented claims ${mark(score.noForbiddenClaims)}  keyword ${mark(score.targetsKeyword)}  ${String(score.words).padStart(4)} words ${mark(score.longEnough)}  sections ${mark(score.structured)}${score.error ? `  error: ${score.error}` : ""}`,
+    `${mark(score.passed)} ${score.name.padEnd(18)} brief facts only ${mark(score.citesOnlyBriefFacts)}  no invented claims ${mark(score.noForbiddenClaims)}  keyword ${mark(score.targetsKeyword)}  ${String(score.words).padStart(4)} words ${mark(score.longEnough)}  sections ${mark(score.structured)}  slug+excerpt ${mark(score.hasSlugAndExcerpt)}  links ok ${mark(score.linksOnlyToPublished)}  links used ${mark(score.linksWhenUseful)}  language ${mark(score.writesInLanguage)}${score.error ? `  error: ${score.error}` : ""}`,
   );
 }
 
