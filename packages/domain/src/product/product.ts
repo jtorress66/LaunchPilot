@@ -1,4 +1,5 @@
 import { andThen, map, type Result } from "../result";
+import { defaultLocale, parseContentLocale, type ContentLocale } from "../seo/content-locale";
 import type { DomainError } from "../shared/errors";
 import type { ProductId, WorkspaceId } from "../shared/ids";
 import { nonEmptyText } from "../shared/text";
@@ -12,6 +13,8 @@ export interface Product {
   readonly createdAt: Date;
   /** When the founder switched on the weekly autopilot; null while it is off. */
   readonly autopilotSince: Date | null;
+  /** The language and market its articles and posts are written for. */
+  readonly locale: ContentLocale;
 }
 
 export const createProduct = (input: {
@@ -29,5 +32,9 @@ export const createProduct = (input: {
       url,
       createdAt: input.now,
       autopilotSince: null,
+      locale: defaultLocale,
     })),
   );
+
+export const setProductLocale = (product: Product, locale: string): Result<Product, DomainError> =>
+  map(parseContentLocale(locale), (parsed) => ({ ...product, locale: parsed }));

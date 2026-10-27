@@ -147,6 +147,7 @@ describe("ContentItem state machine", () => {
         approval: null,
         publishAt: null,
         publication: null,
+        seo: null,
         failure: null,
         publishAttempts: 0,
         agentReview: null,
@@ -238,6 +239,77 @@ describe("ContentItem state machine", () => {
         ctx,
       );
       expect(result.ok ? undefined : result.error.code).toBe("invalid_text");
+    });
+  });
+
+  describe("search metadata", () => {
+    const article = (seo: { slug: string; excerpt: string }, channel: Channel = "blog") =>
+      createContentItem({
+        id: contentItemId("item_2"),
+        productId: productId("prod_1"),
+        taskId: taskId("task_1"),
+        channel,
+        title: "Cookieless analytics",
+        body: "Body.",
+        seo,
+        createdBy: { kind: "agent", agent: "seo" },
+        now: t0,
+      });
+    const withSeo = () => {
+      const result = article({ slug: "cookieless-analytics", excerpt: "Five numbers a week." });
+      if (!result.ok) throw new Error(result.error.message);
+      return result.value;
+    };
+
+    it("gives a blog article a URL slug and an excerpt for search results", () => {
+      expect(withSeo().seo).toEqual({
+        slug: "cookieless-analytics",
+        excerpt: "Five numbers a week.",
+      });
+    });
+
+    it("puts the excerpt on one line and refuses one longer than 300 characters", () => {
+      const tidy = article({ slug: "a", excerpt: " Five numbers\n a week. " });
+      expect(tidy.ok && tidy.value.seo).toEqual({ slug: "a", excerpt: "Five numbers a week." });
+      expect(article({ slug: "a", excerpt: "x".repeat(301) })).toMatchObject({
+        ok: false,
+        error: { code: "invalid_text" },
+      });
+    });
+
+    it("refuses a slug that is not lower-case words and hyphens", () => {
+      expect(article({ slug: "Cookieless Analytics", excerpt: "E." })).toMatchObject({
+        ok: false,
+        error: { code: "invalid_slug" },
+      });
+    });
+
+    it("is for blog articles only", () => {
+      expect(article({ slug: "a", excerpt: "E." }, "x")).toMatchObject({
+        ok: false,
+        error: { code: "seo_not_supported" },
+      });
+    });
+
+    it("lets the founder edit the slug and excerpt, which needs a fresh approval", () => {
+      const approved = apply(withSeo(), ...pathTo.approved);
+      const edited = apply(approved, { type: "edit", slug: "privacy-analytics" });
+      expect(edited).toMatchObject({
+        status: "draft",
+        approval: null,
+        version: 2,
+        seo: { slug: "privacy-analytics", excerpt: "Five numbers a week." },
+      });
+    });
+
+    it("cannot add a slug to an item that has no excerpt", () => {
+      expect(transition(draft(), { type: "edit", slug: "recap" }, ctx)).toMatchObject({
+        ok: false,
+        error: { code: "invalid_text" },
+      });
+      expect(
+        apply(draft(), { type: "edit", slug: "recap", excerpt: "What we shipped." }).seo,
+      ).toEqual({ slug: "recap", excerpt: "What we shipped." });
     });
   });
 

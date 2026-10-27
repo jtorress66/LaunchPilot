@@ -4,6 +4,7 @@ import { andThen, err, map, ok, type Result } from "../result";
 import type { Actor } from "../shared/actor";
 import { domainError, type DomainError } from "../shared/errors";
 import type { Brand, ContentItemId, ProductId, TaskId, UserId } from "../shared/ids";
+import { parseSlug } from "../seo/slug";
 import { applyTransition, defineTransitions } from "../shared/state-machine";
 import { nonEmptyText } from "../shared/text";
 import { parseHttpUrl, type HttpUrl } from "../shared/url";
@@ -39,11 +40,18 @@ export interface ContentItem {
   readonly approval: { readonly by: UserId; readonly at: Date } | null;
   readonly publishAt: Date | null;
   readonly publication: { readonly externalUrl: HttpUrl; readonly at: Date } | null;
+  /** URL slug and excerpt for search results; blog articles only. */
+  readonly seo: ArticleSeo | null;
   readonly failure: { readonly reason: string; readonly at: Date } | null;
   /** Failed automatic publish attempts since the item was last scheduled. */
   readonly publishAttempts: number;
   /** The reviewer agent's verdict on this revision; null for founder-written or edited items. */
   readonly agentReview: AgentReview | null;
+}
+
+export interface ArticleSeo {
+  readonly slug: string;
+  readonly excerpt: string;
 }
 
 /** A founder-approved item on an API channel. The Publisher port accepts nothing else. */
@@ -54,7 +62,13 @@ export type ContentItemEvent =
   | { readonly type: "requestChanges"; readonly actor: Actor; readonly note: string }
   | { readonly type: "approve"; readonly actor: Actor }
   | { readonly type: "reject"; readonly actor: Actor; readonly reason: string }
-  | { readonly type: "edit"; readonly title?: string; readonly body?: string }
+  | {
+      readonly type: "edit";
+      readonly title?: string;
+      readonly body?: string;
+      readonly slug?: string;
+      readonly excerpt?: string;
+    }
   | { readonly type: "schedule"; readonly publishAt: Date }
   | { readonly type: "unschedule" }
   | { readonly type: "markPublished"; readonly externalUrl: string }
@@ -105,6 +119,35 @@ const body = (value: string, channel: Channel) =>
   nonEmptyText(value, { field: "Body", max: maxLengthOf(channel) });
 const note = (value: string, field: string) => nonEmptyText(value, { field, max: 2000 });
 
+/** The excerpt sits on one line in search results and post lists. */
+const excerpt = (value: string) =>
+  nonEmptyText(value.replace(/\s+/g, " "), { field: "Excerpt", max: 300 });
+
+const articleSeo = (
+  seo: { slug: string; excerpt: string },
+  channel: Channel,
+): Result<ArticleSeo, DomainError> =>
+  channel !== "blog"
+    ? err(domainError("seo_not_supported", "Only blog articles have a URL slug and an excerpt"))
+    : andThen(parseSlug(seo.slug), (slug) =>
+        map(excerpt(seo.excerpt), (validExcerpt) => ({ slug, excerpt: validExcerpt })),
+      );
+
+/** An edit that mentions neither field keeps the current metadata. */
+const editedSeo = (
+  item: ContentItem,
+  event: { slug?: string; excerpt?: string },
+): Result<ArticleSeo | null, DomainError> =>
+  event.slug === undefined && event.excerpt === undefined
+    ? ok(item.seo)
+    : articleSeo(
+        {
+          slug: event.slug ?? item.seo?.slug ?? "",
+          excerpt: event.excerpt ?? item.seo?.excerpt ?? "",
+        },
+        item.channel,
+      );
+
 const futureTime = (publishAt: Date, now: Date): Result<Date, DomainError> =>
   publishAt.getTime() < now.getTime()
     ? err(domainError("publish_time_in_past", "The publish time must not be in the past"))
@@ -133,17 +176,20 @@ const handlers: { readonly [K in EventType]: Handler<K> } = {
   // Any edit invalidates approval, schedule and earlier outcomes: the new revision must be reviewed.
   edit: (item, event) =>
     andThen(title(event.title ?? item.title), (newTitle) =>
-      map(body(event.body ?? item.body, item.channel), (newBody) => ({
-        title: newTitle,
-        body: newBody,
-        version: item.version + 1,
-        approval: null,
-        publishAt: null,
-        rejection: null,
-        failure: null,
-        publishAttempts: 0,
-        agentReview: null,
-      })),
+      andThen(body(event.body ?? item.body, item.channel), (newBody) =>
+        map(editedSeo(item, event), (seo) => ({
+          title: newTitle,
+          body: newBody,
+          seo,
+          version: item.version + 1,
+          approval: null,
+          publishAt: null,
+          rejection: null,
+          failure: null,
+          publishAttempts: 0,
+          agentReview: null,
+        })),
+      ),
     ),
   schedule: (_item, event, { now }) =>
     map(futureTime(event.publishAt, now), (publishAt) => ({ publishAt })),
@@ -180,31 +226,35 @@ export const createContentItem = (input: {
   channel: Channel;
   title: string;
   body: string;
+  seo?: { slug: string; excerpt: string };
   createdBy: Actor;
   now: Date;
 }): Result<ContentItem, DomainError> =>
   andThen(title(input.title), (validTitle) =>
-    map(body(input.body, input.channel), (validBody) => ({
-      id: input.id,
-      productId: input.productId,
-      taskId: input.taskId,
-      channel: input.channel,
-      title: validTitle,
-      body: validBody,
-      status: "draft" as const,
-      version: 1,
-      createdBy: input.createdBy,
-      createdAt: input.now,
-      updatedAt: input.now,
-      reviewNote: null,
-      rejection: null,
-      approval: null,
-      publishAt: null,
-      publication: null,
-      failure: null,
-      publishAttempts: 0,
-      agentReview: null,
-    })),
+    andThen(body(input.body, input.channel), (validBody) =>
+      map(input.seo ? articleSeo(input.seo, input.channel) : ok(null), (seo) => ({
+        id: input.id,
+        productId: input.productId,
+        taskId: input.taskId,
+        channel: input.channel,
+        title: validTitle,
+        body: validBody,
+        status: "draft" as const,
+        version: 1,
+        createdBy: input.createdBy,
+        createdAt: input.now,
+        updatedAt: input.now,
+        reviewNote: null,
+        rejection: null,
+        approval: null,
+        publishAt: null,
+        publication: null,
+        seo,
+        failure: null,
+        publishAttempts: 0,
+        agentReview: null,
+      })),
+    ),
   );
 
 /** Applies one event. Returns a new item; the original is never modified. */
