@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   parseDatabaseConfig,
   parseLoopConfig,
+  parseBlogSmokeConfig,
   parsePublisherConfig,
   parseReportsConfig,
   parseStripeSetupConfig,
@@ -228,5 +229,53 @@ describe("parseLoopConfig", () => {
   ])("refuses %o", (override, message) => {
     const result = parseLoopConfig({ ...claude, ...dataforseo, ...override });
     expect(result.ok ? "" : result.error).toContain(message);
+  });
+});
+
+describe("parseBlogSmokeConfig", () => {
+  const shopify = {
+    SHOPIFY_STORE_URL: "https://acme.myshopify.com",
+    SHOPIFY_ACCESS_TOKEN: "shpat_x",
+  };
+  const webflow = {
+    WEBFLOW_SITE_URL: "https://www.acme.dev",
+    WEBFLOW_COLLECTION_ID: "col_1",
+    WEBFLOW_API_TOKEN: "wf_x",
+  };
+  const wix = { WIX_SITE_URL: "https://www.acme.dev", WIX_SITE_ID: "site_1", WIX_API_KEY: "IST.x" };
+
+  it("checks only the platforms whose test account is configured", () => {
+    expect(parseBlogSmokeConfig({ ...shopify, ...wix })).toEqual({
+      ok: true,
+      value: [
+        {
+          platform: "shopify",
+          siteUrl: "https://acme.myshopify.com",
+          settings: {},
+          secret: "shpat_x",
+        },
+        {
+          platform: "wix",
+          siteUrl: "https://www.acme.dev",
+          settings: { siteId: "site_1" },
+          secret: "IST.x",
+        },
+      ],
+    });
+    expect(parseBlogSmokeConfig(webflow)).toMatchObject({
+      ok: true,
+      value: [{ platform: "webflow", settings: { collectionId: "col_1" }, secret: "wf_x" }],
+    });
+  });
+
+  it("checks nothing when no test account is configured", () => {
+    expect(parseBlogSmokeConfig({})).toEqual({ ok: true, value: [] });
+  });
+
+  it("names what is missing for a half-configured platform", () => {
+    expect(parseBlogSmokeConfig({ WEBFLOW_API_TOKEN: "wf_x" })).toEqual({
+      ok: false,
+      error: "Webflow smoke check needs WEBFLOW_SITE_URL, WEBFLOW_COLLECTION_ID",
+    });
   });
 });

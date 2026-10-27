@@ -24,6 +24,7 @@
     "test:e2e:stripe": "playwright test --config playwright.stripe.config.ts",
     "smoke:keywords": "pnpm --filter @nuvantre/worker smoke:keywords",
     "smoke:social": "pnpm --filter @nuvantre/worker smoke:social",
+    "smoke:blogs": "pnpm --filter @nuvantre/worker smoke:blogs",
     "watch:zernio": "pnpm --filter @nuvantre/worker watch:zernio"
   },
   "devDependencies": {

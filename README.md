@@ -116,10 +116,11 @@ redirect:
 
 Once the brief is approved, the product's **SEO** page runs the loop:
 
-1. **Connect your blog.** WordPress only for now: the founder enters the site address, a username
-   and an Application Password (WordPress → Users → Profile → Application Passwords). Nuvantre
-   checks it with the REST API (the user must be able to publish posts) and stores the password
-   encrypted with AES-256-GCM (`TOKEN_ENCRYPTION_KEY`). It is never logged or shown again.
+1. **Connect your blog.** The founder picks the platform (WordPress, Ghost, Shopify, Webflow or
+   Wix) and pastes a key; see **Blog platforms** below for where each key lives. Nuvantre checks it
+   with that platform's official API before saving, and stores the key encrypted with AES-256-GCM
+   (`TOKEN_ENCRYPTION_KEY`). It is never logged or shown again. Reconnecting, on the same or another
+   platform, replaces the old connection.
 2. **Choose the language and market.** Each product has one (US English by default), set under
    **Language and market**: any language and country the runtime's Unicode data names. Articles,
    social posts and reviews are written in it, and keyword research targets that market.
@@ -137,11 +138,12 @@ Once the brief is approved, the product's **SEO** page runs the loop:
    goes to review. Each draft counts against the plan's monthly content allowance.
 5. **Edit, approve, publish.** The founder edits the title, article, URL slug or excerpt (which
    sends it back to review), approves, then publishes. Publishing goes through the
-   `PublisherRegistry`, which only accepts approved items on auto-publish channels, and posts the
-   article to WordPress as HTML (raw HTML in the Markdown is escaped) with its slug and excerpt.
-   WordPress adds `-2` to a slug that is taken. Many themes and SEO plugins use the excerpt as the
-   meta description; Yoast and Rank Math's own meta fields need their REST extensions, so they are
-   not set. A failed attempt leaves the article approved, so it can simply be retried.
+   `PublisherRegistry`, which only accepts approved items on auto-publish channels, and makes the
+   article live on the connected blog with its slug and excerpt (raw HTML in the Markdown is
+   escaped). On WordPress, which adds `-2` to a slug that is taken, many themes and SEO plugins use
+   the excerpt as the meta description; Yoast and Rank Math's own meta fields need their REST
+   extensions, so they are not set. A failed attempt leaves the article approved, so it can simply
+   be retried.
 
 **DataForSEO account:** sign up at dataforseo.com and copy the API login and password from the
 dashboard (API Access). Set `DATAFORSEO_LOGIN` and `DATAFORSEO_PASSWORD`. Each plan costs about one
@@ -154,7 +156,36 @@ data, no charge), also add the repository **variable** `DATAFORSEO_BASE_URL` =
 
 **E2E:** `pnpm test:e2e` starts a real WordPress (with MariaDB) in Docker, installs it with wp-cli
 and creates an Application Password, so the gate test publishes to an actual blog and opens the
-live post.
+live post. It also starts a real Ghost 5 and stand-ins for the Shopify, Webflow and Wix APIs (see
+below).
+
+#### Blog platforms
+
+| Platform  | The founder enters                                        | Where to find it                                                                                                    | Published as                                                                     |
+| --------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| WordPress | Blog address, username, Application Password              | Users → Profile → Application Passwords (an Editor or Administrator)                                                | REST API post, `status: publish`                                                 |
+| Ghost     | Blog address, Admin API key (`id:secret`)                 | Settings → Integrations → Add custom integration                                                                    | Admin API post, `status: published`, signed with a 5-minute HS256 token          |
+| Shopify   | Store address (`*.myshopify.com`), Admin API access token | Settings → Apps → Develop apps: a custom app with `write_content`, installed                                        | GraphQL Admin `articleCreate` on the store's first blog, `isPublished: true`     |
+| Webflow   | Site address, Webflow collection ID, site API token       | Site settings → Apps & integrations → API access (CMS read and write); the collection ID is in CMS → the collection | Data API v2 live item; body in the collection's Rich Text field                  |
+| Wix       | Site address, Wix site ID, API key                        | Account settings → API Keys (Wix Blog permissions); the site ID is in the dashboard's address                       | Blog API draft post created with `publish: true`; the body is Ricos rich content |
+
+Each platform is one row in the domain's platform table (`packages/domain/src/connections/blog-platform.ts`),
+one verifier and one publisher in `packages/adapters`, and one entry in each composition root. Every
+platform passes the same shared verifier, publisher and provider contracts.
+
+**What is checked against what.** The build environment cannot reach any platform's API, so:
+
+- **WordPress and Ghost** are checked against the real software in E2E (Docker).
+- **Shopify, Webflow and Wix** request and response formats follow their documented APIs and are
+  checked against recorded responses (`packages/adapters/test/*/recorded`) and local stand-ins in
+  E2E (`scripts/e2e-blogs.mjs`). Shopify uses the pinned GraphQL Admin API version in
+  `SHOPIFY_API_VERSION`. Wix is the least certain: if its API wants a member as the post's owner, set
+  a `memberId` setting on the connection.
+- **`pnpm smoke:blogs`** confirms them against real test accounts, read-only (it connects; it never
+  publishes). It checks each platform whose variables are set and skips the rest: `SHOPIFY_STORE_URL`
+  and `SHOPIFY_ACCESS_TOKEN`; `WEBFLOW_SITE_URL`, `WEBFLOW_COLLECTION_ID` and `WEBFLOW_API_TOKEN`;
+  `WIX_SITE_URL`, `WIX_SITE_ID` and `WIX_API_KEY`. In CI, add the tokens as repository secrets and
+  the rest as repository variables; until then the `blogs-smoke` job passes with a "skipped" note.
 
 ### Social module
 
@@ -414,6 +445,7 @@ repository **Settings → Secrets and variables → Actions → New repository s
 | `pnpm eval`           | LLM evals against real Claude (needs `ANTHROPIC_API_KEY`); fails below thresholds              |
 | `pnpm smoke:keywords` | One real DataForSEO call (needs `DATAFORSEO_LOGIN` and `DATAFORSEO_PASSWORD`)                  |
 | `pnpm smoke:social`   | Read-only calls to the real Zernio API (needs `ZERNIO_API_KEY`); never posts                   |
+| `pnpm smoke:blogs`    | Connect check against Shopify, Webflow and Wix test accounts that are configured; never posts  |
 | `pnpm watch:zernio`   | Lists Zernio API changelog entries that affect the integration (no key needed)                 |
 | `pnpm build`          | Production build of the web app                                                                |
 
@@ -436,7 +468,7 @@ domain  ←  ports  ←  application  ←  agents / adapters  ←  apps (web, wo
 | `packages/ports`       | Interfaces only: `Clock`, `IdGenerator`, `TokenCipher`, `LlmClient`, `BriefDrafter`, `ContentDrafter`, `ContentReviewer`, `CampaignPlanner`, `SiteCrawler`, `KeywordProvider`, `MetricsSource`, `Publisher`, repositories |
 | `packages/application` | Use cases that orchestrate domain rules and ports                                                                                                                                                                         |
 | `packages/agents`      | AI agents (`BriefAgent`, `SeoArticleWriter`, `SocialPostWriter` and offline stand-ins); implement agent ports, depend on domain and ports only                                                                            |
-| `packages/adapters`    | Port implementations: Postgres, Stripe, `ClaudeLlmClient`, `HttpSiteCrawler`, WordPress, DataForSEO, Zernio, crypto, clock                                                                                                |
+| `packages/adapters`    | Port implementations: Postgres, Stripe, `ClaudeLlmClient`, `HttpSiteCrawler`, WordPress, Ghost, Shopify, Webflow, Wix, DataForSEO, Zernio, crypto, clock                                                                  |
 | `packages/testing`     | A fake for every port, entity fixtures (`aContentItem({ status })`…), shared contract suites                                                                                                                              |
 | `apps/web`             | Next.js UI + thin API routes; wiring in `src/container.ts`                                                                                                                                                                |
 | `apps/worker`          | Background jobs; wiring in `src/container.ts`                                                                                                                                                                             |
@@ -493,6 +525,8 @@ The rule is enforced twice: by ESLint `no-restricted-imports` per layer, and by
 | `LAUNCH_WRITER`         | `claude`          | web: `claude` or `template` (development and test only)                               |
 | `ZERNIO_API_KEY`        | none              | web, worker, `pnpm smoke:social`. Never logged                                        |
 | `ZERNIO_BASE_URL`       | Zernio API        | web, worker: another base URL, for tests                                              |
+| `WEBFLOW_API_BASE_URL`  | Webflow Data API  | web, worker: a local stand-in for the Webflow API (development and test only)         |
+| `WIX_API_BASE_URL`      | Wix REST API      | web, worker: a local stand-in for the Wix API (development and test only)             |
 | `PUBLISH_INTERVAL_MS`   | `60000`           | worker: how often scheduled posts are published (at least 5000)                       |
 | `GOOGLE_CLIENT_ID`      | none              | web, worker: Google OAuth client (with the secret, or neither: then no Google)        |
 | `GOOGLE_CLIENT_SECRET`  | none              | web, worker. Never logged                                                             |

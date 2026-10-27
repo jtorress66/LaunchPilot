@@ -26,6 +26,12 @@ import {
   AesGcmTokenCipher,
   createPostgresRepositories,
   BlogPublisherProvider,
+  BlogVerifierRegistry,
+  GhostConnectionVerifier,
+  ShopifyConnectionVerifier,
+  WebflowConnectionVerifier,
+  WixConnectionVerifier,
+  WordPressConnectionVerifier,
   ghostPublisherFactory,
   shopifyPublisherFactory,
   webflowPublisherFactory,
@@ -53,7 +59,7 @@ import {
   type GoogleOptions,
   SeedKeywordProvider,
 } from "@nuvantre/adapters";
-import type { Clock, MetricsSource, TokenCipher } from "@nuvantre/ports";
+import type { BlogCredentials, Clock, MetricsSource, TokenCipher } from "@nuvantre/ports";
 import type {
   AnalystConfig,
   DatabaseConfig,
@@ -198,6 +204,18 @@ export const createPublishDue = (config: PublisherConfig) => {
 };
 
 /** The CI smoke check against the real API: read-only, it never posts. */
+/** The read-only connect check against real blog platforms, as founders' keys would be checked. */
+export const runBlogSmoke = (credentials: BlogCredentials) => {
+  const network = { allowPrivateNetwork: false, clock: container.clock };
+  return new BlogVerifierRegistry({
+    wordpress: new WordPressConnectionVerifier(network),
+    ghost: new GhostConnectionVerifier(network),
+    shopify: new ShopifyConnectionVerifier(network),
+    webflow: new WebflowConnectionVerifier(network),
+    wix: new WixConnectionVerifier(network),
+  }).verify(credentials);
+};
+
 export const runSocialSmoke = (config: ZernioConfig) => runZernioSmoke(zernioOptions(config));
 
 /** Zernio changelog entries since `since` that affect the integration, with the reasons. */

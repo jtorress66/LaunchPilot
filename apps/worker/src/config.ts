@@ -1,4 +1,5 @@
-import { err, ok, type Result } from "@nuvantre/domain";
+import { blogPlatforms, err, ok, type BlogPlatform, type Result } from "@nuvantre/domain";
+import type { BlogCredentials } from "@nuvantre/ports";
 import { z } from "zod";
 
 export interface DatabaseConfig {
@@ -296,4 +297,62 @@ export const parseLoopConfig = (
           }
         : { kind: "offline" },
   });
+};
+
+/** One platform's test account for `pnpm smoke:blogs`, by the environment variables that hold it. */
+interface SmokeAccount {
+  readonly platform: BlogPlatform;
+  readonly siteUrl: string;
+  readonly settings: Readonly<Record<string, string>>;
+  readonly secret: string;
+}
+
+const smokeAccounts: readonly SmokeAccount[] = [
+  {
+    platform: "shopify",
+    siteUrl: "SHOPIFY_STORE_URL",
+    settings: {},
+    secret: "SHOPIFY_ACCESS_TOKEN",
+  },
+  {
+    platform: "webflow",
+    siteUrl: "WEBFLOW_SITE_URL",
+    settings: { collectionId: "WEBFLOW_COLLECTION_ID" },
+    secret: "WEBFLOW_API_TOKEN",
+  },
+  {
+    platform: "wix",
+    siteUrl: "WIX_SITE_URL",
+    settings: { siteId: "WIX_SITE_ID" },
+    secret: "WIX_API_KEY",
+  },
+];
+
+/**
+ * The blog test accounts to smoke-check: each platform whose variables are all set. None set is
+ * fine (nothing to check yet); some set is a mistake worth naming.
+ */
+export const parseBlogSmokeConfig = (
+  env: Readonly<Record<string, string | undefined>>,
+): Result<BlogCredentials[], string> => {
+  const checks: BlogCredentials[] = [];
+  for (const account of smokeAccounts) {
+    const names = [account.siteUrl, ...Object.values(account.settings), account.secret];
+    const missing = names.filter((name) => !env[name]);
+    if (missing.length === names.length) continue;
+    if (missing.length > 0) {
+      const platform = blogPlatforms[account.platform].name;
+      return err(`${platform} smoke check needs ${missing.join(", ")}`);
+    }
+    const value = (name: string) => env[name] ?? "";
+    checks.push({
+      platform: account.platform,
+      siteUrl: value(account.siteUrl),
+      settings: Object.fromEntries(
+        Object.entries(account.settings).map(([key, name]) => [key, value(name)]),
+      ),
+      secret: value(account.secret),
+    });
+  }
+  return ok(checks);
 };

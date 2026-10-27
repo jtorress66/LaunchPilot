@@ -13,6 +13,7 @@
     "eval:seo": "tsx src/eval/run-seo-eval.ts",
     "smoke:keywords": "tsx src/smoke/dataforseo-smoke.ts",
     "smoke:social": "tsx src/smoke/zernio-smoke.ts",
+    "smoke:blogs": "tsx src/smoke/blogs-smoke.ts",
     "eval:social": "tsx src/eval/run-social-eval.ts",
     "eval:launch": "tsx src/eval/run-launch-eval.ts",
     "eval:analyst": "tsx src/eval/run-analyst-eval.ts",

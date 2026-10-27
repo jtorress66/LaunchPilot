@@ -6,7 +6,7 @@ import {
   isBlogPlatform,
   type BlogPlatform,
 } from "@nuvantre/domain";
-import { useActionState, useState } from "react";
+import { startTransition, useActionState, useState } from "react";
 import { connectBlogAction, type SeoActionState } from "../../app/_lib/seo-actions";
 import { Field } from "../forms/field";
 import { FormError } from "../forms/form-error";
@@ -28,7 +28,7 @@ export function BlogConnectionForm({
   readonly productId: string;
   readonly connected: ConnectedBlog | null;
 }) {
-  const [state, action] = useActionState<SeoActionState, FormData>(
+  const [state, action, busy] = useActionState<SeoActionState, FormData>(
     connectBlogAction.bind(null, productId),
     {},
   );
@@ -48,7 +48,19 @@ export function BlogConnectionForm({
           Your key is stored encrypted and used only to publish articles you approve.
         </p>
       )}
-      <form action={action} className="space-y-4" noValidate>
+      {/* Submitted by hand, not with `action`, so a failed connect does not reset the form:
+          the founder keeps the platform and fields they chose and only fixes what was wrong. */}
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          const data = new FormData(event.currentTarget);
+          startTransition(() => {
+            action(data);
+          });
+        }}
+        className="space-y-4"
+        noValidate
+      >
         <FormError message={errors.form} />
         <div className="space-y-1.5">
           <label htmlFor="platform" className="block text-sm font-medium">
@@ -99,7 +111,7 @@ export function BlogConnectionForm({
             error={errors.secret}
           />
         </div>
-        <SubmitButton pending="Checking your blog…">
+        <SubmitButton pending="Checking your blog…" busy={busy}>
           {connected ? "Reconnect blog" : "Connect blog"}
         </SubmitButton>
       </form>
