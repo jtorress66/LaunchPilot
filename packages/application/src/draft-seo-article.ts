@@ -2,6 +2,7 @@ import {
   andThen,
   contentItemId,
   createContentItem,
+  publishedArticles,
   transition,
   transitionTask,
   type ContentItem,
@@ -64,6 +65,8 @@ export class DraftSeoArticle {
       channel: "blog",
       task: { kind: task.kind, title: task.title },
       ...(task.seo ? { keywords: [task.seo.keyword] } : {}),
+      locale: product.locale,
+      internalLinks: publishedArticles(await this.deps.contentItems.listByProduct(product.id)),
     });
     if (!draft.ok) return draft;
 
@@ -75,6 +78,7 @@ export class DraftSeoArticle {
         channel: "blog",
         title: draft.value.title,
         body: draft.value.body,
+        ...(draft.value.seo ? { seo: draft.value.seo } : {}),
         createdBy: { kind: "agent", agent: "seo" },
         now,
       }),

@@ -18,6 +18,8 @@ import {
   type ProductId,
   type Result,
   type Workspace,
+  publishedArticles,
+  type ContentLocale,
 } from "@nuvantre/domain";
 import type {
   BriefRepository,
@@ -32,7 +34,6 @@ import type {
   TaskRepository,
 } from "@nuvantre/ports";
 import { loadApprovedBrief } from "./approved-brief";
-import { latestArticle } from "./latest-article";
 import { checkContentAllowance } from "./content-allowance";
 import type { UseCaseError } from "./errors";
 import { loadOwnedProduct } from "./owned-product";
@@ -77,7 +78,9 @@ export class DraftSocialWeek {
     const allowed = await checkContentAllowance(this.deps, input.workspace);
     if (!allowed.ok) return allowed;
 
-    const article = latestArticle(await this.deps.contentItems.listByProduct(product.value.id));
+    const [article] = publishedArticles(
+      await this.deps.contentItems.listByProduct(product.value.id),
+    );
     const angles = planPostAngles(brief.value, {
       ...POSTS_PER_WEEK,
       ...(article ? { latestArticle: article } : {}),
@@ -91,7 +94,7 @@ export class DraftSocialWeek {
       if (items.length > 0 && !(await checkContentAllowance(this.deps, input.workspace)).ok) {
         return ok({ campaign: campaign.value, items, stoppedAtLimit: true });
       }
-      const item = await this.draftPost(campaign.value, angle, brief.value);
+      const item = await this.draftPost(campaign.value, angle, brief.value, product.value.locale);
       if (!item.ok) {
         // Keep what was drafted; report the failure only when there is nothing to show.
         if (items.length > 0) break;
@@ -120,6 +123,7 @@ export class DraftSocialWeek {
     campaign: Campaign,
     angle: PostAngle,
     brief: Parameters<ContentDrafter["draft"]>[0]["brief"],
+    locale: ContentLocale,
   ): Promise<Result<ContentItem, UseCaseError | DraftError>> {
     const task = andThen(
       createTask({
@@ -136,6 +140,7 @@ export class DraftSocialWeek {
       channel: angle.channel,
       task: { kind: "social_post", title: angle.angle },
       ...(angle.link === null ? {} : { link: angle.link }),
+      locale,
     });
     if (!draft.ok) return draft;
 

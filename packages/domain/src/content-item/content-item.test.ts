@@ -302,6 +302,15 @@ describe("ContentItem state machine", () => {
       });
     });
 
+    it("keeps the slug when only the excerpt changes, and needs a slug to add an excerpt", () => {
+      const edited = apply(withSeo(), { type: "edit", excerpt: "A clearer excerpt." });
+      expect(edited.seo).toEqual({ slug: "cookieless-analytics", excerpt: "A clearer excerpt." });
+      expect(transition(draft(), { type: "edit", excerpt: "No slug yet." }, ctx)).toMatchObject({
+        ok: false,
+        error: { code: "invalid_slug" },
+      });
+    });
+
     it("cannot add a slug to an item that has no excerpt", () => {
       expect(transition(draft(), { type: "edit", slug: "recap" }, ctx)).toMatchObject({
         ok: false,

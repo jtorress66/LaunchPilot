@@ -9,6 +9,7 @@ import {
   taskId,
   transitionCampaign,
   type Campaign,
+  type SeoTarget,
   type ProductId,
   type Result,
   type Task,
@@ -34,7 +35,20 @@ const IDEAS_TO_CONSIDER = 50;
 export interface SeoPlan {
   readonly campaign: Campaign;
   readonly tasks: readonly Task[];
+  /** "unavailable" when the provider has no search data for the product's market. */
+  readonly searchData: "available" | "unavailable";
 }
+
+interface Target {
+  readonly title: string;
+  readonly seo?: SeoTarget;
+}
+
+/** Without search data, each of the founder's own topics (up to the plan size) becomes an article. */
+const topicsOf = (seeds: readonly string[]): Target[] =>
+  [...new Set(seeds.map((s) => s.trim()).filter((s) => s !== ""))]
+    .slice(0, ARTICLES_PER_PLAN)
+    .map((topic) => ({ title: `Article: ${topic}` }));
 
 /** Researches keywords for the founder's topics and plans one article per best opportunity. */
 export class PlanSeoContent {
@@ -62,12 +76,19 @@ export class PlanSeoContent {
 
     const ideas = await this.deps.keywords.suggest({
       seeds: input.seeds,
-      locale: "en-US",
+      locale: product.value.locale,
       limit: IDEAS_TO_CONSIDER,
     });
-    if (!ideas.ok) return ideas;
-    const picks = rankKeywordOpportunities(ideas.value, { max: ARTICLES_PER_PLAN });
-    if (picks.length === 0) {
+    const searchData =
+      !ideas.ok && ideas.error.code === "unsupported_market" ? "unavailable" : "available";
+    if (!ideas.ok && searchData === "available") return ideas;
+    const targets: Target[] = ideas.ok
+      ? rankKeywordOpportunities(ideas.value, { max: ARTICLES_PER_PLAN }).map((seo) => ({
+          title: `Article: ${seo.keyword}`,
+          seo,
+        }))
+      : topicsOf(input.seeds);
+    if (targets.length === 0) {
       return err(
         failure(
           "no_keyword_opportunities",
@@ -81,20 +102,23 @@ export class PlanSeoContent {
       id: campaignId(this.deps.ids.next()),
       productId: product.value.id,
       name: `SEO plan: ${now.toISOString().slice(0, 10)}`,
-      goal: `Rank for ${picks.map((p) => `"${p.keyword}"`).join(", ")}`,
+      goal:
+        searchData === "available"
+          ? `Rank for ${targets.map((t) => `"${t.seo?.keyword ?? t.title}"`).join(", ")}`
+          : `Write about ${targets.map((t) => `"${t.title.replace(/^Article: /, "")}"`).join(", ")}`,
       weekStarting: now,
     });
     if (!planned.ok) return planned;
     const campaign = transitionCampaign(planned.value, "start");
     if (!campaign.ok) return campaign;
     const tasks = all(
-      picks.map((seo) =>
+      targets.map(({ title, seo }) =>
         createTask({
           id: taskId(this.deps.ids.next()),
           campaignId: campaign.value.id,
           kind: "seo_article",
-          title: `Article: ${seo.keyword}`,
-          seo,
+          title,
+          ...(seo ? { seo } : {}),
         }),
       ),
     );
@@ -102,6 +126,6 @@ export class PlanSeoContent {
 
     await this.deps.campaigns.save(campaign.value);
     await Promise.all(tasks.value.map((task) => this.deps.tasks.save(task)));
-    return ok({ campaign: campaign.value, tasks: tasks.value });
+    return ok({ campaign: campaign.value, tasks: tasks.value, searchData });
   }
 }

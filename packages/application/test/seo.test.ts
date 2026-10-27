@@ -2,6 +2,7 @@ import {
   contentItemId,
   productId,
   taskId,
+  transition,
   type Product,
   type User,
   type Workspace,
@@ -20,6 +21,7 @@ import {
   PlanSeoContent,
   PublishContentItem,
   ReviseContentItem,
+  SetProductLocale,
 } from "../src";
 import { makeWorld, signedUp, type World } from "./world";
 
@@ -104,6 +106,29 @@ const approved = async (s: Setup) => {
   return result.value;
 };
 
+/** An article the founder already published, which later articles may link to. */
+const published = async (s: Setup, externalUrl = "https://blog.acme.dev/cookieless-analytics") => {
+  const item = await approved(s);
+  const live = transition(
+    item,
+    { type: "markPublished", externalUrl },
+    { now: s.world.clock.now() },
+  );
+  if (!live.ok) throw new Error(live.error.message);
+  await s.world.contentItems.save(live.value);
+  return live.value;
+};
+
+const inPortuguese = async (s: Setup) => {
+  const result = await new SetProductLocale(s.world).execute({
+    workspace: s.workspace,
+    productId: s.product.id,
+    locale: "pt-BR",
+  });
+  if (!result.ok) throw new Error(result.error.message);
+  return result.value;
+};
+
 const connect = (s: Setup, credentials = BLOG) =>
   new ConnectBlog(s.world).execute({
     workspace: s.workspace,
@@ -173,6 +198,33 @@ describe("PlanSeoContent", () => {
     expect(await s.world.tasks.listByCampaign(campaign.id)).toHaveLength(4);
   });
 
+  it("researches keywords in the product's language and market", async () => {
+    const s = await setUp();
+    await inPortuguese(s);
+    await plan(s);
+    expect(s.world.keywords.queries[0]?.locale).toEqual({ language: "pt", market: "BR" });
+  });
+
+  it("plans one article per topic, without search figures, in a market with no keyword data", async () => {
+    const s = await setUp();
+    s.world.keywords.failNext({
+      code: "unsupported_market",
+      message: "No keyword data for Icelandic (Iceland)",
+      retryable: false,
+    });
+    const result = await new PlanSeoContent(s.world).execute({
+      workspace: s.workspace,
+      productId: s.product.id,
+      seeds: ["vefgreining án vafrakaka", " ", "persónuvernd"],
+    });
+    if (!result.ok) throw new Error(result.error.message);
+    expect(result.value.searchData).toBe("unavailable");
+    expect(result.value.tasks.map((t) => [t.title, t.seo])).toEqual([
+      ["Article: vefgreining án vafrakaka", null],
+      ["Article: persónuvernd", null],
+    ]);
+  });
+
   it("needs an approved brief, so articles only ever state approved facts", async () => {
     const s = await setUp({ approveBrief: false });
     const result = await new PlanSeoContent(s.world).execute({
@@ -237,6 +289,22 @@ describe("DraftSeoArticle", () => {
     const brief = await s.world.briefs.findLatestForProduct(s.product.id);
     expect(request?.brief).toEqual(brief?.content);
     expect((await s.world.tasks.findById(item.taskId))?.status).toBe("in_progress");
+  });
+
+  it("writes in the product's language, may link only to its published articles, and keeps the slug and excerpt", async () => {
+    const s = await setUp();
+    const earlier = await published(s);
+    await inPortuguese(s);
+    const item = await draft(s);
+    const request = s.world.writer.requests.at(-1);
+    expect(request?.locale).toEqual({ language: "pt", market: "BR" });
+    expect(request?.internalLinks).toEqual([
+      { title: earlier.title, url: "https://blog.acme.dev/cookieless-analytics" },
+    ]);
+    expect(item.seo).toEqual({
+      slug: "article-cookieless-analytics",
+      excerpt: "About Article: cookieless analytics.",
+    });
   });
 
   it("stops at the plan's monthly content allowance", async () => {
@@ -323,6 +391,22 @@ describe("ReviseContentItem and ApproveContentItem", () => {
     expect(result).toMatchObject({
       ok: true,
       value: { status: "in_review", title: "A better title", version: 2, approval: null },
+    });
+  });
+
+  it("lets the founder change the article's URL slug and excerpt", async () => {
+    const s = await setUp();
+    const item = await draft(s);
+    const result = await new ReviseContentItem(s.world).execute({
+      workspace: s.workspace,
+      itemId: item.id,
+      body: item.body,
+      slug: "cookieless-analytics-guide",
+      excerpt: "A short guide to analytics without cookies.",
+    });
+    expect(result.ok && result.value.seo).toEqual({
+      slug: "cookieless-analytics-guide",
+      excerpt: "A short guide to analytics without cookies.",
     });
   });
 
@@ -518,5 +602,33 @@ describe("GetDashboard content usage", () => {
     await draft(s);
     const dashboard = await new GetDashboard(s.world).execute(s.workspace);
     expect(dashboard.usage).toEqual({ products: 1, contentItemsThisMonth: 1 });
+  });
+});
+
+describe("SetProductLocale", () => {
+  it("sets the language and market the product writes for", async () => {
+    const s = await setUp();
+    expect((await inPortuguese(s)).locale).toEqual({ language: "pt", market: "BR" });
+    expect((await s.world.products.findById(s.product.id))?.locale).toEqual({
+      language: "pt",
+      market: "BR",
+    });
+  });
+
+  it("refuses a locale it cannot read and hides other workspaces' products", async () => {
+    const s = await setUp();
+    const invalid = await new SetProductLocale(s.world).execute({
+      workspace: s.workspace,
+      productId: s.product.id,
+      locale: "klingon",
+    });
+    expect(invalid.ok ? undefined : invalid.error.code).toBe("invalid_locale");
+    const { workspace: other } = await signedUp(s.world, "other@acme.dev");
+    const hidden = await new SetProductLocale(s.world).execute({
+      workspace: other,
+      productId: s.product.id,
+      locale: "pt-BR",
+    });
+    expect(hidden.ok ? undefined : hidden.error.code).toBe("product_not_found");
   });
 });
