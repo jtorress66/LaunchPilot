@@ -1,3 +1,4 @@
+import type { ContentLocale } from "@nuvantre/domain";
 import type { KeywordIdea, KeywordProvider, KeywordQuery } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 
@@ -6,7 +7,11 @@ export interface KeywordProviderHarness {
   givenIdeas(ideas: readonly KeywordIdea[]): void | Promise<void>;
   /** Arrange the next call to fail; a provider that only fails on bad input returns that input. */
   givenFailure(): KeywordQuery | undefined | Promise<KeywordQuery | undefined>;
+  /** A market the provider has no data for; omitted when it covers every market. */
+  readonly unsupportedMarket?: ContentLocale;
 }
+
+const usEnglish: ContentLocale = { language: "en", market: "US" };
 
 const ideas: KeywordIdea[] = [
   { keyword: "saas marketing", monthlySearches: 4400, difficulty: 62 },
@@ -24,7 +29,7 @@ export function describeKeywordProviderContract(
       await harness.givenIdeas(ideas);
       const result = await harness.provider.suggest({
         seeds: ["saas marketing"],
-        locale: "en-US",
+        locale: usEnglish,
         limit: 2,
       });
       if (!result.ok) throw new Error(result.error.message);
@@ -36,9 +41,31 @@ export function describeKeywordProviderContract(
       }
     });
 
+    it("answers for Brazilian Portuguese, or says it has no data for an unsupported market", async () => {
+      const harness = await make();
+      await harness.givenIdeas(ideas);
+      const brazil = await harness.provider.suggest({
+        seeds: ["análise sem cookies"],
+        locale: { language: "pt", market: "BR" },
+        limit: 2,
+      });
+      expect(brazil.ok).toBe(true);
+      if (harness.unsupportedMarket === undefined) return;
+      const unsupported = await harness.provider.suggest({
+        seeds: ["x"],
+        locale: harness.unsupportedMarket,
+        limit: 2,
+      });
+      expect(unsupported).toMatchObject({ ok: false, error: { code: "unsupported_market" } });
+    });
+
     it("reports a failure as a KeywordError result instead of throwing", async () => {
       const harness = await make();
-      const failing = (await harness.givenFailure()) ?? { seeds: ["x"], locale: "en-US", limit: 5 };
+      const failing = (await harness.givenFailure()) ?? {
+        seeds: ["x"],
+        locale: usEnglish,
+        limit: 5,
+      };
       const result = await harness.provider.suggest(failing);
       expect(result.ok).toBe(false);
     });

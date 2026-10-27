@@ -26,4 +26,19 @@ describe("MeteredLlmClient", () => {
     await metered.complete(ask);
     expect(metered.costUsd({ inputPerMillion: 4, outputPerMillion: 20 })).toBe(6);
   });
+
+  it("keeps the model's last answer, so an eval can judge it before any cleanup", async () => {
+    const meter = new MeteredLlmClient(new FakeLlmClient().reply("first").reply("second"));
+    await meter.complete({
+      system: "s",
+      messages: [{ role: "user", content: "a" }],
+      maxTokens: 10,
+    });
+    await meter.complete({
+      system: "s",
+      messages: [{ role: "user", content: "b" }],
+      maxTokens: 10,
+    });
+    expect(meter.lastText).toBe("second");
+  });
 });

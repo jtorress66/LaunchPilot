@@ -6,6 +6,7 @@ import * as social from "./0004_social";
 import * as launch from "./0005_launch";
 import * as analytics from "./0006_analytics";
 import * as orchestration from "./0007_orchestration";
+import * as seoPolish from "./0008_seo_polish";
 
 /** Ordered list of migrations, bundled with the code (no filesystem lookups at runtime). */
 const migrations: Readonly<Record<string, Migration>> = {
@@ -16,6 +17,7 @@ const migrations: Readonly<Record<string, Migration>> = {
   "0005_launch": launch,
   "0006_analytics": analytics,
   "0007_orchestration": orchestration,
+  "0008_seo_polish": seoPolish,
 };
 
 export const migrationProvider: MigrationProvider = {

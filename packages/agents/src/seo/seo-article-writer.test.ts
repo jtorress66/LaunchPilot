@@ -23,6 +23,8 @@ const reply = (overrides: Record<string, unknown> = {}) =>
     title: "Cookieless analytics: a practical guide for SaaS founders",
     body,
     citedFacts: ["Free 14-day trial"],
+    slug: "cookieless-analytics",
+    excerpt: "How SaaS founders measure growth without cookie banners.",
     ...overrides,
   });
 
@@ -55,7 +57,7 @@ describe("SeoArticleWriter", () => {
     await write(llm);
     expect(llm.requests[0]?.responseFormat).toMatchObject({
       type: "json_schema",
-      schema: { required: ["title", "body", "citedFacts"] },
+      schema: { required: ["title", "body", "citedFacts", "slug", "excerpt"] },
     });
   });
 
@@ -66,8 +68,62 @@ describe("SeoArticleWriter", () => {
         title: "Cookieless analytics: a practical guide for SaaS founders",
         body,
         citedFacts: ["Free 14-day trial"],
+        seo: {
+          slug: "cookieless-analytics",
+          excerpt: "How SaaS founders measure growth without cookie banners.",
+        },
       },
     });
+  });
+
+  it("tells the model the language and market, and the published articles it may link to", async () => {
+    const llm = new FakeLlmClient().reply(reply());
+    await write(llm, {
+      ...request,
+      locale: { language: "pt", market: "BR" },
+      internalLinks: [{ title: "Pricing for SaaS", url: "https://acme.dev/blog/pricing" }],
+    });
+    const prompt = llm.requests[0]?.messages[0]?.content ?? "";
+    expect(prompt).toContain("Language and market: Portuguese (Brazil)");
+    expect(prompt).toContain("- Pricing for SaaS: https://acme.dev/blog/pricing");
+  });
+
+  it("writes US English with no links when no locale or published articles are given", async () => {
+    const llm = new FakeLlmClient().reply(reply());
+    await write(llm);
+    const prompt = llm.requests[0]?.messages[0]?.content ?? "";
+    expect(prompt).toContain("Language and market: English (United States)");
+    expect(prompt).toContain("Published articles you may link to:\n- (none: add no links)");
+  });
+
+  it("turns any link that is not a published article into plain text", async () => {
+    const linked = `${body}\n\nSee [pricing](https://acme.dev/blog/pricing) and [a rival](https://rival.io).`;
+    const llm = new FakeLlmClient().reply(reply({ body: linked }));
+    const result = await write(llm, {
+      ...request,
+      internalLinks: [{ title: "Pricing", url: "https://acme.dev/blog/pricing" }],
+    });
+    expect(result.ok && result.value.body).toContain(
+      "See [pricing](https://acme.dev/blog/pricing) and a rival.",
+    );
+  });
+
+  it("tidies the model's slug, or makes one from the title when it is unusable", async () => {
+    const tidy = await write(new FakeLlmClient().reply(reply({ slug: "Cookieless Analytics!" })));
+    expect(tidy.ok && tidy.value.seo?.slug).toBe("cookieless-analytics");
+    const fallback = await write(new FakeLlmClient().reply(reply({ slug: "!!!" })));
+    expect(fallback.ok && fallback.value.seo?.slug).toBe(
+      "cookieless-analytics-a-practical-guide-for-saas-founders",
+    );
+  });
+
+  it("shortens an over-long excerpt at a word boundary", async () => {
+    const long = "Measure growth without cookies. ".repeat(20);
+    const result = await write(new FakeLlmClient().reply(reply({ excerpt: long })));
+    const excerpt = result.ok ? (result.value.seo?.excerpt ?? "") : "";
+    expect(excerpt.length).toBeLessThanOrEqual(300);
+    expect(excerpt.endsWith("…")).toBe(true);
+    expect(long).toContain(excerpt.slice(0, -1).trim());
   });
 
   it("keeps only cited facts that are in the brief", async () => {

@@ -1,4 +1,12 @@
-import { contentItemId, type Product, type User, type Workspace } from "@nuvantre/domain";
+import {
+  contentItemId,
+  setProductLocale,
+  transition,
+  userId,
+  type Product,
+  type User,
+  type Workspace,
+} from "@nuvantre/domain";
 import { aContentItem, aWeeklyReport } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { FakeContentDrafter } from "@nuvantre/testing";
@@ -191,6 +199,39 @@ describe("RunWeeklyLoop", () => {
     const items = await inReview(s);
     expect(items).toHaveLength(7);
     expect(items.filter((i) => i.agentReview === null)).toHaveLength(1);
+  });
+
+  it("writes and reviews the week in the product's language, and links articles only to published ones", async () => {
+    const s = await setUp();
+    const portuguese = setProductLocale(s.product, "pt-BR");
+    if (!portuguese.ok) throw new Error(portuguese.error.message);
+    await s.world.products.save(portuguese.value);
+    const now = { now: s.world.clock.now() };
+    const live = [
+      { type: "submit" },
+      { type: "approve", actor: { kind: "founder", userId: userId("user_1") } },
+      { type: "markPublished", externalUrl: "https://blog.acme.dev/guia" },
+    ].reduce(
+      (item, event) => {
+        const next = transition(item, event as never, now);
+        if (!next.ok) throw new Error(next.error.message);
+        return next.value;
+      },
+      aContentItem({ id: contentItemId("item_published"), productId: s.product.id }),
+    );
+    await s.world.contentItems.save(live);
+
+    await ranOk(s);
+    const brazil = { language: "pt", market: "BR" };
+    expect(s.world.keywords.queries[0]?.locale).toEqual(brazil);
+    expect(s.world.writer.requests[0]).toMatchObject({
+      locale: brazil,
+      internalLinks: [{ title: live.title, url: "https://blog.acme.dev/guia" }],
+    });
+    expect(s.world.socialWriter.requests[0]?.locale).toEqual(brazil);
+    expect(s.world.reviewer.requests.every((r) => r.locale?.language === "pt")).toBe(true);
+    const article = (await inReview(s)).find((i) => i.channel === "blog");
+    expect(article?.seo?.slug).toEqual(expect.any(String));
   });
 
   it("plans from the brief's angles alone when keyword research fails", async () => {

@@ -40,6 +40,15 @@ describe("SocialPostWriter", () => {
     expect(prompt).toContain(request.brief.tone);
   });
 
+  it("writes in the product's language and market, US English by default", async () => {
+    const german = new FakeLlmClient().reply(reply());
+    await write(german, { ...request, locale: { language: "de", market: "DE" } });
+    expect(prompts(german)[0]).toContain("Language and market: German (Germany)");
+    const english = new FakeLlmClient().reply(reply());
+    await write(english);
+    expect(prompts(english)[0]).toContain("Language and market: English (United States)");
+  });
+
   it("gives LinkedIn its own guidance and limit", async () => {
     const llm = new FakeLlmClient().reply(reply());
     await write(llm, { ...request, channel: "linkedin" });

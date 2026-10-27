@@ -64,6 +64,14 @@
       "title": "New article: Cookieless analytics for SaaS founders",
       "body": "We wrote a practical guide to analytics without cookies. No cookie banners needed.",
       "link": "https://blog.acme.dev/cookieless-analytics"
+    },
+    {
+      "label": "wrong-language",
+      "expected": "needs_changes",
+      "modelOnly": true,
+      "channel": "x",
+      "title": "Sin banners de cookies",
+      "body": "Acme muestra los cinco números que importan en un correo semanal, sin cookies. No necesitas banners de cookies."
     }
   ]
 }

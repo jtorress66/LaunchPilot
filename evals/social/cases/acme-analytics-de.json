@@ -1,0 +1,30 @@
+{
+  "name": "acme-analytics-de",
+  "locale": "de-DE",
+  "forbidden": ["ISO 27001", "TÜV", "Fortune 500", "% der"],
+  "brief": {
+    "audience": "Gründerinnen und Gründer kleiner SaaS-Unternehmen, die einfache, datenschutzfreundliche Website-Analysen wollen",
+    "problem": "Gründer verlieren Stunden in überladenen Dashboards, die alles messen, aber nichts beantworten",
+    "solution": "Acme zeigt die fünf wichtigsten Zahlen in einer wöchentlichen E-Mail, ganz ohne Cookies",
+    "differentiators": [
+      "Kein Cookie-Banner nötig",
+      "Einrichtung in zwei Minuten mit einem einzigen Script-Tag"
+    ],
+    "tone": "Klar, ruhig und praktisch",
+    "facts": [
+      "Kostenlose 14-Tage-Testphase, keine Kreditkarte nötig",
+      "DSGVO-konform und in der EU gehostet",
+      "Starter kostet 9 $ pro Monat für bis zu 100.000 Seitenaufrufe"
+    ]
+  },
+  "angles": [
+    {
+      "channel": "x",
+      "angle": "Warum es zählt: Kein Cookie-Banner nötig"
+    },
+    {
+      "channel": "linkedin",
+      "angle": "Das Problem: Gründer verlieren Stunden in überladenen Dashboards, die alles messen, aber nichts beantworten"
+    }
+  ]
+}

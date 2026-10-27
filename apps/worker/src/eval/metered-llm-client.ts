@@ -9,6 +9,8 @@ export interface TokenPrices {
 /** Decorates any LlmClient to count calls and tokens, so evals can report what they cost. */
 export class MeteredLlmClient implements LlmClient {
   readonly usage = { calls: 0, inputTokens: 0, outputTokens: 0 };
+  /** The model's last successful answer, before the agent tidied it. */
+  lastText: string | undefined;
 
   constructor(private readonly inner: LlmClient) {}
 
@@ -18,6 +20,7 @@ export class MeteredLlmClient implements LlmClient {
     if (result.ok) {
       this.usage.inputTokens += result.value.usage.inputTokens;
       this.usage.outputTokens += result.value.usage.outputTokens;
+      this.lastText = result.value.text;
     }
     return result;
   }

@@ -1,6 +1,7 @@
 import { channels, err, ok, type Result } from "@nuvantre/domain";
 import type { ReviewError, ReviewRequest, ReviewVerdict } from "@nuvantre/ports";
 import { z } from "zod";
+import { localeOf } from "./seo-eval";
 
 const draftSchema = z.object({
   /** What is wrong with the draft, or "good": shown when its verdict is wrong. */
@@ -10,6 +11,8 @@ const draftSchema = z.object({
   title: z.string(),
   body: z.string().min(1),
   link: z.string().url().optional(),
+  /** Only a model can catch this one (e.g. the wrong language); the rule checks cannot. */
+  modelOnly: z.boolean().default(false),
 });
 
 /** One brief with drafts labelled by hand as good or bad; the reviewer must agree with each. */
@@ -24,6 +27,8 @@ const reviewerEvalCaseSchema = z.object({
     facts: z.array(z.string()),
   }),
   drafts: z.array(draftSchema).min(1),
+  /** "de-DE"; US English when absent. */
+  locale: z.string().optional(),
 });
 
 export type ReviewerEvalCase = z.infer<typeof reviewerEvalCaseSchema>;
@@ -45,6 +50,7 @@ export const reviewRequestOf = (
   title: draft.title,
   body: draft.body,
   ...(draft.link === undefined ? {} : { link: draft.link }),
+  locale: localeOf(evalCase),
 });
 
 export interface ReviewScore {

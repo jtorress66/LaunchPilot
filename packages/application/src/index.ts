@@ -36,4 +36,5 @@ export * from "./weekly-reports";
 export * from "./get-analytics";
 export * from "./drafter-registry";
 export * from "./weekly-loop";
+export * from "./set-product-locale";
 export { remainingContentAllowance } from "./content-allowance";

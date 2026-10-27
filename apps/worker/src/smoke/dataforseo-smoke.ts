@@ -1,5 +1,5 @@
-// `pnpm smoke:keywords`: one real DataForSEO call (limit 5) to prove the account, the credentials
-// and the response format still match the recorded fixtures. DATAFORSEO_BASE_URL can point it at
+// `pnpm smoke:keywords`: real DataForSEO calls (limit 5) in two markets, to prove the account,
+// the credentials, the market list and the response format still match the recorded fixtures. DATAFORSEO_BASE_URL can point it at
 // DataForSEO's free Sandbox (https://sandbox.dataforseo.com); otherwise it calls the live API.
 import { createKeywordProvider } from "../container";
 
@@ -20,16 +20,20 @@ if (!login || !password) {
 const configured = process.env.DATAFORSEO_BASE_URL?.trim();
 const baseUrl = configured === undefined || configured === "" ? undefined : configured;
 console.log(`Calling DataForSEO at ${baseUrl ?? "https://api.dataforseo.com"}`);
-const result = await createKeywordProvider({ login, password, baseUrl }).suggest({
-  seeds: ["website analytics"],
-  locale: "en-US",
-  limit: 5,
-});
-if (!result.ok) fail(`${result.error.code}: ${result.error.message}`);
-if (result.value.length === 0) fail("DataForSEO returned no keyword ideas");
-for (const idea of result.value) {
-  console.log(
-    `${idea.keyword.padEnd(40)} ${String(idea.monthlySearches).padStart(8)} searches  difficulty ${idea.difficulty}`,
-  );
+const provider = createKeywordProvider({ login, password, baseUrl });
+// US English proves the account and the response format; Brazilian Portuguese proves the
+// market list read from DataForSEO maps a non-English market.
+for (const [label, locale, seed] of [
+  ["en-US", { language: "en", market: "US" }, "website analytics"],
+  ["pt-BR", { language: "pt", market: "BR" }, "análise de sites"],
+] as const) {
+  const result = await provider.suggest({ seeds: [seed], locale, limit: 5 });
+  if (!result.ok) fail(`${label}: ${result.error.code}: ${result.error.message}`);
+  if (result.value.length === 0) fail(`${label}: DataForSEO returned no keyword ideas`);
+  for (const idea of result.value) {
+    console.log(
+      `${label}  ${idea.keyword.padEnd(40)} ${String(idea.monthlySearches).padStart(8)} searches  difficulty ${idea.difficulty}`,
+    );
+  }
 }
-console.log(`DataForSEO smoke check passed: ${result.value.length} ideas.`);
+console.log("DataForSEO smoke check passed for en-US and pt-BR.");

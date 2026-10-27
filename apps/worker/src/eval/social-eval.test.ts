@@ -89,3 +89,31 @@ describe("parseSocialEvalCase", () => {
     expect(parseSocialEvalCase({ name: "x", angles: [{ channel: "tiktok" }] }).ok).toBe(false);
   });
 });
+
+describe("language", () => {
+  it("fails a post written in another language than the case's", () => {
+    const german = { ...evalCase, name: "acme-de", locale: "de-DE" };
+    const english = {
+      ok: true as const,
+      value: {
+        title: "t",
+        body: "This is the tool for the founders who want to know what works.",
+        citedFacts: [],
+      },
+    };
+    const deutsch = {
+      ok: true as const,
+      value: {
+        title: "t",
+        body: "Das ist das Werkzeug für Gründer, die wissen wollen, was funktioniert.",
+        citedFacts: [],
+      },
+    };
+    const angle = { channel: "x" as const, angle: "Why it matters" };
+    expect(scorePost(german, angle, english)).toMatchObject({
+      writesInLanguage: false,
+      passed: false,
+    });
+    expect(scorePost(german, angle, deutsch).writesInLanguage).toBe(true);
+  });
+});

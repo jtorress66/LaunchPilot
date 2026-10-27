@@ -4,6 +4,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { createSocialEvalWriter } from "../container";
 import { parseEvalConfig } from "./brief-eval";
+import { localeOf } from "./seo-eval";
 import { parseSocialEvalCase, scorePost, summarisePosts, type PostScore } from "./social-eval";
 
 const PRICES: Partial<Record<string, { inputPerMillion: number; outputPerMillion: number }>> = {
@@ -38,11 +39,12 @@ for (const file of files) {
         channel: angle.channel,
         task: { kind: "social_post", title: angle.angle },
         ...(angle.link === undefined ? {} : { link: angle.link }),
+        locale: localeOf(c),
       }),
     );
     scores.push(score);
     console.log(
-      `${mark(score.passed)} ${score.name.padEnd(24)} ${String(score.characters).padStart(4)} chars ${mark(score.withinLimit)}  brief facts only ${mark(score.citesOnlyBriefFacts)}  no invented claims ${mark(score.noForbiddenClaims)}  hashtags ${mark(score.fewHashtags)}  link ${mark(score.includesLink)}${score.error ? `  error: ${score.error}` : ""}`,
+      `${mark(score.passed)} ${score.name.padEnd(24)} ${String(score.characters).padStart(4)} chars ${mark(score.withinLimit)}  brief facts only ${mark(score.citesOnlyBriefFacts)}  no invented claims ${mark(score.noForbiddenClaims)}  hashtags ${mark(score.fewHashtags)}  link ${mark(score.includesLink)}  language ${mark(score.writesInLanguage)}${score.error ? `  error: ${score.error}` : ""}`,
     );
   }
 }

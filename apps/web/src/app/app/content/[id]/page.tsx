@@ -123,6 +123,7 @@ export default async function ContentPage({ params, searchParams }: ContentPageP
           itemId={item.id}
           title={item.title}
           body={item.body}
+          seo={item.seo}
           status={item.status}
           justSaved={saved === "1"}
         />

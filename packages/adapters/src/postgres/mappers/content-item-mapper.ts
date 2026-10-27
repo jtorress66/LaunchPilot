@@ -8,6 +8,7 @@ import {
   userId,
   type Actor,
   type AgentReview,
+  type ArticleSeo,
   type ContentItem,
   type HttpUrl,
 } from "@nuvantre/domain";
@@ -63,6 +64,9 @@ const readAgentReview = (value: string | null): AgentReview | null => {
   return { ...stored, reviewedAt: new Date(stored.reviewedAt) };
 };
 
+const readSeo = (value: string | null): ArticleSeo | null =>
+  value === null ? null : (readJson(value) as ArticleSeo);
+
 export const contentItemMapper = {
   toRow: (item: ContentItem): ContentItemRow => ({
     id: item.id,
@@ -94,6 +98,7 @@ export const contentItemMapper = {
         ? null
         : toJson({ ...item.failure, at: item.failure.at.toISOString() } satisfies StoredFailure),
     publish_attempts: item.publishAttempts,
+    seo: item.seo === null ? null : toJson(item.seo),
     agent_review:
       item.agentReview === null
         ? null
@@ -127,6 +132,7 @@ export const contentItemMapper = {
         : null,
     failure: readFailure(row.failure),
     publishAttempts: row.publish_attempts,
+    seo: readSeo(row.seo),
     agentReview: readAgentReview(row.agent_review),
   }),
 };

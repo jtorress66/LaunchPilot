@@ -17,6 +17,8 @@ interface ArticleEditorProps {
   readonly itemId: string;
   readonly title: string;
   readonly body: string;
+  /** URL slug and excerpt for search results; null for an article drafted before they existed. */
+  readonly seo: { readonly slug: string; readonly excerpt: string } | null;
   readonly status: ContentItemStatus;
   /** True right after a save, until the founder edits again. */
   readonly justSaved: boolean;
@@ -30,7 +32,7 @@ const EDITABLE: readonly ContentItemStatus[] = [
   "failed",
 ];
 
-export function ArticleEditor({ itemId, title, body, status, justSaved }: ArticleEditorProps) {
+export function ArticleEditor({ itemId, title, body, seo, status, justSaved }: ArticleEditorProps) {
   const [saveState, save] = useActionState<ContentActionState, FormData>(
     saveArticleAction.bind(null, itemId),
     {},
@@ -65,6 +67,21 @@ export function ArticleEditor({ itemId, title, body, status, justSaved }: Articl
           ) : null}
           <FormError message={errors.form} />
           <Field label="Title" name="title" defaultValue={title} error={errors.title} />
+          <Field
+            label="URL slug"
+            name="slug"
+            defaultValue={seo?.slug ?? ""}
+            hint="Lower-case words joined by hyphens, e.g. cookieless-analytics."
+            error={errors.slug}
+          />
+          <TextAreaField
+            label="Excerpt"
+            name="excerpt"
+            defaultValue={seo?.excerpt ?? ""}
+            rows={2}
+            hint="Shown in search results and post lists. Up to 160 characters reads best."
+            error={errors.excerpt}
+          />
           <TextAreaField
             label="Article (Markdown)"
             name="body"

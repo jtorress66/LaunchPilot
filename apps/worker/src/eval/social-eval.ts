@@ -1,6 +1,8 @@
 import { err, maxLengthOf, ok, type Result } from "@nuvantre/domain";
 import type { Draft, DraftError } from "@nuvantre/ports";
 import { z } from "zod";
+import { writesIn } from "./language-check";
+import { localeOf } from "./seo-eval";
 
 const angleSchema = z.object({
   channel: z.enum(["x", "linkedin"]),
@@ -22,6 +24,8 @@ const socialEvalCaseSchema = z.object({
     facts: z.array(z.string()),
   }),
   angles: z.array(angleSchema).min(1),
+  /** "de-DE"; US English when absent. */
+  locale: z.string().optional(),
 });
 
 export type SocialEvalCase = z.infer<typeof socialEvalCaseSchema>;
@@ -45,6 +49,7 @@ export interface PostScore {
   readonly noForbiddenClaims: boolean;
   readonly fewHashtags: boolean;
   readonly includesLink: boolean;
+  readonly writesInLanguage: boolean;
   readonly characters: number;
   readonly passed: boolean;
   readonly error: string | undefined;
@@ -65,6 +70,7 @@ export const scorePost = (
       noForbiddenClaims: false,
       fewHashtags: false,
       includesLink: false,
+      writesInLanguage: false,
       characters: 0,
       passed: false,
       error: `${result.error.code}: ${result.error.message}`,
@@ -77,6 +83,7 @@ export const scorePost = (
   const noForbiddenClaims = evalCase.forbidden.every((c) => !lower.includes(c.toLowerCase()));
   const fewHashtags = (body.match(/#\w+/g) ?? []).length <= MAX_HASHTAGS[angle.channel];
   const includesLink = angle.link === undefined || body.includes(angle.link);
+  const writesInLanguage = writesIn(body, localeOf(evalCase).language);
   return {
     name,
     drafted: true,
@@ -85,8 +92,15 @@ export const scorePost = (
     noForbiddenClaims,
     fewHashtags,
     includesLink,
+    writesInLanguage,
     characters: body.length,
-    passed: withinLimit && citesOnlyBriefFacts && noForbiddenClaims && fewHashtags && includesLink,
+    passed:
+      withinLimit &&
+      citesOnlyBriefFacts &&
+      noForbiddenClaims &&
+      fewHashtags &&
+      includesLink &&
+      writesInLanguage,
     error: undefined,
   };
 };

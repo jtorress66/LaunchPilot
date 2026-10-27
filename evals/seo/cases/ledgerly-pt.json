@@ -1,0 +1,20 @@
+{
+  "name": "ledgerly-pt",
+  "keyword": "contabilidade para freelancers",
+  "locale": "pt-BR",
+  "forbidden": ["certificado pelo CFC", "nível bancário", "milhares de clientes", "% dos"],
+  "brief": {
+    "audience": "Freelancers no Brasil que cuidam da própria contabilidade",
+    "problem": "Freelancers perdem noites todo mês tentando conciliar recibos com as transações do banco",
+    "solution": "O Ledgerly separa automaticamente as transações do banco em receitas e despesas e associa os recibos que você fotografa com o celular",
+    "differentiators": [
+      "Mostra quanto reservar para impostos sempre que você recebe",
+      "Conexão com o banco somente leitura"
+    ],
+    "tone": "Amigável e tranquilizador",
+    "facts": [
+      "Grátis por 30 dias, depois R$ 49 por mês",
+      "Exporta tudo em CSV ou envia ao seu contador com um clique"
+    ]
+  }
+}

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SeedKeywordProvider } from "./seed-keyword-provider";
 
 const suggest = (seeds: string[], limit = 10) =>
-  new SeedKeywordProvider().suggest({ seeds, locale: "en-US", limit });
+  new SeedKeywordProvider().suggest({ seeds, locale: { language: "en", market: "US" }, limit });
 
 describe("SeedKeywordProvider", () => {
   it("expands each seed into common question and comparison phrases, deterministically", async () => {
@@ -26,5 +26,17 @@ describe("SeedKeywordProvider", () => {
 
   it("refuses an empty list of seeds", async () => {
     expect(await suggest([" "])).toMatchObject({ ok: false, error: { code: "invalid_request" } });
+  });
+
+  it("keeps to the founder's own phrases outside English, where its English patterns would not fit", async () => {
+    const result = await new SeedKeywordProvider().suggest({
+      seeds: ["Análise sem cookies"],
+      locale: { language: "pt", market: "BR" },
+      limit: 10,
+    });
+    expect(result).toEqual({
+      ok: true,
+      value: [{ keyword: "análise sem cookies", monthlySearches: 100, difficulty: 30 }],
+    });
   });
 });

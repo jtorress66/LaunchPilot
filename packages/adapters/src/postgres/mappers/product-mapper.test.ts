@@ -1,4 +1,4 @@
-import { enableAutopilot } from "@nuvantre/domain";
+import { enableAutopilot, setProductLocale } from "@nuvantre/domain";
 import { aProduct } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { productMapper } from "./product-mapper";
@@ -13,7 +13,20 @@ describe("productMapper", () => {
       url: "https://acme.dev/",
       created_at: product.createdAt,
       autopilot_since: null,
+      locale: "en-US",
     });
+  });
+
+  it("stores the language and market as a tag and reads it back", () => {
+    const product = setProductLocale(aProduct(), "pt-BR");
+    if (!product.ok) throw new Error(product.error.message);
+    expect(productMapper.toRow(product.value).locale).toBe("pt-BR");
+    expect(productMapper.fromRow(productMapper.toRow(product.value))).toEqual(product.value);
+  });
+
+  it("refuses a stored locale it cannot read, because that means corrupt data", () => {
+    const row = { ...productMapper.toRow(aProduct()), locale: "klingon" };
+    expect(() => productMapper.fromRow(row)).toThrow(/products\.locale/);
   });
 
   it("round-trips when the autopilot was switched on", () => {

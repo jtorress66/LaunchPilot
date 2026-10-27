@@ -1,4 +1,4 @@
-import { err, ok, type Result } from "@nuvantre/domain";
+import { err, ok, slugify, type Result } from "@nuvantre/domain";
 import type { ContentDrafter, Draft, DraftError, DraftRequest } from "@nuvantre/ports";
 import { NextFailure } from "./next-failure";
 
@@ -25,6 +25,14 @@ export class FakeContentDrafter implements ContentDrafter {
           title: request.task.title,
           body: `Draft for "${request.task.title}" on ${request.channel}.`,
           citedFacts: request.brief.facts.slice(0, 1),
+          ...(request.channel === "blog"
+            ? {
+                seo: {
+                  slug: slugify(request.task.title) || "article",
+                  excerpt: `About ${request.task.title}.`,
+                },
+              }
+            : {}),
         },
       ),
     );

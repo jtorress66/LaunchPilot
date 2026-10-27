@@ -35,6 +35,8 @@ import {
   type WeeklyReport,
   type Workspace,
   validateWeekPlan,
+  publishedArticles,
+  type InternalLink,
 } from "@nuvantre/domain";
 import type {
   AutopilotRunRepository,
@@ -56,7 +58,6 @@ import { loadApprovedBrief } from "./approved-brief";
 import { remainingContentAllowance } from "./content-allowance";
 import type { DrafterRegistry } from "./drafter-registry";
 import type { UseCaseError } from "./errors";
-import { latestArticle } from "./latest-article";
 import { loadOwnedProduct } from "./owned-product";
 
 const KEYWORD_IDEAS = 50;
@@ -96,6 +97,13 @@ export interface WeeklyLoopDeps {
  * blockers, and leave every item in review for the founder. It never approves or publishes.
  * A failed draft or review is counted and the rest of the week still runs.
  */
+/** What every task of one product's week is drafted and reviewed against. */
+interface WeekContext {
+  readonly brief: BriefContent;
+  readonly product: Product;
+  readonly published: readonly InternalLink[];
+}
+
 export class RunWeeklyLoop {
   constructor(private readonly deps: WeeklyLoopDeps) {}
 
@@ -132,7 +140,8 @@ export class RunWeeklyLoop {
         product.id,
         weekKey(previousWeek(week)),
       )) ?? null;
-    const candidates = await this.candidates(product.id, brief.value, lastWeek);
+    const published = publishedArticles(await this.deps.contentItems.listByProduct(product.id));
+    const candidates = await this.candidates(product, brief.value, lastWeek, published);
     const allowance = await remainingContentAllowance(this.deps, workspace);
     const plan = await this.deps.planner.plan({
       product: { name: product.name },
@@ -160,7 +169,7 @@ export class RunWeeklyLoop {
 
     const tally: Tally = { drafted: 0, redrafted: 0, failed: 0 };
     for (const task of checked.accepted) {
-      await this.draftTask(campaign.value, task, brief.value, tally);
+      await this.draftTask(campaign.value, task, { brief: brief.value, product, published }, tally);
     }
     return {
       kind: "completed",
@@ -176,9 +185,10 @@ export class RunWeeklyLoop {
 
   /** Keywords researched from last week's searches and the brief, plus brief-derived angles. */
   private async candidates(
-    product: ProductId,
+    product: Product,
     brief: BriefContent,
     lastWeek: WeeklyReport | null,
+    published: readonly InternalLink[],
   ): Promise<WeekCandidates> {
     const topics = [
       ...(lastWeek?.topQueries.slice(0, SEEDS_FROM_REPORT).map((q) => q.query) ?? []),
@@ -188,22 +198,18 @@ export class RunWeeklyLoop {
     const seeds = topics.length > 0 ? topics : [brief.problem];
     const ideas = await this.deps.keywords.suggest({
       seeds,
-      locale: "en-US",
+      locale: product.locale,
       limit: KEYWORD_IDEAS,
     });
-    const article = latestArticle(await this.deps.contentItems.listByProduct(product));
+    const [article] = published;
     return {
       keywords: ideas.ok ? rankKeywordOpportunities(ideas.value, { max: KEYWORD_CANDIDATES }) : [],
       angles: planPostAngles(brief, { ...ANGLES, ...(article ? { latestArticle: article } : {}) }),
     };
   }
 
-  private async draftTask(
-    campaign: Campaign,
-    task: AcceptedTask,
-    brief: BriefContent,
-    tally: Tally,
-  ) {
+  private async draftTask(campaign: Campaign, task: AcceptedTask, week: WeekContext, tally: Tally) {
+    const { brief, product, published } = week;
     const drafter = this.deps.drafters.for(task.channel);
     const created = andThen(
       createTask({
@@ -227,6 +233,9 @@ export class RunWeeklyLoop {
       task: { kind: task.kind, title: task.title },
       ...(task.kind === "seo_article" ? { keywords: [task.seo.keyword] } : {}),
       ...(link === undefined ? {} : { link }),
+      locale: product.locale,
+      // Articles may link only to the product's published articles.
+      ...(task.kind === "seo_article" ? { internalLinks: published } : {}),
     };
     const first = await drafter.draft(request);
     if (!first.ok) {
@@ -234,7 +243,7 @@ export class RunWeeklyLoop {
       return;
     }
     let draft = first.value;
-    let review = await this.review(brief, task, draft, link, false);
+    let review = await this.review(week, task, draft, link, false);
     if (review?.issues.some((i) => i.severity === "blocker")) {
       const revisionNote = review.issues
         .filter((i) => i.severity === "blocker")
@@ -244,7 +253,7 @@ export class RunWeeklyLoop {
       if (second.ok) {
         draft = second.value;
         tally.redrafted += 1;
-        review = await this.review(brief, task, draft, link, true);
+        review = await this.review(week, task, draft, link, true);
       }
     }
 
@@ -257,6 +266,7 @@ export class RunWeeklyLoop {
         channel: task.channel,
         title: draft.title,
         body: draft.body,
+        ...(draft.seo ? { seo: draft.seo } : {}),
         createdBy: { kind: "agent", agent: agentFor[task.kind] },
         now,
       }),
@@ -273,7 +283,7 @@ export class RunWeeklyLoop {
 
   /** The reviewer's verdict, or null when the reviewer could not review (the item still goes on). */
   private async review(
-    brief: BriefContent,
+    { brief, product }: WeekContext,
     task: AcceptedTask,
     draft: { title: string; body: string },
     link: string | undefined,
@@ -285,6 +295,7 @@ export class RunWeeklyLoop {
       title: draft.title,
       body: draft.body,
       ...(link === undefined ? {} : { link }),
+      locale: product.locale,
     });
     return verdict.ok ? reviewOf(verdict.value, { redrafted, at: this.deps.clock.now() }) : null;
   }

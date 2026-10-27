@@ -8,6 +8,7 @@ import {
   type Product,
   type User,
   type Workspace,
+  setProductLocale,
 } from "@nuvantre/domain";
 import { describe, expect, it } from "vitest";
 import {
@@ -209,6 +210,17 @@ describe("DraftSocialWeek", () => {
     );
     expect(s.world.socialWriter.requests.map((r) => r.channel)).toEqual(
       items.map((i) => i.channel),
+    );
+  });
+
+  it("writes the posts in the product's language", async () => {
+    const s = await setUp();
+    const portuguese = setProductLocale(s.product, "pt-BR");
+    if (!portuguese.ok) throw new Error(portuguese.error.message);
+    await s.world.products.save(portuguese.value);
+    await draftWeek(s);
+    expect(s.world.socialWriter.requests.map((r) => r.locale)).toEqual(
+      Array.from({ length: 5 }, () => ({ language: "pt", market: "BR" })),
     );
   });
 

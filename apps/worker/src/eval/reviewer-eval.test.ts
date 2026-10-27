@@ -66,8 +66,16 @@ describe("reviewRequestOf", () => {
       title: "New article",
       body: "Read our new article.",
       link: "https://blog.acme.dev/cookieless",
+      locale: { language: "en", market: "US" },
     });
     expect(reviewRequestOf(evalCase, good)).not.toHaveProperty("link");
+  });
+
+  it("sends the case's language and market, US English by default", () => {
+    expect(reviewRequestOf(evalCase, good).locale).toEqual({ language: "en", market: "US" });
+    const german = parseReviewerEvalCase({ ...json, locale: "de-DE" });
+    if (!german.ok) throw new Error(german.error);
+    expect(reviewRequestOf(german.value, good).locale).toEqual({ language: "de", market: "DE" });
   });
 });
 
@@ -148,7 +156,7 @@ describe("parseReviewerEvalCase", () => {
 });
 
 describe("the recorded reviewer cases", () => {
-  it("parse, and the offline reviewer agrees with every label", async () => {
+  it("parse, and the offline reviewer agrees with every label the rule checks can judge", async () => {
     const dir = join(import.meta.dirname, "../../../../evals/review/cases");
     const reviewer = new TemplateReviewer();
     const files = (await readdir(dir)).filter((file) => file.endsWith(".json"));
@@ -158,7 +166,7 @@ describe("the recorded reviewer cases", () => {
       if (!recorded.ok) throw new Error(`${file}: ${recorded.error}`);
       const labels = new Set(recorded.value.drafts.map((d) => d.expected));
       expect(labels).toEqual(new Set(["pass", "needs_changes"]));
-      for (const draft of recorded.value.drafts) {
+      for (const draft of recorded.value.drafts.filter((d) => !d.modelOnly)) {
         const result = await reviewer.review(reviewRequestOf(recorded.value, draft));
         const score = scoreReview(recorded.value, draft, result);
         expect({ name: score.name, passed: score.passed }).toEqual({

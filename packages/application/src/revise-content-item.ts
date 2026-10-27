@@ -26,6 +26,9 @@ export class ReviseContentItem {
     /** Omitted for social posts, whose title is their planned angle. */
     title?: string;
     body: string;
+    /** Blog articles only. */
+    slug?: string;
+    excerpt?: string;
   }): Promise<Result<ContentItem, UseCaseError>> {
     const owned = await loadOwnedItem(this.deps, input.workspace, input.itemId);
     if (!owned.ok) return owned;
@@ -37,6 +40,8 @@ export class ReviseContentItem {
           type: "edit",
           body: input.body,
           ...(input.title === undefined ? {} : { title: input.title }),
+          ...(input.slug === undefined ? {} : { slug: input.slug }),
+          ...(input.excerpt === undefined ? {} : { excerpt: input.excerpt }),
         },
         { now },
       ),

@@ -148,6 +148,13 @@ export function describeProductRepositoryContract(
       expect(await repo.listWithAutopilot()).toEqual([on[1], on[0]]);
       expect((await repo.findById(prod(1)))?.autopilotSince).toEqual(since);
     });
+
+    it("keeps the language and market the product writes for", async () => {
+      const repo = await make();
+      const product = { ...aProduct({ id: prod(1) }), locale: { language: "pt", market: "BR" } };
+      await repo.save(product);
+      expect((await repo.findById(prod(1)))?.locale).toEqual({ language: "pt", market: "BR" });
+    });
   });
 }
 
@@ -252,6 +259,18 @@ export function describeContentItemRepositoryContract(
       const item = withAgentReview(aContentItem({ id: contentItemId("item_reviewed") }), review);
       await repo.save(item);
       expect(await repo.findById(item.id)).toEqual(item);
+    });
+
+    it("keeps an article's URL slug and excerpt, and no metadata for items without it", async () => {
+      const repo = await make();
+      const article = {
+        ...aContentItem({ id: contentItemId("item_seo") }),
+        seo: { slug: "cookieless-analytics", excerpt: "Five numbers a week, no cookies." },
+      };
+      const plain = aContentItem({ id: contentItemId("item_plain") });
+      await Promise.all([repo.save(article), repo.save(plain)]);
+      expect((await repo.findById(article.id))?.seo).toEqual(article.seo);
+      expect((await repo.findById(plain.id))?.seo).toBeNull();
     });
 
     it("lists only the items in the given status", async () => {

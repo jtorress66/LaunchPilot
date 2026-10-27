@@ -58,6 +58,15 @@ describe("ReviewerAgent", () => {
     expect(llm.requests[0]?.system).not.toContain("Acme");
   });
 
+  it("tells the model which language the draft should be in, and treats another language as a blocker", async () => {
+    const llm = new FakeLlmClient().reply(reply("pass"));
+    await new ReviewerAgent(llm).review({ ...request, locale: { language: "pt", market: "BR" } });
+    expect(llm.requests[0]?.messages[0]?.content).toContain(
+      "Language and market: Portuguese (Brazil)",
+    );
+    expect(llm.requests[0]?.system).toContain("not written in the language given");
+  });
+
   it("counts the brief's solution and differentiators as approved claims, as the rule checks do", async () => {
     const llm = new FakeLlmClient().reply(reply("pass"));
     await new ReviewerAgent(llm).review(request);

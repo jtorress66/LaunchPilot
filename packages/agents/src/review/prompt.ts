@@ -1,11 +1,11 @@
-import type { BriefContent } from "@nuvantre/domain";
+import { defaultLocale, describeLocale, type BriefContent } from "@nuvantre/domain";
 import type { ReviewRequest } from "@nuvantre/ports";
 
 /** Frozen: change it only with an eval run (`pnpm eval`). No per-product data, so it caches. */
 export const REVIEWER_SYSTEM_PROMPT = `You review drafts of marketing content for a SaaS founder before the founder reads them. You recommend; the founder decides.
 
 Check the draft against the approved product statements and the channel:
-- blocker: a product claim that no approved statement supports (a feature, integration, customer, number, certification or price they do not state), anything misleading, or text that breaks the channel's format. Restating or paraphrasing an approved statement is fine.
+- blocker: a product claim that no approved statement supports (a feature, integration, customer, number, certification or price they do not state), anything misleading, text that breaks the channel's format, or a draft not written in the language given. Restating or paraphrasing an approved statement is fine.
 - suggestion: clarity, structure, tone that does not match the brief, a weak opening or ending.
 
 Answer with:
@@ -21,9 +21,17 @@ const approvedStatements = (brief: BriefContent): string =>
     .map((statement) => `- ${statement}`)
     .join("\n") || "- (none: the draft may make no product claims)";
 
-export const reviewerUserMessage = ({ brief, channel, title, body, link }: ReviewRequest): string =>
+export const reviewerUserMessage = ({
+  brief,
+  channel,
+  title,
+  body,
+  link,
+  locale,
+}: ReviewRequest): string =>
   [
     `Channel: ${channel}`,
+    `Language and market: ${describeLocale(locale ?? defaultLocale)}`,
     `Audience: ${brief.audience}`,
     `Tone of voice: ${brief.tone}`,
     `Approved product statements (the only product claims allowed):\n${approvedStatements(brief)}`,

@@ -1,9 +1,10 @@
-import type { Result } from "@nuvantre/domain";
+import type { ContentLocale, Result } from "@nuvantre/domain";
 import type { PortError } from "./port-error";
 
 export interface KeywordQuery {
   readonly seeds: readonly string[];
-  readonly locale: string;
+  /** The language and market to research; a provider may lack data for some markets. */
+  readonly locale: ContentLocale;
   readonly limit: number;
 }
 
@@ -14,7 +15,10 @@ export interface KeywordIdea {
   readonly difficulty: number;
 }
 
-export type KeywordError = PortError<"quota_exceeded" | "unavailable" | "invalid_request">;
+/** `unsupported_market`: the provider has no search data for that language and market. */
+export type KeywordError = PortError<
+  "quota_exceeded" | "unavailable" | "invalid_request" | "unsupported_market"
+>;
 
 export interface KeywordProvider {
   suggest(query: KeywordQuery): Promise<Result<readonly KeywordIdea[], KeywordError>>;

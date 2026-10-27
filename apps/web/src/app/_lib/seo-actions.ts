@@ -1,11 +1,12 @@
 "use server";
 
-import { productId, taskId } from "@nuvantre/domain";
+import { describeLocale, productId, taskId } from "@nuvantre/domain";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getAppContainer } from "../../container";
 import {
   blogConnectionForm,
+  localeForm,
   parseForm,
   seedKeywordsForm,
   type FieldErrors,
@@ -17,6 +18,8 @@ import { idParam } from "./params";
 export interface SeoActionState {
   readonly errors?: FieldErrors;
   readonly connected?: string;
+  /** Confirmation after the language and market are saved. */
+  readonly saved?: string;
 }
 
 const seoPath = (id: string) => `/app/products/${id}/seo`;
@@ -56,6 +59,24 @@ export async function planSeoAction(
   if (!result.ok) return formError(keywordFailureMessage(result.error));
   revalidatePath(seoPath(id));
   return {};
+}
+
+export async function setLocaleAction(
+  id: string,
+  _state: SeoActionState,
+  data: FormData,
+): Promise<SeoActionState> {
+  const { workspace } = await requireUser();
+  const form = parseForm(localeForm, data);
+  if (!form.ok) return { errors: form.error };
+  const result = await getAppContainer().setProductLocale.execute({
+    workspace,
+    productId: productId(idParam(id)),
+    locale: form.value.locale,
+  });
+  if (!result.ok) return formError(result.error.message);
+  revalidatePath(seoPath(id));
+  return { saved: `Articles and posts are now written in ${describeLocale(result.value.locale)}.` };
 }
 
 export async function draftArticleAction(id: string): Promise<SeoActionState> {

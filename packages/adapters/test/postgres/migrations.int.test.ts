@@ -45,6 +45,7 @@ describe("migrations", () => {
           "0005_launch",
           "0006_analytics",
           "0007_orchestration",
+          "0008_seo_polish",
         ],
       },
     });
@@ -69,6 +70,27 @@ describe("migrations", () => {
     ]);
   });
 
+  it("gives products created before languages US English, and items no search metadata", async () => {
+    const columns = await sql<{
+      table_name: string;
+      column_name: string;
+      is_nullable: string;
+      column_default: string | null;
+    }>`
+      SELECT table_name, column_name, is_nullable, column_default FROM information_schema.columns
+      WHERE (table_name, column_name) IN (('products', 'locale'), ('content_items', 'seo'))
+      ORDER BY table_name`.execute(db);
+    expect(columns.rows).toEqual([
+      { table_name: "content_items", column_name: "seo", is_nullable: "YES", column_default: null },
+      {
+        table_name: "products",
+        column_name: "locale",
+        is_nullable: "NO",
+        column_default: "'en-US'::text",
+      },
+    ]);
+  });
+
   it("does nothing when run again", async () => {
     expect(await migrateToLatest(db)).toEqual({ ok: true, value: { applied: [] } });
   });
@@ -78,6 +100,7 @@ describe("migrations", () => {
       ok: true,
       value: {
         applied: [
+          "0008_seo_polish",
           "0007_orchestration",
           "0006_analytics",
           "0005_launch",
