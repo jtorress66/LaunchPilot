@@ -9,6 +9,7 @@ import {
   type Result,
   type Task,
   type Workspace,
+  type BlogPlatform,
 } from "@nuvantre/domain";
 import type {
   BriefRepository,
@@ -26,7 +27,11 @@ export interface SeoOverview {
   readonly product: Product;
   readonly briefApproved: boolean;
   /** Never includes the encrypted secret. */
-  readonly connection: { readonly siteName: string; readonly siteUrl: string } | null;
+  readonly connection: {
+    readonly platform: BlogPlatform;
+    readonly siteName: string;
+    readonly siteUrl: string;
+  } | null;
   readonly campaigns: readonly {
     readonly campaign: Campaign;
     readonly tasks: readonly { readonly task: Task; readonly item: ContentItem | undefined }[];
@@ -78,7 +83,11 @@ export class GetSeoOverview {
       product: product.value,
       briefApproved: brief?.status === "approved",
       connection: connection
-        ? { siteName: connection.siteName, siteUrl: connection.siteUrl }
+        ? {
+            platform: connection.provider,
+            siteName: connection.siteName,
+            siteUrl: connection.siteUrl,
+          }
         : null,
       campaigns: plans,
     });

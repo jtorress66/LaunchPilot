@@ -1,3 +1,4 @@
+import type { BlogCredentials } from "@nuvantre/ports";
 import {
   contentItemId,
   productId,
@@ -25,7 +26,12 @@ import {
 } from "../src";
 import { makeWorld, signedUp, type World } from "./world";
 
-const BLOG = { siteUrl: "https://blog.acme.dev/", username: "admin", secret: "abcd efgh ijkl" };
+const BLOG = {
+  platform: "wordpress" as const,
+  siteUrl: "https://blog.acme.dev/",
+  settings: { username: "admin" },
+  secret: "abcd efgh ijkl",
+};
 
 const ideas = [
   { keyword: "cookieless analytics", monthlySearches: 900, difficulty: 14 },
@@ -129,7 +135,7 @@ const inPortuguese = async (s: Setup) => {
   return result.value;
 };
 
-const connect = (s: Setup, credentials = BLOG) =>
+const connect = (s: Setup, credentials: BlogCredentials = BLOG) =>
   new ConnectBlog(s.world).execute({
     workspace: s.workspace,
     productId: s.product.id,
@@ -142,7 +148,7 @@ describe("ConnectBlog", () => {
     const result = await connect(s);
     expect(result).toMatchObject({
       ok: true,
-      value: { siteName: "Acme Blog", siteUrl: "https://blog.acme.dev/", username: "admin" },
+      value: { platform: "wordpress", siteName: "Acme Blog", siteUrl: "https://blog.acme.dev/" },
     });
     const stored = await s.world.connections.findByProductAndChannel(s.product.id, "blog");
     expect(stored?.encryptedSecret).not.toContain(BLOG.secret);
@@ -157,6 +163,41 @@ describe("ConnectBlog", () => {
     await connect(s, other);
     const stored = await s.world.connections.findByProductAndChannel(s.product.id, "blog");
     expect(stored?.siteName).toBe("Acme News");
+  });
+
+  it("connects a Shopify store and keeps the blog the platform looked up", async () => {
+    const s = await setUp();
+    const shopify = {
+      platform: "shopify" as const,
+      siteUrl: "https://acme.myshopify.com/",
+      settings: {},
+      secret: "shpat_example",
+    };
+    s.world.blogVerifier.accept(shopify, "Acme Store", {
+      blogId: "gid://shopify/Blog/1",
+      blogHandle: "news",
+    });
+    expect(await connect(s, shopify)).toMatchObject({ ok: true, value: { platform: "shopify" } });
+    const stored = await s.world.connections.findByProductAndChannel(s.product.id, "blog");
+    expect(stored).toMatchObject({
+      provider: "shopify",
+      settings: { blogId: "gid://shopify/Blog/1", blogHandle: "news" },
+    });
+  });
+
+  it("replaces a WordPress connection when the founder switches to Ghost", async () => {
+    const s = await setUp();
+    await connect(s);
+    const ghost = {
+      platform: "ghost" as const,
+      siteUrl: "https://acme.ghost.io/",
+      settings: {},
+      secret: "6489a1:5f3c",
+    };
+    s.world.blogVerifier.accept(ghost, "Acme on Ghost");
+    await connect(s, ghost);
+    const stored = await s.world.connections.findByProductAndChannel(s.product.id, "blog");
+    expect(stored).toMatchObject({ provider: "ghost", siteName: "Acme on Ghost", settings: {} });
   });
 
   it("stores nothing when WordPress rejects the password", async () => {
@@ -524,7 +565,11 @@ describe("GetSeoOverview and GetContentItem", () => {
     expect(result.value).toMatchObject({
       product: { id: s.product.id },
       briefApproved: true,
-      connection: { siteName: "Acme Blog", siteUrl: "https://blog.acme.dev/" },
+      connection: {
+        platform: "wordpress",
+        siteName: "Acme Blog",
+        siteUrl: "https://blog.acme.dev/",
+      },
     });
     expect(result.value.connection).not.toHaveProperty("encryptedSecret");
     const [campaign] = result.value.campaigns;
