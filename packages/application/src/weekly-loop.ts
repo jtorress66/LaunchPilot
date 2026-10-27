@@ -59,6 +59,7 @@ import { remainingContentAllowance } from "./content-allowance";
 import type { DrafterRegistry } from "./drafter-registry";
 import type { UseCaseError } from "./errors";
 import { ensureActive, loadActiveProduct } from "./active-product";
+import { founderOf, recordAudit, type AuditDeps } from "./audit";
 import { loadOwnedProduct } from "./owned-product";
 
 const KEYWORD_IDEAS = 50;
@@ -374,7 +375,7 @@ export class SetAutopilot {
       readonly products: ProductRepository;
       readonly subscriptions: SubscriptionRepository;
       readonly clock: Clock;
-    },
+    } & AuditDeps,
   ) {}
 
   async execute(input: {
@@ -392,6 +393,12 @@ export class SetAutopilot {
       ? enableAutopilot(product.value, this.deps.clock.now())
       : disableAutopilot(product.value);
     await this.deps.products.save(changed);
+    await recordAudit(this.deps, {
+      workspaceId: input.workspace.id,
+      actor: founderOf(input.workspace),
+      action: input.enabled ? "autopilot_enabled" : "autopilot_disabled",
+      subject: { kind: "product", id: changed.id, label: changed.name },
+    });
     return ok(changed);
   }
 }

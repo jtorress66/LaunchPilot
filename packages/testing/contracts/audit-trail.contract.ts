@@ -50,7 +50,7 @@ export function describeAuditTrailContract(
       const trail = await make();
       const byAgent = entry("aud_1", 1, {
         actor: { kind: "agent", agent: "reviewer" },
-        action: "content_rejected",
+        action: "post_scheduled",
       });
       const bySystem = entry("aud_2", 2, {
         actor: { kind: "system" },

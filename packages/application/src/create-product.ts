@@ -13,10 +13,11 @@ import type {
   ProductRepository,
   SubscriptionRepository,
 } from "@nuvantre/ports";
+import { founderOf, recordAudit, type AuditDeps } from "./audit";
 import { currentPlan } from "./current-plan";
 import type { UseCaseError } from "./errors";
 
-export interface CreateProductDeps {
+export interface CreateProductDeps extends AuditDeps {
   readonly products: ProductRepository;
   readonly subscriptions: SubscriptionRepository;
   readonly ids: IdGenerator;
@@ -45,7 +46,14 @@ export class CreateProduct {
       url: input.url,
       now: this.deps.clock.now(),
     });
-    if (product.ok) await this.deps.products.save(product.value);
+    if (!product.ok) return product;
+    await this.deps.products.save(product.value);
+    await recordAudit(this.deps, {
+      workspaceId: input.workspace.id,
+      actor: founderOf(input.workspace),
+      action: "product_created",
+      subject: { kind: "product", id: product.value.id, label: product.value.name },
+    });
     return product;
   }
 }

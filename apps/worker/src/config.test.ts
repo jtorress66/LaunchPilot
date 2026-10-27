@@ -3,6 +3,7 @@ import {
   parseDatabaseConfig,
   parseLoopConfig,
   parseBlogSmokeConfig,
+  parseMonitoringConfig,
   parsePublisherConfig,
   parseReportsConfig,
   parseStripeSetupConfig,
@@ -276,6 +277,38 @@ describe("parseBlogSmokeConfig", () => {
     expect(parseBlogSmokeConfig({ WEBFLOW_API_TOKEN: "wf_x" })).toEqual({
       ok: false,
       error: "Webflow smoke check needs WEBFLOW_SITE_URL, WEBFLOW_COLLECTION_ID",
+    });
+  });
+});
+
+describe("parseMonitoringConfig", () => {
+  it("reports to Sentry when SENTRY_DSN is set, tagged with the environment", () => {
+    expect(
+      parseMonitoringConfig({
+        SENTRY_DSN: "https://key@o1.ingest.sentry.io/2",
+        APP_ENV: "production",
+        APP_VERSION: "1.2.3",
+      }),
+    ).toEqual({
+      ok: true,
+      value: {
+        sentry: {
+          dsn: "https://key@o1.ingest.sentry.io/2",
+          environment: "production",
+          release: "1.2.3",
+        },
+      },
+    });
+  });
+
+  it("logs errors as JSON lines when SENTRY_DSN is not set", () => {
+    expect(parseMonitoringConfig({})).toEqual({ ok: true, value: { sentry: null } });
+  });
+
+  it("refuses a DSN that is not a URL", () => {
+    expect(parseMonitoringConfig({ SENTRY_DSN: "not a dsn" })).toEqual({
+      ok: false,
+      error: "SENTRY_DSN must be a Sentry DSN URL",
     });
   });
 });

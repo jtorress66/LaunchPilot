@@ -7,6 +7,7 @@ import {
   type Workspace,
 } from "@nuvantre/domain";
 import type { Clock, ContentItemRepository, ProductRepository } from "@nuvantre/ports";
+import { recordAudit, type AuditDeps } from "./audit";
 import type { UseCaseError } from "./errors";
 import { loadOwnedItem } from "./owned-content";
 
@@ -17,7 +18,7 @@ export class ApproveContentItem {
       readonly contentItems: ContentItemRepository;
       readonly products: ProductRepository;
       readonly clock: Clock;
-    },
+    } & AuditDeps,
   ) {}
 
   async execute(input: {
@@ -32,7 +33,14 @@ export class ApproveContentItem {
       { type: "approve", actor: input.actor },
       { now: this.deps.clock.now() },
     );
-    if (approved.ok) await this.deps.contentItems.save(approved.value);
+    if (!approved.ok) return approved;
+    await this.deps.contentItems.save(approved.value);
+    await recordAudit(this.deps, {
+      workspaceId: input.workspace.id,
+      actor: input.actor,
+      action: "content_approved",
+      subject: { kind: "content", id: approved.value.id, label: approved.value.title },
+    });
     return approved;
   }
 }

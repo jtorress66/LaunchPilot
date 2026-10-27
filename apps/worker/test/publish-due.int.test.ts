@@ -3,6 +3,9 @@ import {
   createPostgresRepositories,
   migrateDown,
   migrateToLatest,
+  PostgresAuditTrail,
+  PostgresJobLock,
+  UuidIdGenerator,
 } from "@nuvantre/adapters";
 import { PublishDueContent, PublisherRegistry } from "@nuvantre/application";
 import { contentItemId } from "@nuvantre/domain";
@@ -13,6 +16,7 @@ import {
   aTask,
   aUser,
   aWorkspace,
+  FakeErrorReporter,
   FakePublisherProvider,
   FixedClock,
 } from "@nuvantre/testing";
@@ -22,6 +26,26 @@ import { createPublishDueJob } from "../src/jobs/publish-due-job";
 const db = createDatabase(inject("databaseUrl"));
 const repos = createPostgresRepositories(db);
 const clock = new FixedClock(new Date("2026-06-01T12:00:00.000Z"));
+const second = createDatabase(inject("databaseUrl"));
+
+/** One worker process: its own connection pool, lock and publisher. */
+const worker = (pool: typeof db, x: FakePublisherProvider, lines: string[]) =>
+  createPublishDueJob({
+    publishDue: new PublishDueContent({
+      ...createPostgresRepositories(pool),
+      publishers: new PublisherRegistry([x]),
+      clock,
+      audit: new PostgresAuditTrail(pool),
+      errors: new FakeErrorReporter(),
+      ids: new UuidIdGenerator(),
+    }),
+    runtime: {
+      log: (line) => lines.push(line),
+      errors: new FakeErrorReporter(),
+      lock: new PostgresJobLock(pool),
+      clock,
+    },
+  });
 
 beforeAll(async () => {
   // A clean schema, so only this test's scheduled items are due.
@@ -37,7 +61,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await db.destroy();
+  await Promise.all([db.destroy(), second.destroy()]);
 });
 
 describe("publish-due job on Postgres", () => {
@@ -55,17 +79,7 @@ describe("publish-due job on Postgres", () => {
     const x = new FakePublisherProvider("x", clock).connect(scheduled.productId);
     x.publisher.failNext({ code: "unavailable", message: "Busy", retryable: true });
     const lines: string[] = [];
-    const job = createPublishDueJob({
-      publishDue: new PublishDueContent({
-        contentItems: repos.contentItems,
-        products: repos.products,
-        subscriptions: repos.subscriptions,
-        tasks: repos.tasks,
-        publishers: new PublisherRegistry([x]),
-        clock,
-      }),
-      log: (line) => lines.push(line),
-    });
+    const job = worker(db, x, lines);
 
     await job.run();
 
@@ -97,5 +111,21 @@ describe("publish-due job on Postgres", () => {
     expect((await repos.contentItems.findById(contentItemId("item_flaky")))?.status).toBe(
       "published",
     );
+  });
+
+  it("publishes each due post once when two workers run the job at the same moment", async () => {
+    const scheduled = aContentItem({ channel: "x", status: "scheduled" });
+    const ids = ["item_race_1", "item_race_2", "item_race_3"];
+    for (const id of ids) {
+      await repos.contentItems.save({
+        ...scheduled,
+        id: contentItemId(id),
+        publishAt: new Date(clock.now().getTime() - 60_000),
+      });
+    }
+    const x = new FakePublisherProvider("x", clock).connect(scheduled.productId);
+    await Promise.all([worker(db, x, []).run(), worker(second, x, []).run()]);
+    const sent = x.publisher.published.map((item) => item.id).filter((id) => ids.includes(id));
+    expect(sent.sort()).toEqual(ids);
   });
 });

@@ -356,3 +356,33 @@ export const parseBlogSmokeConfig = (
   }
   return ok(checks);
 };
+
+export interface MonitoringConfig {
+  /** Null: errors are logged as JSON lines only. */
+  readonly sentry: {
+    readonly dsn: string;
+    readonly environment: string;
+    readonly release: string;
+  } | null;
+}
+
+const monitoringSchema = z.object({
+  SENTRY_DSN: z.string().url("SENTRY_DSN must be a Sentry DSN URL").optional(),
+  APP_ENV: z.enum(["development", "test", "production"]).default("production"),
+  APP_VERSION: z.string().min(1).default("0.1.0"),
+});
+
+/** Where unexpected errors go: Sentry when SENTRY_DSN is set, else the JSON log. */
+export const parseMonitoringConfig = (
+  env: Readonly<Record<string, string | undefined>>,
+): Result<MonitoringConfig, string> => {
+  const parsed = monitoringSchema.safeParse(env);
+  if (!parsed.success) return err(parsed.error.issues[0]?.message ?? "Invalid configuration");
+  const c = parsed.data;
+  return ok({
+    sentry:
+      c.SENTRY_DSN === undefined
+        ? null
+        : { dsn: c.SENTRY_DSN, environment: c.APP_ENV, release: c.APP_VERSION },
+  });
+};

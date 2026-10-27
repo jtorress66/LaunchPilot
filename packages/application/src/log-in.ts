@@ -5,11 +5,14 @@ import type {
   SessionRepository,
   TokenGenerator,
   UserRepository,
+  WorkspaceRepository,
 } from "@nuvantre/ports";
+import { recordAudit, type AuditDeps } from "./audit";
 import { failure, type UseCaseError } from "./errors";
 
-export interface LogInDeps {
+export interface LogInDeps extends AuditDeps {
   readonly users: UserRepository;
+  readonly workspaces: WorkspaceRepository;
   readonly sessions: SessionRepository;
   readonly hasher: PasswordHasher;
   readonly tokens: TokenGenerator;
@@ -41,6 +44,15 @@ export class LogIn {
       now: this.deps.clock.now(),
     });
     await this.deps.sessions.save(session);
+    const workspace = await this.deps.workspaces.findByOwner(user.id);
+    if (workspace) {
+      await recordAudit(this.deps, {
+        workspaceId: workspace.id,
+        actor: { kind: "founder", userId: user.id },
+        action: "signed_in",
+        subject: { kind: "account", id: user.id, label: user.email },
+      });
+    }
     return ok(session);
   }
 }

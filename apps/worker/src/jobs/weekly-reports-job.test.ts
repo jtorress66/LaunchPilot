@@ -1,9 +1,17 @@
+import { FakeErrorReporter, FixedClock, InMemoryJobLock } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { createWeeklyReportsJob } from "./weekly-reports-job";
 
+const runtime = (lines: string[]) => ({
+  log: (l: string) => lines.push(l),
+  errors: new FakeErrorReporter(),
+  lock: new InMemoryJobLock(),
+  clock: new FixedClock(new Date("2026-10-28T09:00:00.000Z")),
+});
+
 const setup = (run: () => Promise<{ built: number; skipped: number }>) => {
   const lines: string[] = [];
-  const job = createWeeklyReportsJob({ buildDue: { execute: run }, log: (l) => lines.push(l) });
+  const job = createWeeklyReportsJob({ buildDue: { execute: run }, runtime: runtime(lines) });
   return { job, lines };
 };
 

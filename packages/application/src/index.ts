@@ -39,3 +39,5 @@ export * from "./drafter-registry";
 export * from "./weekly-loop";
 export * from "./set-product-locale";
 export { remainingContentAllowance } from "./content-allowance";
+export * from "./audit";
+export * from "./rate-limits";

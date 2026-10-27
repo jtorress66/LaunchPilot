@@ -15,6 +15,7 @@ import type {
   TaskRepository,
 } from "@nuvantre/ports";
 import { ensureActive } from "./active-product";
+import { founderOf, recordAudit, type AuditDeps } from "./audit";
 import type { UseCaseError } from "./errors";
 import { completeTaskOf } from "./complete-task";
 import { loadOwnedItem } from "./owned-content";
@@ -34,7 +35,7 @@ export class PublishContentItem {
       readonly tasks: TaskRepository;
       readonly publishers: PublisherRegistry;
       readonly clock: Clock;
-    },
+    } & AuditDeps,
   ) {}
 
   async execute(input: {
@@ -61,6 +62,12 @@ export class PublishContentItem {
     if (!published.ok) return published;
     await this.deps.contentItems.save(published.value);
     await completeTaskOf(this.deps.tasks, item);
+    await recordAudit(this.deps, {
+      workspaceId: input.workspace.id,
+      actor: founderOf(input.workspace),
+      action: "content_published",
+      subject: { kind: "content", id: item.id, label: item.title },
+    });
     return published;
   }
 }

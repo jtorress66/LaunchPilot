@@ -13,10 +13,11 @@ import type {
   SubscriptionRepository,
 } from "@nuvantre/ports";
 import { ensureActive } from "./active-product";
+import { founderOf, recordAudit, type AuditDeps } from "./audit";
 import type { UseCaseError } from "./errors";
 import { loadOwnedItem } from "./owned-content";
 
-interface Deps {
+interface Deps extends AuditDeps {
   readonly contentItems: ContentItemRepository;
   readonly products: ProductRepository;
   readonly subscriptions: SubscriptionRepository;
@@ -37,7 +38,16 @@ const apply = async (
     if (!active.ok) return active;
   }
   const next = transition(owned.value.item, event, { now: deps.clock.now() });
-  if (next.ok) await deps.contentItems.save(next.value);
+  if (!next.ok) return next;
+  await deps.contentItems.save(next.value);
+  if (event.type === "schedule") {
+    await recordAudit(deps, {
+      workspaceId: workspace.id,
+      actor: founderOf(workspace),
+      action: "post_scheduled",
+      subject: { kind: "content", id: next.value.id, label: next.value.title },
+    });
+  }
   return next;
 };
 

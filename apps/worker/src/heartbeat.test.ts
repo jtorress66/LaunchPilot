@@ -32,4 +32,23 @@ describe("worker heartbeat", () => {
       checkedAt: "2026-05-05T05:06:05.000Z",
     });
   });
+
+  it("says when each job last succeeded, so a stuck job shows in the logs", () => {
+    const clock = new FixedClock(new Date("2026-05-05T05:05:05.000Z"));
+    const lines: string[] = [];
+    const heartbeat = createHeartbeat({
+      clock,
+      version: "0.1.0",
+      log: (line) => lines.push(line),
+      jobs: {
+        publish_due: { lastSuccessAt: () => new Date("2026-05-05T05:04:00.000Z") },
+        weekly_reports: { lastSuccessAt: () => null },
+      },
+    });
+    heartbeat.tick();
+    expect(JSON.parse(lines[0] ?? "")).toMatchObject({
+      event: "worker.heartbeat",
+      jobs: { publish_due: "2026-05-05T05:04:00.000Z", weekly_reports: null },
+    });
+  });
 });
