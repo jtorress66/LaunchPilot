@@ -9,6 +9,7 @@ import * as orchestration from "./0007_orchestration";
 import * as seoPolish from "./0008_seo_polish";
 import * as blogPlatforms from "./0009_blog_platforms";
 import * as productSlots from "./0010_product_slots";
+import * as hardening from "./0011_hardening";
 
 /** Ordered list of migrations, bundled with the code (no filesystem lookups at runtime). */
 const migrations: Readonly<Record<string, Migration>> = {
@@ -22,6 +23,7 @@ const migrations: Readonly<Record<string, Migration>> = {
   "0008_seo_polish": seoPolish,
   "0009_blog_platforms": blogPlatforms,
   "0010_product_slots": productSlots,
+  "0011_hardening": hardening,
 };
 
 export const migrationProvider: MigrationProvider = {

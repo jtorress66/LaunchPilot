@@ -64,6 +64,23 @@ export interface ChannelConnectionRow {
   connected_at: Date;
 }
 
+export interface RateLimitRow {
+  key: string;
+  window_start: Date;
+  count: number;
+}
+
+export interface AuditEntryRow {
+  id: string;
+  workspace_id: string;
+  /** jsonb: AuditActor; text on the way in. */
+  actor: string;
+  action: string;
+  /** jsonb: AuditSubject; text on the way in. */
+  subject: string;
+  at: Date;
+}
+
 export interface ContentItemRow {
   id: string;
   product_id: string;
@@ -212,6 +229,8 @@ export interface Database {
   tasks: TaskRow;
   content_items: ContentItemRow;
   channel_connections: ChannelConnectionRow;
+  rate_limits: RateLimitRow;
+  audit_entries: AuditEntryRow;
   social_profiles: SocialProfileRow;
   directories: DirectoryRow;
   launch_kits: LaunchKitRow;

@@ -49,11 +49,13 @@ describe("migrations", () => {
           "0008_seo_polish",
           "0009_blog_platforms",
           "0010_product_slots",
+          "0011_hardening",
         ],
       },
     });
     expect(await tables()).toEqual([
       "analytics_connections",
+      "audit_entries",
       "autopilot_runs",
       "briefs",
       "campaigns",
@@ -62,6 +64,7 @@ describe("migrations", () => {
       "directories",
       "launch_kits",
       "products",
+      "rate_limits",
       "sessions",
       "social_profiles",
       "submissions",
@@ -103,6 +106,7 @@ describe("migrations", () => {
       ok: true,
       value: {
         applied: [
+          "0011_hardening",
           "0010_product_slots",
           "0009_blog_platforms",
           "0008_seo_polish",

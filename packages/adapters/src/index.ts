@@ -66,3 +66,7 @@ export { Ga4Source } from "./google/ga4-source";
 export type { PlausibleNetwork } from "./plausible/stats-api";
 export { PlausibleSource } from "./plausible/plausible-source";
 export { PlausibleStatsVerifier } from "./plausible/plausible-stats-verifier";
+export { scrubSecrets } from "./monitoring/scrub-secrets";
+export { JsonLogErrorReporter } from "./monitoring/json-log-error-reporter";
+export { SentryErrorReporter } from "./monitoring/sentry-error-reporter";
+export { createSentryErrorReporter } from "./monitoring/sentry";

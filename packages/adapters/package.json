@@ -13,6 +13,7 @@
     "@anthropic-ai/sdk": "0.133.0",
     "@nuvantre/domain": "workspace:*",
     "@nuvantre/ports": "workspace:*",
+    "@sentry/node": "^10.77.1",
     "kysely": "0.28.17",
     "marked": "18.0.14",
     "node-html-parser": "9.0.4",
