@@ -1,5 +1,6 @@
-// `pnpm test:e2e`: disposable Postgres and a real WordPress blog (Testcontainers) + migrations
-// + a local fixture website, DataForSEO, Zernio and Google/Plausible stubs + Playwright with local billing and offline AI.
+// `pnpm test:e2e`: disposable Postgres and real WordPress and Ghost blogs (Testcontainers) +
+// migrations + a local fixture website, DataForSEO, Zernio, Google/Plausible and
+// Shopify/Webflow/Wix stubs + Playwright with local billing and offline AI.
 // Extra arguments are passed to Playwright, e.g. `pnpm test:e2e --project=desktop`.
 import { randomBytes } from "node:crypto";
 import { spawn } from "node:child_process";
@@ -8,6 +9,8 @@ import { createServer } from "node:http";
 import { join } from "node:path";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { startAnalyticsStub } from "./e2e-analytics.mjs";
+import { startBlogsStub } from "./e2e-blogs.mjs";
+import { startGhost } from "./e2e-ghost.mjs";
 import { startZernioStub } from "./e2e-zernio.mjs";
 import { startWordPress } from "./e2e-wordpress.mjs";
 
@@ -71,9 +74,11 @@ const run = (command, args, env) =>
 const site = await startFixtureSite();
 const zernio = await startZernioStub();
 const analytics = await startAnalyticsStub();
-const [container, wordpress] = await Promise.all([
+const blogs = await startBlogsStub();
+const [container, wordpress, ghost] = await Promise.all([
   new PostgreSqlContainer("postgres:16-alpine").start(),
   startWordPress(),
+  startGhost(),
 ]);
 let status = 1;
 try {
@@ -99,14 +104,17 @@ try {
     ...wordpress.env,
     ...zernio.env,
     ...analytics.env,
+    ...blogs.env,
+    ...ghost.env,
   };
   status = await run("pnpm", ["--silent", "db:migrate"], env);
   if (status === 0)
     status = await run("pnpm", ["exec", "playwright", "test", ...process.argv.slice(2)], env);
 } finally {
-  await Promise.all([container.stop(), wordpress.stop()]);
+  await Promise.all([container.stop(), wordpress.stop(), ghost.stop()]);
   site.close();
   await zernio.stop();
   await analytics.stop();
+  await blogs.stop();
 }
 process.exit(status);

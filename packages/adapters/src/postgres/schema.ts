@@ -56,7 +56,8 @@ export interface ChannelConnectionRow {
   provider: string;
   site_url: string;
   site_name: string;
-  username: string;
+  /** jsonb: the platform's non-secret settings, `{ [key]: string }`; text on the way in. */
+  settings: string;
   encrypted_secret: string;
   connected_at: Date;
 }

@@ -1,7 +1,8 @@
-import { sql, type Kysely } from "kysely";
+import { Migrator, sql, type Kysely } from "kysely";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { inject } from "vitest";
 import { createDatabase, migrateDown, migrateToLatest, type Database } from "../../src/postgres";
+import { migrationProvider } from "../../src/postgres/migrations";
 
 /** Runs against its own scratch database so it never disturbs the shared, migrated one. */
 const admin = createDatabase(inject("databaseUrl"));
@@ -46,6 +47,7 @@ describe("migrations", () => {
           "0006_analytics",
           "0007_orchestration",
           "0008_seo_polish",
+          "0009_blog_platforms",
         ],
       },
     });
@@ -100,6 +102,7 @@ describe("migrations", () => {
       ok: true,
       value: {
         applied: [
+          "0009_blog_platforms",
           "0008_seo_polish",
           "0007_orchestration",
           "0006_analytics",
@@ -112,6 +115,35 @@ describe("migrations", () => {
       },
     });
     expect(await tables()).toEqual([]);
+  });
+
+  it("moves a WordPress username into the connection's settings and back", async () => {
+    const blogs = await scratchDatabase("migrations_blogs");
+    const until = (name: string) =>
+      new Migrator({ db: blogs, provider: migrationProvider }).migrateTo(name);
+    await until("0008_seo_polish");
+    await sql`INSERT INTO users (id, email, password_hash, created_at)
+      VALUES ('usr_1', 'a@acme.dev', 'x', now())`.execute(blogs);
+    await sql`INSERT INTO workspaces (id, owner_id, name, created_at)
+      VALUES ('ws_1', 'usr_1', 'Acme', now())`.execute(blogs);
+    await sql`INSERT INTO products (id, workspace_id, name, url, created_at) VALUES ('prod_1', 'ws_1', 'Acme', 'https://acme.dev/', now())`.execute(
+      blogs,
+    );
+    await sql`INSERT INTO channel_connections (id, product_id, channel, provider, site_url, site_name, username, encrypted_secret, connected_at)
+      VALUES ('conn_1', 'prod_1', 'blog', 'wordpress', 'https://blog.acme.dev/', 'Acme', 'admin', 'v1:x', now())`.execute(
+      blogs,
+    );
+
+    await until("0009_blog_platforms");
+    const migrated = await sql<{ provider: string; settings: unknown }>`
+      SELECT provider, settings FROM channel_connections`.execute(blogs);
+    expect(migrated.rows).toEqual([{ provider: "wordpress", settings: { username: "admin" } }]);
+
+    await until("0008_seo_polish");
+    const reverted = await sql<{ username: string }>`
+      SELECT username FROM channel_connections`.execute(blogs);
+    await blogs.destroy();
+    expect(reverted.rows).toEqual([{ username: "admin" }]);
   });
 
   it("reports a migration that fails as an error result instead of throwing", async () => {

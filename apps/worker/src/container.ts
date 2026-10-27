@@ -25,7 +25,18 @@ import {
 import {
   AesGcmTokenCipher,
   createPostgresRepositories,
-  WordPressPublisherProvider,
+  BlogPublisherProvider,
+  BlogVerifierRegistry,
+  GhostConnectionVerifier,
+  ShopifyConnectionVerifier,
+  WebflowConnectionVerifier,
+  WixConnectionVerifier,
+  WordPressConnectionVerifier,
+  ghostPublisherFactory,
+  shopifyPublisherFactory,
+  webflowPublisherFactory,
+  wixPublisherFactory,
+  wordPressPublisherFactory,
   ZernioPublisherProvider,
   runZernioSmoke,
   assessZernioChange,
@@ -48,7 +59,7 @@ import {
   type GoogleOptions,
   SeedKeywordProvider,
 } from "@nuvantre/adapters";
-import type { Clock, MetricsSource, TokenCipher } from "@nuvantre/ports";
+import type { BlogCredentials, Clock, MetricsSource, TokenCipher } from "@nuvantre/ports";
 import type {
   AnalystConfig,
   DatabaseConfig,
@@ -151,6 +162,25 @@ const zernioOptions = ({ apiKey, baseUrl }: ZernioConfig) => ({
   ...(baseUrl === null ? {} : { baseUrl }),
 });
 
+/** One publisher factory per blog platform, chosen by the product's stored connection. */
+const blogPublishersFor = ({ allowPrivateNetwork, blogs }: PublisherConfig) => {
+  const network = { allowPrivateNetwork, clock: container.clock };
+  const { webflowApiBaseUrl, wixApiBaseUrl } = blogs;
+  return {
+    wordpress: wordPressPublisherFactory(network),
+    ghost: ghostPublisherFactory(network),
+    shopify: shopifyPublisherFactory(network),
+    webflow: webflowPublisherFactory({
+      ...network,
+      ...(webflowApiBaseUrl ? { apiBaseUrl: webflowApiBaseUrl } : {}),
+    }),
+    wix: wixPublisherFactory({
+      ...network,
+      ...(wixApiBaseUrl ? { apiBaseUrl: wixApiBaseUrl } : {}),
+    }),
+  };
+};
+
 /** The scheduled publish job over Postgres, with one publisher provider per channel. */
 export const createPublishDue = (config: PublisherConfig) => {
   const db = createDatabase(config.connectionString);
@@ -158,10 +188,7 @@ export const createPublishDue = (config: PublisherConfig) => {
   const cipher = new AesGcmTokenCipher(config.tokenEncryptionKey);
   const zernio = zernioOptions(config.zernio);
   const publishers = new PublisherRegistry([
-    new WordPressPublisherProvider(repositories.channelConnections, cipher, {
-      allowPrivateNetwork: config.allowPrivateNetwork,
-      clock: container.clock,
-    }),
+    new BlogPublisherProvider(repositories.channelConnections, cipher, blogPublishersFor(config)),
     new ZernioPublisherProvider("x", repositories.socialProfiles, zernio),
     new ZernioPublisherProvider("linkedin", repositories.socialProfiles, zernio),
   ]);
@@ -177,6 +204,18 @@ export const createPublishDue = (config: PublisherConfig) => {
 };
 
 /** The CI smoke check against the real API: read-only, it never posts. */
+/** The read-only connect check against real blog platforms, as founders' keys would be checked. */
+export const runBlogSmoke = (credentials: BlogCredentials) => {
+  const network = { allowPrivateNetwork: false, clock: container.clock };
+  return new BlogVerifierRegistry({
+    wordpress: new WordPressConnectionVerifier(network),
+    ghost: new GhostConnectionVerifier(network),
+    shopify: new ShopifyConnectionVerifier(network),
+    webflow: new WebflowConnectionVerifier(network),
+    wix: new WixConnectionVerifier(network),
+  }).verify(credentials);
+};
+
 export const runSocialSmoke = (config: ZernioConfig) => runZernioSmoke(zernioOptions(config));
 
 /** Zernio changelog entries since `since` that affect the integration, with the reasons. */

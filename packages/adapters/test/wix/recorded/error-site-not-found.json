@@ -1,0 +1,6 @@
+{
+  "message": "Site not found",
+  "details": {
+    "applicationError": { "code": "SITE_NOT_FOUND", "description": "Site not found", "data": {} }
+  }
+}

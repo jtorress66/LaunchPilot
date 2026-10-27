@@ -1,0 +1,50 @@
+{
+  "id": "6487b1d5c2a3e4f5a6b7c8d9",
+  "displayName": "Blog Posts",
+  "singularName": "Blog Post",
+  "slug": "post",
+  "createdOn": "2025-03-14T10:00:00.000Z",
+  "lastUpdated": "2026-09-01T09:30:00.000Z",
+  "fields": [
+    {
+      "id": "f1",
+      "isEditable": true,
+      "isRequired": true,
+      "type": "PlainText",
+      "slug": "name",
+      "displayName": "Name"
+    },
+    {
+      "id": "f2",
+      "isEditable": true,
+      "isRequired": true,
+      "type": "PlainText",
+      "slug": "slug",
+      "displayName": "Slug"
+    },
+    {
+      "id": "f3",
+      "isEditable": true,
+      "isRequired": false,
+      "type": "RichText",
+      "slug": "post-body",
+      "displayName": "Post Body"
+    },
+    {
+      "id": "f4",
+      "isEditable": true,
+      "isRequired": false,
+      "type": "PlainText",
+      "slug": "post-summary",
+      "displayName": "Post Summary"
+    },
+    {
+      "id": "f5",
+      "isEditable": true,
+      "isRequired": false,
+      "type": "Image",
+      "slug": "main-image",
+      "displayName": "Main Image"
+    }
+  ]
+}

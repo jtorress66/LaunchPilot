@@ -2,7 +2,7 @@
 
 Place this file at `docs/BUILD_STEPS.md`. Work on one step at a time. Tick a step only when its gate passes and the Definition of Done in `CLAUDE.md` is met.
 
-**Current step:** 10.5
+**Current step:** 10.6
 
 | # | Step | Scope | Gate (must pass before next step) | Done |
 | --- | --- | --- | --- | --- |
@@ -17,7 +17,7 @@ Place this file at `docs/BUILD_STEPS.md`. Work on one step at a time. Tick a ste
 | 9 | Analytics | Search Console + GA4/Plausible sources, analyst agent, weekly report | Report built correctly from recorded API data | [x] |
 | 10 | Orchestration | Strategist + reviewer agents, weekly loop jobs | Full-loop E2E test passes; evals meet thresholds | [x] |
 | 10.5 | SEO polish and languages | URL slug and excerpt on publish, internal links to the product's published articles, any language per product (articles and posts) | E2E: a published post carries its slug and excerpt and links to an earlier article; a non-English product plans and drafts for its market; SEO and social evals at 100% incl. link and language cases | [x] |
-| 10.6 | More blogs | Ghost, Shopify, Webflow and Wix publishers through `PublisherRegistry`, each with a connect flow | Each passes the publisher contract against recorded API responses; E2E publish for each (stubbed platform) | [ ] |
+| 10.6 | More blogs | Ghost, Shopify, Webflow and Wix publishers through `PublisherRegistry`, each with a connect flow | Each passes the publisher contract against recorded API responses; E2E publish for each (stubbed platform) | [x] |
 | 10.7 | Several products | Product switcher, per-plan product limits revisited, a dashboard across products | E2E: a founder on Growth manages 3 products and switches between them | [ ] |
 | 11 | Hardening for beta | Security review, rate limits, monitoring, eval thresholds, audit log | Beta checklist complete | [ ] |
 | 12 | Agency | Client workspaces, roles, white-label weekly reports | E2E: an agency adds a client and sends a branded report | [ ] |

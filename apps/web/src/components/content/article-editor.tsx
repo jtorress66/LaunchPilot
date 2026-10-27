@@ -121,7 +121,7 @@ export function ArticleEditor({ itemId, title, body, seo, status, justSaved }: A
         </div>
         <p className="text-xs text-slate-500">
           Nothing is published until you approve it. Publishing posts the article to your connected
-          WordPress blog.
+          blog.
         </p>
       </section>
     </div>

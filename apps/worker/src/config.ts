@@ -1,4 +1,5 @@
-import { err, ok, type Result } from "@nuvantre/domain";
+import { blogPlatforms, err, ok, type BlogPlatform, type Result } from "@nuvantre/domain";
+import type { BlogCredentials } from "@nuvantre/ports";
 import { z } from "zod";
 
 export interface DatabaseConfig {
@@ -49,10 +50,15 @@ export interface ZernioConfig {
 export interface PublisherConfig {
   readonly connectionString: string;
   readonly tokenEncryptionKey: string;
-  /** Lets the WordPress publisher reach localhost and LAN blogs; development and test only. */
+  /** Lets the blog publishers reach localhost and LAN blogs; development and test only. */
   readonly allowPrivateNetwork: boolean;
   readonly intervalMs: number;
   readonly zernio: ZernioConfig;
+  /** Development and test only: local stand-ins for the Webflow and Wix APIs. */
+  readonly blogs: {
+    readonly webflowApiBaseUrl: string | null;
+    readonly wixApiBaseUrl: string | null;
+  };
 }
 
 const KEY_MESSAGE =
@@ -79,6 +85,8 @@ const publisherSchema = z.object({
     .default(60_000),
   ZERNIO_API_KEY: zernioKey,
   ZERNIO_BASE_URL: zernioBaseUrl,
+  WEBFLOW_API_BASE_URL: z.string().url("WEBFLOW_API_BASE_URL must be an absolute URL").optional(),
+  WIX_API_BASE_URL: z.string().url("WIX_API_BASE_URL must be an absolute URL").optional(),
 });
 
 /** Everything the scheduled publish job needs, validated before it touches the database. */
@@ -90,8 +98,14 @@ export const parsePublisherConfig = (
   const parsed = publisherSchema.safeParse(env);
   if (!parsed.success) return err(parsed.error.issues[0]?.message ?? "Invalid configuration");
   const c = parsed.data;
-  if (c.APP_ENV === "production" && c.ALLOW_PRIVATE_NETWORK === "true") {
-    return err("ALLOW_PRIVATE_NETWORK is only allowed when APP_ENV is development or test");
+  const devOnly = [
+    ["ALLOW_PRIVATE_NETWORK", c.ALLOW_PRIVATE_NETWORK === "true"],
+    ["WEBFLOW_API_BASE_URL", c.WEBFLOW_API_BASE_URL !== undefined],
+    ["WIX_API_BASE_URL", c.WIX_API_BASE_URL !== undefined],
+  ] as const;
+  const refused = devOnly.find(([, set]) => set);
+  if (c.APP_ENV === "production" && refused) {
+    return err(`${refused[0]} is only allowed when APP_ENV is development or test`);
   }
   return ok({
     connectionString: database.value.connectionString,
@@ -99,6 +113,10 @@ export const parsePublisherConfig = (
     allowPrivateNetwork: c.ALLOW_PRIVATE_NETWORK === "true",
     intervalMs: c.PUBLISH_INTERVAL_MS,
     zernio: { apiKey: c.ZERNIO_API_KEY, baseUrl: c.ZERNIO_BASE_URL ?? null },
+    blogs: {
+      webflowApiBaseUrl: c.WEBFLOW_API_BASE_URL ?? null,
+      wixApiBaseUrl: c.WIX_API_BASE_URL ?? null,
+    },
   });
 };
 
@@ -279,4 +297,62 @@ export const parseLoopConfig = (
           }
         : { kind: "offline" },
   });
+};
+
+/** One platform's test account for `pnpm smoke:blogs`, by the environment variables that hold it. */
+interface SmokeAccount {
+  readonly platform: BlogPlatform;
+  readonly siteUrl: string;
+  readonly settings: Readonly<Record<string, string>>;
+  readonly secret: string;
+}
+
+const smokeAccounts: readonly SmokeAccount[] = [
+  {
+    platform: "shopify",
+    siteUrl: "SHOPIFY_STORE_URL",
+    settings: {},
+    secret: "SHOPIFY_ACCESS_TOKEN",
+  },
+  {
+    platform: "webflow",
+    siteUrl: "WEBFLOW_SITE_URL",
+    settings: { collectionId: "WEBFLOW_COLLECTION_ID" },
+    secret: "WEBFLOW_API_TOKEN",
+  },
+  {
+    platform: "wix",
+    siteUrl: "WIX_SITE_URL",
+    settings: { siteId: "WIX_SITE_ID" },
+    secret: "WIX_API_KEY",
+  },
+];
+
+/**
+ * The blog test accounts to smoke-check: each platform whose variables are all set. None set is
+ * fine (nothing to check yet); some set is a mistake worth naming.
+ */
+export const parseBlogSmokeConfig = (
+  env: Readonly<Record<string, string | undefined>>,
+): Result<BlogCredentials[], string> => {
+  const checks: BlogCredentials[] = [];
+  for (const account of smokeAccounts) {
+    const names = [account.siteUrl, ...Object.values(account.settings), account.secret];
+    const missing = names.filter((name) => !env[name]);
+    if (missing.length === names.length) continue;
+    if (missing.length > 0) {
+      const platform = blogPlatforms[account.platform].name;
+      return err(`${platform} smoke check needs ${missing.join(", ")}`);
+    }
+    const value = (name: string) => env[name] ?? "";
+    checks.push({
+      platform: account.platform,
+      siteUrl: value(account.siteUrl),
+      settings: Object.fromEntries(
+        Object.entries(account.settings).map(([key, name]) => [key, value(name)]),
+      ),
+      secret: value(account.secret),
+    });
+  }
+  return ok(checks);
 };

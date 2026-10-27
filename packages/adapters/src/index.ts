@@ -26,8 +26,25 @@ export {
 } from "./crawler/http-site-crawler";
 export { AesGcmTokenCipher } from "./crypto/aes-gcm-token-cipher";
 export { WordPressConnectionVerifier } from "./wordpress/wordpress-connection-verifier";
-export { WordPressPublisher } from "./wordpress/wordpress-publisher";
-export { WordPressPublisherProvider } from "./wordpress/wordpress-publisher-provider";
+export { WordPressPublisher, wordPressPublisherFactory } from "./wordpress/wordpress-publisher";
+export {
+  BlogPublisherProvider,
+  type BlogPublisherFactory,
+  type BlogPublisherFactories,
+} from "./blog/blog-publisher-provider";
+export { BlogVerifierRegistry } from "./blog/blog-verifier-registry";
+export type { BlogNetwork } from "./blog/blog-http";
+export { GhostConnectionVerifier } from "./ghost/ghost-connection-verifier";
+export { GhostPublisher, ghostPublisherFactory } from "./ghost/ghost-publisher";
+export { SHOPIFY_API_VERSION } from "./shopify/shopify-graphql";
+export { ShopifyConnectionVerifier } from "./shopify/shopify-connection-verifier";
+export { ShopifyPublisher, shopifyPublisherFactory } from "./shopify/shopify-publisher";
+export type { WebflowNetwork } from "./webflow/webflow-api";
+export { WebflowConnectionVerifier } from "./webflow/webflow-connection-verifier";
+export { WebflowPublisher, webflowPublisherFactory } from "./webflow/webflow-publisher";
+export type { WixNetwork } from "./wix/wix-api";
+export { WixConnectionVerifier } from "./wix/wix-connection-verifier";
+export { WixPublisher, wixPublisherFactory } from "./wix/wix-publisher";
 export { DataForSeoKeywordProvider } from "./dataforseo/dataforseo-keyword-provider";
 export { SeedKeywordProvider } from "./offline/seed-keyword-provider";
 export type { ZernioOptions } from "./zernio/api";

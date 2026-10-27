@@ -1,0 +1,32 @@
+{
+  "id": "6487b1d5c2a3e4f5a6b7c8e0",
+  "displayName": "Team Members",
+  "singularName": "Team Member",
+  "slug": "team",
+  "fields": [
+    {
+      "id": "f1",
+      "isEditable": true,
+      "isRequired": true,
+      "type": "PlainText",
+      "slug": "name",
+      "displayName": "Name"
+    },
+    {
+      "id": "f2",
+      "isEditable": true,
+      "isRequired": true,
+      "type": "PlainText",
+      "slug": "slug",
+      "displayName": "Slug"
+    },
+    {
+      "id": "f3",
+      "isEditable": true,
+      "isRequired": false,
+      "type": "PlainText",
+      "slug": "role",
+      "displayName": "Role"
+    }
+  ]
+}

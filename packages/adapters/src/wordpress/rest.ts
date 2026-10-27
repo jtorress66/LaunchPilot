@@ -1,23 +1,10 @@
 import { z } from "zod";
-import type { SafeHttpOptions } from "../net/safe-http";
+import { parseJson, type BlogNetwork } from "../blog/blog-http";
 
-export const WORDPRESS_USER_AGENT = "Nuvantre/1.0 (+https://nuvantre.app)";
+export { blogHttpOptions as httpOptions, parseJson } from "../blog/blog-http";
 
-export interface WordPressNetwork {
-  /** Development and test only: lets Nuvantre reach a blog on localhost or a LAN. */
-  readonly allowPrivateNetwork: boolean;
-  readonly timeoutMs?: number;
-}
-
-export const httpOptions = ({
-  allowPrivateNetwork,
-  timeoutMs,
-}: WordPressNetwork): SafeHttpOptions => ({
-  policy: { allowPrivateNetwork },
-  userAgent: WORDPRESS_USER_AGENT,
-  timeoutMs: timeoutMs ?? 15_000,
-  maxBytes: 1_000_000,
-});
+/** Kept for callers that still name it after WordPress. */
+export type WordPressNetwork = BlogNetwork;
 
 /**
  * `?rest_route=` reaches the REST API whatever the site's permalink settings,
@@ -33,14 +20,6 @@ export const restUrl = (siteUrl: string, route: string, params: Record<string, s
 /** Application Passwords use HTTP Basic auth. The header is never logged. */
 export const basicAuth = (username: string, password: string) =>
   `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`;
-
-export const parseJson = (body: string): unknown => {
-  try {
-    return JSON.parse(body) as unknown;
-  } catch {
-    return undefined;
-  }
-};
 
 const wpError = z.object({ message: z.string() });
 

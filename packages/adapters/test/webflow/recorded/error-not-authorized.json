@@ -1,0 +1,6 @@
+{
+  "message": "Request not authorized",
+  "code": "not_authorized",
+  "externalReference": null,
+  "details": []
+}

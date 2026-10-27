@@ -15,7 +15,8 @@ export type DomainErrorCode =
   | "community_draft_not_approved"
   | "invalid_locale"
   | "invalid_slug"
-  | "seo_not_supported";
+  | "seo_not_supported"
+  | "unknown_platform";
 
 export interface DomainError {
   readonly code: DomainErrorCode;

@@ -1,0 +1,6 @@
+{
+  "message": "Unauthorized",
+  "details": {
+    "applicationError": { "code": "UNAUTHORIZED", "description": "Unauthorized", "data": {} }
+  }
+}

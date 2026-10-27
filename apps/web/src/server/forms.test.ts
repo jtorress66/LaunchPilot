@@ -8,7 +8,8 @@ import {
   plausibleForm,
   parseDirectoryFilter,
   rejectForm,
-  blogConnectionForm,
+  blogConnectionFormFor,
+  blogPlatformForm,
   briefForm,
   parseForm,
   postForm,
@@ -112,23 +113,62 @@ describe("form parsing", () => {
     });
   });
 
-  it("reads a WordPress connection, requiring every field", () => {
+  it("reads a WordPress connection: address, username and Application Password", () => {
     expect(
       parseForm(
-        blogConnectionForm,
+        blogConnectionFormFor("wordpress"),
         form({ siteUrl: "https://blog.acme.dev", username: "admin", secret: "abcd efgh" }),
       ),
     ).toEqual({
       ok: true,
-      value: { siteUrl: "https://blog.acme.dev", username: "admin", secret: "abcd efgh" },
+      value: {
+        platform: "wordpress",
+        siteUrl: "https://blog.acme.dev",
+        settings: { username: "admin" },
+        secret: "abcd efgh",
+      },
     });
-    expect(parseForm(blogConnectionForm, form({}))).toEqual({
+    expect(parseForm(blogConnectionFormFor("wordpress"), form({}))).toEqual({
       ok: false,
       error: {
         siteUrl: "Enter your blog's address",
         username: "Enter your WordPress username",
         secret: "Enter an Application Password",
       },
+    });
+  });
+
+  it.each([
+    ["ghost", {}, "Enter an Admin API key"],
+    ["shopify", {}, "Enter an Admin API access token"],
+    ["webflow", { collectionId: "Enter your Webflow collection ID" }, "Enter a Site API token"],
+    ["wix", { siteId: "Enter your Wix site ID" }, "Enter an API key"],
+  ] as const)("asks %s for its own fields and key", (platform, fields, secret) => {
+    expect(parseForm(blogConnectionFormFor(platform), form({}))).toEqual({
+      ok: false,
+      error: { siteUrl: "Enter your blog's address", ...fields, secret },
+    });
+  });
+
+  it("keeps only the chosen platform's fields as settings", () => {
+    const result = parseForm(
+      blogConnectionFormFor("wix"),
+      form({ siteUrl: "https://acme.dev", siteId: " site-1 ", username: "admin", secret: "k" }),
+    );
+    expect(result).toMatchObject({
+      ok: true,
+      value: { platform: "wix", settings: { siteId: "site-1" } },
+    });
+  });
+
+  it("reads which platform the blog is on", () => {
+    expect(parseForm(blogPlatformForm, form({ platform: "ghost" }))).toEqual({
+      ok: true,
+      value: { platform: "ghost" },
+    });
+    expect(parseForm(blogPlatformForm, form({ platform: "myspace" }))).toEqual({
+      ok: false,
+      error: { platform: "Choose the platform your blog runs on" },
     });
   });
 

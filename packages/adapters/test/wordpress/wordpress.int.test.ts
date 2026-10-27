@@ -18,7 +18,8 @@ import {
   AesGcmTokenCipher,
   WordPressConnectionVerifier,
   WordPressPublisher,
-  WordPressPublisherProvider,
+  BlogPublisherProvider,
+  wordPressPublisherFactory,
 } from "../../src";
 import cannotCreate from "./recorded/error-cannot-create.json";
 import incorrectPassword from "./recorded/error-incorrect-password.json";
@@ -111,7 +112,12 @@ const publisher = (options = network) =>
     { siteUrl: site, username: USER, password: APP_PASSWORD },
     { ...options, clock: new FixedClock(now) },
   );
-const credentials = () => ({ siteUrl: site, username: USER, secret: APP_PASSWORD });
+const credentials = () => ({
+  platform: "wordpress" as const,
+  siteUrl: site,
+  settings: { username: USER },
+  secret: APP_PASSWORD,
+});
 
 describeBlogConnectionVerifierContract("WordPressConnectionVerifier (recorded REST API)", () => ({
   verifier: verifier(),
@@ -127,7 +133,7 @@ describePublisherContract("WordPressPublisher (recorded REST API)", () => ({
   },
 }));
 
-describePublisherProviderContract("WordPressPublisherProvider", async () => {
+describePublisherProviderContract("BlogPublisherProvider for WordPress", async () => {
   const cipher = new AesGcmTokenCipher(randomBytes(32).toString("base64"));
   const connections = new InMemoryChannelConnectionRepository();
   await connections.save({
@@ -135,9 +141,8 @@ describePublisherProviderContract("WordPressPublisherProvider", async () => {
     encryptedSecret: await cipher.encrypt(APP_PASSWORD),
   });
   return {
-    provider: new WordPressPublisherProvider(connections, cipher, {
-      ...network,
-      clock: new FixedClock(now),
+    provider: new BlogPublisherProvider(connections, cipher, {
+      wordpress: wordPressPublisherFactory({ ...network, clock: new FixedClock(now) }),
     }),
     connected: productId("prod_1"),
     unconnected: productId("prod_2"),
@@ -149,7 +154,7 @@ describe("WordPressConnectionVerifier", () => {
     expect(await verifier().verify({ ...credentials(), siteUrl: site.replace(/\/$/, "") })).toEqual(
       {
         ok: true,
-        value: { siteName: "Acme Blog", siteUrl: site },
+        value: { siteName: "Acme Blog", siteUrl: site, settings: { username: USER } },
       },
     );
     expect(blog.received.map((r) => r.route)).toEqual(["/", "/wp/v2/users/me"]);
@@ -161,11 +166,11 @@ describe("WordPressConnectionVerifier", () => {
       "a REST API without wp/v2",
       () => blog.routes.set("/", json(200, { ...index, namespaces: [] })),
     ],
-  ])("reports %s as not_wordpress", async (_case, arrange) => {
+  ])("reports %s as wrong_platform", async (_case, arrange) => {
     arrange();
     expect(await verifier().verify(credentials())).toMatchObject({
       ok: false,
-      error: { code: "not_wordpress", retryable: false },
+      error: { code: "wrong_platform", retryable: false },
     });
   });
 

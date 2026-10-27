@@ -16,10 +16,28 @@ describe("channelConnectionMapper", () => {
     expect(channelConnectionMapper.fromRow(row)).toEqual(connection);
   });
 
+  it("stores a platform's settings as JSON and reads them back", () => {
+    const connection = aBlogConnection({
+      platform: "webflow",
+      settings: { collectionId: "col_1", bodyField: "post-body" },
+    });
+    const row = channelConnectionMapper.toRow(connection);
+    expect(row).toMatchObject({
+      provider: "webflow",
+      settings: '{"collectionId":"col_1","bodyField":"post-body"}',
+    });
+    expect(channelConnectionMapper.fromRow(row)).toEqual(connection);
+  });
+
   it.each([
     ["an unknown channel", { channel: "tiktok" }, /channel_connections\.channel/],
-    ["an unknown provider", { provider: "ghost" }, /channel_connections\.provider/],
+    ["an unknown provider", { provider: "squarespace" }, /channel_connections\.provider/],
     ["an invalid site URL", { site_url: "not a url" }, /channel_connections\.site_url/],
+    [
+      "settings that are not text values",
+      { settings: '{"blogId":1}' },
+      /channel_connections\.settings/,
+    ],
   ])("refuses %s", (_case, override, message) => {
     const row = { ...channelConnectionMapper.toRow(aBlogConnection()), ...override };
     expect(() => channelConnectionMapper.fromRow(row)).toThrow(message);

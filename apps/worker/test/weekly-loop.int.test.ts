@@ -19,6 +19,7 @@ const publisher: PublisherConfig = {
   allowPrivateNetwork: false,
   intervalMs: 60_000,
   zernio: { apiKey: "sk_unused", baseUrl: null },
+  blogs: { webflowApiBaseUrl: null, wixApiBaseUrl: null },
 };
 const offline: LoopConfig = {
   intervalMs: 3_600_000,

@@ -1,0 +1,15 @@
+{
+  "errors": [
+    {
+      "message": "Invalid token: invalid signature",
+      "context": null,
+      "type": "UnauthorizedError",
+      "details": null,
+      "property": null,
+      "help": null,
+      "code": "INVALID_JWT",
+      "id": "0f1e2d3c-4b5a-6978-8a9b-0c1d2e3f4a5b",
+      "ghostErrorCode": null
+    }
+  ]
+}

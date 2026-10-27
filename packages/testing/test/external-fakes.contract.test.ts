@@ -101,7 +101,12 @@ for (const channel of channels.filter(isAutoPublishable)) {
 
 describeBlogConnectionVerifierContract("FakeBlogConnectionVerifier", () => {
   const verifier = new FakeBlogConnectionVerifier();
-  const valid = { siteUrl: "https://blog.acme.dev", username: "admin", secret: "abcd efgh ijkl" };
+  const valid = {
+    platform: "wordpress" as const,
+    siteUrl: "https://blog.acme.dev",
+    settings: { username: "admin" },
+    secret: "abcd efgh ijkl",
+  };
   verifier.accept(valid, "Acme Blog");
   return { verifier, valid };
 });

@@ -1,0 +1,12 @@
+{
+  "site": {
+    "title": "Acme Ghost Blog",
+    "description": "Notes on privacy-first analytics",
+    "logo": null,
+    "icon": null,
+    "accent_color": "#FF1A75",
+    "locale": "en",
+    "url": "SITE_URL",
+    "version": "5.96"
+  }
+}

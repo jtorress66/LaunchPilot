@@ -35,6 +35,7 @@ describe("parseWebConfig", () => {
         billing: { provider: "local", secret: "a".repeat(32) },
         allowPrivateNetwork: false,
         tokenEncryptionKey: KEY,
+        blogs: { webflowApiBaseUrl: null, wixApiBaseUrl: null },
         brief: {
           drafter: { kind: "claude", apiKey: "sk-ant-test-key", model: "claude-opus-5-5" },
         },
@@ -172,11 +173,34 @@ describe("parseWebConfig AI settings", () => {
     ["ARTICLE_WRITER=template", { ARTICLE_WRITER: "template" }],
     ["KEYWORD_PROVIDER=offline", { KEYWORD_PROVIDER: "offline" }],
     ["ALLOW_PRIVATE_NETWORK", { ALLOW_PRIVATE_NETWORK: "true" }],
+    ["WEBFLOW_API_BASE_URL", { WEBFLOW_API_BASE_URL: "http://127.0.0.1:4040/webflow/" }],
+    ["WIX_API_BASE_URL", { WIX_API_BASE_URL: "http://127.0.0.1:4040/wix/" }],
   ])("refuses %s in production", (setting, override) => {
     expect(parseWebConfig({ ...stripe, ...override })).toEqual({
       ok: false,
       error: `${setting} is only allowed when APP_ENV is development or test`,
     });
+  });
+});
+
+describe("parseWebConfig blog settings", () => {
+  it("can point Webflow and Wix at local stand-ins, for tests", () => {
+    expect(
+      parseWebConfig({
+        ...local,
+        WEBFLOW_API_BASE_URL: "http://127.0.0.1:4040/webflow/",
+        WIX_API_BASE_URL: "http://127.0.0.1:4040/wix/",
+      }),
+    ).toMatchObject({
+      ok: true,
+      value: {
+        blogs: {
+          webflowApiBaseUrl: "http://127.0.0.1:4040/webflow/",
+          wixApiBaseUrl: "http://127.0.0.1:4040/wix/",
+        },
+      },
+    });
+    expect(parseWebConfig({ ...local, WIX_API_BASE_URL: "stub" }).ok).toBe(false);
   });
 });
 

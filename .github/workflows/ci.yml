@@ -140,6 +140,29 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm smoke:social
 
+  blogs-smoke:
+    name: Blog platforms smoke check (real APIs)
+    runs-on: ubuntu-latest
+    env:
+      # Each platform is checked once its test account is added; until then the check skips.
+      SHOPIFY_STORE_URL: ${{ vars.SHOPIFY_STORE_URL }}
+      SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+      WEBFLOW_SITE_URL: ${{ vars.WEBFLOW_SITE_URL }}
+      WEBFLOW_COLLECTION_ID: ${{ vars.WEBFLOW_COLLECTION_ID }}
+      WEBFLOW_API_TOKEN: ${{ secrets.WEBFLOW_API_TOKEN }}
+      WIX_SITE_URL: ${{ vars.WIX_SITE_URL }}
+      WIX_SITE_ID: ${{ vars.WIX_SITE_ID }}
+      WIX_API_KEY: ${{ secrets.WIX_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm smoke:blogs
+
   e2e-stripe:
     name: E2E against Stripe test mode
     runs-on: ubuntu-latest
