@@ -72,8 +72,18 @@ import {
   AesGcmTokenCipher,
   DataForSeoKeywordProvider,
   SeedKeywordProvider,
+  BlogPublisherProvider,
+  BlogVerifierRegistry,
+  GhostConnectionVerifier,
+  ghostPublisherFactory,
+  ShopifyConnectionVerifier,
+  shopifyPublisherFactory,
+  WebflowConnectionVerifier,
+  webflowPublisherFactory,
+  WixConnectionVerifier,
+  wixPublisherFactory,
   WordPressConnectionVerifier,
-  WordPressPublisherProvider,
+  wordPressPublisherFactory,
   ClaudeLlmClient,
   createDatabase,
   createPostgresRepositories,
@@ -247,6 +257,41 @@ const strategistFor = ({ strategist }: WebConfig["autopilot"]) =>
 const reviewerFor = ({ reviewer }: WebConfig["autopilot"]) =>
   reviewer.kind === "claude" ? new ReviewerAgent(claudeClient(reviewer)) : new TemplateReviewer();
 
+/** Each blog platform's API address: the real one, or a local stand-in in development and test. */
+const blogNetworks = (config: WebConfig) => {
+  const network = { allowPrivateNetwork: config.allowPrivateNetwork, clock: container.clock };
+  const { webflowApiBaseUrl, wixApiBaseUrl } = config.blogs;
+  return {
+    network,
+    webflow: { ...network, ...(webflowApiBaseUrl ? { apiBaseUrl: webflowApiBaseUrl } : {}) },
+    wix: { ...network, ...(wixApiBaseUrl ? { apiBaseUrl: wixApiBaseUrl } : {}) },
+  };
+};
+
+/** One verifier per blog platform: adding a platform means registering its verifier here. */
+const blogVerifierFor = (config: WebConfig) => {
+  const blogs = blogNetworks(config);
+  return new BlogVerifierRegistry({
+    wordpress: new WordPressConnectionVerifier(blogs.network),
+    ghost: new GhostConnectionVerifier(blogs.network),
+    shopify: new ShopifyConnectionVerifier(blogs.network),
+    webflow: new WebflowConnectionVerifier(blogs.webflow),
+    wix: new WixConnectionVerifier(blogs.wix),
+  });
+};
+
+/** One publisher factory per blog platform, chosen by the product's stored connection. */
+const blogPublishersFor = (config: WebConfig) => {
+  const blogs = blogNetworks(config);
+  return {
+    wordpress: wordPressPublisherFactory(blogs.network),
+    ghost: ghostPublisherFactory(blogs.network),
+    shopify: shopifyPublisherFactory(blogs.network),
+    webflow: webflowPublisherFactory(blogs.webflow),
+    wix: wixPublisherFactory(blogs.wix),
+  };
+};
+
 const build = (config: WebConfig) => {
   const billing = billingFor(config);
   const repositories = createPostgresRepositories(createDatabase(config.databaseUrl));
@@ -262,16 +307,13 @@ const build = (config: WebConfig) => {
     writer: articleWriterFor(config.seo),
     keywords: keywordProviderFor(config.seo),
     cipher,
-    blogVerifier: new WordPressConnectionVerifier(network),
+    blogVerifier: blogVerifierFor(config),
     socialWriter: socialWriterFor(config.social),
     launchWriter: launchWriterFor(config.launch),
     linker: new ZernioAccountLinker(zernio),
     // One provider per channel: adding a channel means registering its provider here.
     publishers: new PublisherRegistry([
-      new WordPressPublisherProvider(repositories.channelConnections, cipher, {
-        ...network,
-        clock: container.clock,
-      }),
+      new BlogPublisherProvider(repositories.channelConnections, cipher, blogPublishersFor(config)),
       new ZernioPublisherProvider("x", repositories.socialProfiles, zernio),
       new ZernioPublisherProvider("linkedin", repositories.socialProfiles, zernio),
     ]),

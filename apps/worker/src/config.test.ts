@@ -74,6 +74,7 @@ describe("parsePublisherConfig", () => {
         allowPrivateNetwork: false,
         intervalMs: 60_000,
         zernio: { apiKey: "sk_test_zernio", baseUrl: null },
+        blogs: { webflowApiBaseUrl: null, wixApiBaseUrl: null },
       },
     });
   });
@@ -82,6 +83,8 @@ describe("parsePublisherConfig", () => {
     const result = parsePublisherConfig({
       ...env,
       ZERNIO_BASE_URL: "http://127.0.0.1:4020/api",
+      WEBFLOW_API_BASE_URL: "http://127.0.0.1:4040/webflow/",
+      WIX_API_BASE_URL: "http://127.0.0.1:4040/wix/",
       PUBLISH_INTERVAL_MS: "30000",
       APP_ENV: "test",
       ALLOW_PRIVATE_NETWORK: "true",
@@ -92,6 +95,10 @@ describe("parsePublisherConfig", () => {
         intervalMs: 30_000,
         allowPrivateNetwork: true,
         zernio: { baseUrl: "http://127.0.0.1:4020/api" },
+        blogs: {
+          webflowApiBaseUrl: "http://127.0.0.1:4040/webflow/",
+          wixApiBaseUrl: "http://127.0.0.1:4040/wix/",
+        },
       },
     });
   });
@@ -101,6 +108,9 @@ describe("parsePublisherConfig", () => {
     [{ TOKEN_ENCRYPTION_KEY: "short" }, "TOKEN_ENCRYPTION_KEY must be 32 random bytes"],
     [{ ZERNIO_BASE_URL: "stub" }, "ZERNIO_BASE_URL must be an absolute URL"],
     [{ ALLOW_PRIVATE_NETWORK: "true" }, "ALLOW_PRIVATE_NETWORK is only allowed"],
+    [{ WEBFLOW_API_BASE_URL: "http://127.0.0.1:1/" }, "WEBFLOW_API_BASE_URL is only allowed"],
+    [{ WIX_API_BASE_URL: "http://127.0.0.1:1/" }, "WIX_API_BASE_URL is only allowed"],
+    [{ APP_ENV: "test", WIX_API_BASE_URL: "stub" }, "WIX_API_BASE_URL must be an absolute URL"],
     [{ PUBLISH_INTERVAL_MS: "500" }, "PUBLISH_INTERVAL_MS must be at least 5000"],
   ])("refuses %o", (override, message) => {
     const result = parsePublisherConfig({ ...env, ...override });

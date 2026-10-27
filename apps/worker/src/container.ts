@@ -25,7 +25,12 @@ import {
 import {
   AesGcmTokenCipher,
   createPostgresRepositories,
-  WordPressPublisherProvider,
+  BlogPublisherProvider,
+  ghostPublisherFactory,
+  shopifyPublisherFactory,
+  webflowPublisherFactory,
+  wixPublisherFactory,
+  wordPressPublisherFactory,
   ZernioPublisherProvider,
   runZernioSmoke,
   assessZernioChange,
@@ -151,6 +156,25 @@ const zernioOptions = ({ apiKey, baseUrl }: ZernioConfig) => ({
   ...(baseUrl === null ? {} : { baseUrl }),
 });
 
+/** One publisher factory per blog platform, chosen by the product's stored connection. */
+const blogPublishersFor = ({ allowPrivateNetwork, blogs }: PublisherConfig) => {
+  const network = { allowPrivateNetwork, clock: container.clock };
+  const { webflowApiBaseUrl, wixApiBaseUrl } = blogs;
+  return {
+    wordpress: wordPressPublisherFactory(network),
+    ghost: ghostPublisherFactory(network),
+    shopify: shopifyPublisherFactory(network),
+    webflow: webflowPublisherFactory({
+      ...network,
+      ...(webflowApiBaseUrl ? { apiBaseUrl: webflowApiBaseUrl } : {}),
+    }),
+    wix: wixPublisherFactory({
+      ...network,
+      ...(wixApiBaseUrl ? { apiBaseUrl: wixApiBaseUrl } : {}),
+    }),
+  };
+};
+
 /** The scheduled publish job over Postgres, with one publisher provider per channel. */
 export const createPublishDue = (config: PublisherConfig) => {
   const db = createDatabase(config.connectionString);
@@ -158,10 +182,7 @@ export const createPublishDue = (config: PublisherConfig) => {
   const cipher = new AesGcmTokenCipher(config.tokenEncryptionKey);
   const zernio = zernioOptions(config.zernio);
   const publishers = new PublisherRegistry([
-    new WordPressPublisherProvider(repositories.channelConnections, cipher, {
-      allowPrivateNetwork: config.allowPrivateNetwork,
-      clock: container.clock,
-    }),
+    new BlogPublisherProvider(repositories.channelConnections, cipher, blogPublishersFor(config)),
     new ZernioPublisherProvider("x", repositories.socialProfiles, zernio),
     new ZernioPublisherProvider("linkedin", repositories.socialProfiles, zernio),
   ]);

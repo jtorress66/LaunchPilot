@@ -1,4 +1,11 @@
-import { err, ok, type Result } from "@nuvantre/domain";
+import {
+  blogPlatformIds,
+  blogPlatforms,
+  err,
+  ok,
+  type BlogPlatform,
+  type Result,
+} from "@nuvantre/domain";
 import { z } from "zod";
 
 const text = (required: string, max: number) =>
@@ -49,11 +56,35 @@ export const briefForm = z.object({
   facts: lines(20, 500),
 });
 
-export const blogConnectionForm = z.object({
-  siteUrl: text("Enter your blog's address", 2048),
-  username: text("Enter your WordPress username", 200),
-  secret: text("Enter an Application Password", 200),
+export const blogPlatformForm = z.object({
+  platform: z.enum(blogPlatformIds, {
+    errorMap: () => ({ message: "Choose the platform your blog runs on" }),
+  }),
 });
+
+const withArticle = (noun: string) => `${/^[aeiou]/i.test(noun) ? "an" : "a"} ${noun}`;
+
+/** The connect form for one platform, built from its row in the domain's platform table. */
+export const blogConnectionFormFor = (platform: BlogPlatform) => {
+  const { fields, secret } = blogPlatforms[platform];
+  const settings = z.object(
+    Object.fromEntries(fields.map((field) => [field.key, text(`Enter your ${field.label}`, 500)])),
+  );
+  return z
+    .object({
+      siteUrl: text("Enter your blog's address", 2048),
+      secret: text(`Enter ${withArticle(secret.label)}`, 4000),
+    })
+    .and(settings)
+    .transform(({ siteUrl, secret: key, ...values }) => ({
+      platform,
+      siteUrl,
+      settings: Object.fromEntries(
+        fields.map((field) => [field.key, (values[field.key] ?? "").trim()]),
+      ),
+      secret: key,
+    }));
+};
 
 export const seedKeywordsForm = z.object({
   seeds: lines(5, 80).refine((items) => items.length > 0, "Enter at least one topic"),

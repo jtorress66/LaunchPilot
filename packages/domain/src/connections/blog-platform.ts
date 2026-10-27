@@ -61,8 +61,8 @@ export const blogPlatforms: Readonly<Record<BlogPlatform, BlogPlatformInfo>> = {
     fields: [
       {
         key: "collectionId",
-        label: "Blog collection ID",
-        hint: "In the Designer, open CMS → your blog collection → Settings; the collection ID is shown there.",
+        label: "Webflow collection ID",
+        hint: "Your blog collection's ID: in the Designer, open CMS → the blog collection → Settings.",
       },
     ],
     secret: {

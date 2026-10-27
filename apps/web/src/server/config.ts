@@ -42,6 +42,12 @@ export interface ZernioConfig {
   readonly baseUrl: string | null;
 }
 
+/** Development and test only: local stand-ins for the Webflow and Wix APIs. */
+export interface BlogApisConfig {
+  readonly webflowApiBaseUrl: string | null;
+  readonly wixApiBaseUrl: string | null;
+}
+
 export interface WebConfig {
   readonly databaseUrl: string;
   readonly appUrl: string;
@@ -50,6 +56,7 @@ export interface WebConfig {
   readonly allowPrivateNetwork: boolean;
   /** Encrypts blog passwords and tokens at rest. */
   readonly tokenEncryptionKey: string;
+  readonly blogs: BlogApisConfig;
   readonly brief: { readonly drafter: BriefDrafterConfig };
   readonly seo: { readonly keywords: KeywordProviderConfig; readonly writer: ArticleWriterConfig };
   readonly social: { readonly writer: SocialWriterConfig; readonly zernio: ZernioConfig };
@@ -94,6 +101,8 @@ const shared = {
   DATAFORSEO_PASSWORD: z.string().min(1).optional(),
   DATAFORSEO_BASE_URL: z.string().url("DATAFORSEO_BASE_URL must be an absolute URL").optional(),
   ALLOW_PRIVATE_NETWORK: z.enum(["true", "false"]).default("false"),
+  WEBFLOW_API_BASE_URL: z.string().url("WEBFLOW_API_BASE_URL must be an absolute URL").optional(),
+  WIX_API_BASE_URL: z.string().url("WIX_API_BASE_URL must be an absolute URL").optional(),
   SOCIAL_WRITER: z.enum(["claude", "template"]).default("claude"),
   LAUNCH_WRITER: z.enum(["claude", "template"]).default("claude"),
   ZERNIO_API_KEY: required("ZERNIO_API_KEY"),
@@ -139,6 +148,8 @@ const devOnlySettings: readonly [string, (c: Env) => boolean][] = [
   ["REVIEWER=template", (c) => c.REVIEWER === "template"],
   ["GOOGLE_API_BASE_URL", (c) => c.GOOGLE_API_BASE_URL !== undefined],
   ["ALLOW_PRIVATE_NETWORK", (c) => c.ALLOW_PRIVATE_NETWORK === "true"],
+  ["WEBFLOW_API_BASE_URL", (c) => c.WEBFLOW_API_BASE_URL !== undefined],
+  ["WIX_API_BASE_URL", (c) => c.WIX_API_BASE_URL !== undefined],
 ];
 
 const claude = (c: Env): ClaudeConfig | undefined =>
@@ -206,6 +217,10 @@ export const parseWebConfig = (
           },
     allowPrivateNetwork: c.ALLOW_PRIVATE_NETWORK === "true",
     tokenEncryptionKey: c.TOKEN_ENCRYPTION_KEY,
+    blogs: {
+      webflowApiBaseUrl: c.WEBFLOW_API_BASE_URL ?? null,
+      wixApiBaseUrl: c.WIX_API_BASE_URL ?? null,
+    },
     brief: { drafter: c.BRIEF_DRAFTER === "claude" && ai ? ai : { kind: "extractive" } },
     seo: { keywords, writer: c.ARTICLE_WRITER === "claude" && ai ? ai : { kind: "template" } },
     social: {

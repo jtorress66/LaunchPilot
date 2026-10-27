@@ -5,7 +5,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getAppContainer } from "../../container";
 import {
-  blogConnectionForm,
+  blogConnectionFormFor,
+  blogPlatformForm,
   localeForm,
   parseForm,
   seedKeywordsForm,
@@ -31,7 +32,9 @@ export async function connectBlogAction(
   data: FormData,
 ): Promise<SeoActionState> {
   const { workspace } = await requireUser();
-  const form = parseForm(blogConnectionForm, data);
+  const choice = parseForm(blogPlatformForm, data);
+  if (!choice.ok) return { errors: choice.error };
+  const form = parseForm(blogConnectionFormFor(choice.value.platform), data);
   if (!form.ok) return { errors: form.error };
   const result = await getAppContainer().connectBlog.execute({
     workspace,
