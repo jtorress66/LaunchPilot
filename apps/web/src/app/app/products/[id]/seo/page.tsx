@@ -76,8 +76,8 @@ export default async function SeoPage({ params }: { readonly params: Promise<{ i
             </h2>
             <BlogConnectionForm productId={product.id} connected={connection} />
           </section>
-          <section aria-labelledby="language" className={`h-fit ${card}`}>
-            <h2 id="language" className="text-lg font-semibold">
+          <section aria-labelledby="locale-heading" className={`h-fit ${card}`}>
+            <h2 id="locale-heading" className="text-lg font-semibold">
               Language and market
             </h2>
             <LocaleForm

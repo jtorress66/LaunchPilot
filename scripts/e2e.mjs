@@ -15,6 +15,16 @@ const SITE_PORT = 4010;
 const fixtures = join(import.meta.dirname, "..", "apps", "web", "e2e", "fixtures");
 const siteDir = join(fixtures, "site");
 const DATAFORSEO_ROUTE = "/dataforseo/v3/dataforseo_labs/google/keyword_ideas/live";
+const DATAFORSEO_MARKETS = "/dataforseo/v3/dataforseo_labs/locations_and_languages";
+/** Keyword requests the stub received, for specs to check what was asked for. */
+const dataForSeoRequests = [];
+
+const readBody = (req) =>
+  new Promise((resolve) => {
+    let body = "";
+    req.on("data", (chunk) => (body += chunk));
+    req.on("end", () => resolve(body));
+  });
 
 /** Serves the "Acme Analytics" fixture site: `/` → index.html, `/pricing` → pricing.html. */
 const startFixtureSite = () =>
@@ -23,8 +33,18 @@ const startFixtureSite = () =>
       const path = new URL(req.url ?? "/", "http://site").pathname;
       // Recorded DataForSEO answer, so keyword research needs no paid account in E2E.
       if (req.method === "POST" && path === DATAFORSEO_ROUTE) {
+        dataForSeoRequests.push(...JSON.parse(await readBody(req)));
         const body = await readFile(join(fixtures, "dataforseo", "keyword-ideas.json"));
         return res.writeHead(200, { "content-type": "application/json" }).end(body);
+      }
+      if (req.method === "GET" && path === DATAFORSEO_MARKETS) {
+        const body = await readFile(join(fixtures, "dataforseo", "locations-and-languages.json"));
+        return res.writeHead(200, { "content-type": "application/json" }).end(body);
+      }
+      if (req.method === "GET" && path === "/dataforseo/_stub/requests") {
+        return res
+          .writeHead(200, { "content-type": "application/json" })
+          .end(JSON.stringify(dataForSeoRequests));
       }
       const file = path === "/robots.txt" ? "robots.txt" : `${path.slice(1) || "index"}.html`;
       if (!/^[a-z-]+\.(html|txt)$/.test(file)) return res.writeHead(404).end();
