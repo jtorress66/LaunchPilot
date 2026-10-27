@@ -1,4 +1,4 @@
-import type { BriefContent, Channel, Result } from "@nuvantre/domain";
+import type { BriefContent, Channel, ContentLocale, Result } from "@nuvantre/domain";
 import type { PortError } from "./port-error";
 
 export interface ReviewRequest {
@@ -8,6 +8,8 @@ export interface ReviewRequest {
   readonly body: string;
   /** A link the content must include, e.g. the article a post promotes. */
   readonly link?: string;
+  /** The language and market the draft should be written for; US English when absent. */
+  readonly locale?: ContentLocale;
 }
 
 export interface ReviewIssue {
