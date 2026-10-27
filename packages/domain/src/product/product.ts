@@ -15,6 +15,10 @@ export interface Product {
   readonly autopilotSince: Date | null;
   /** The language and market its articles and posts are written for. */
   readonly locale: ContentLocale;
+  /** Set while the product is archived: kept, but out of the plan's slots and the switcher. */
+  readonly archivedAt: Date | null;
+  /** Its place for the plan's product slots; the earliest fill them first. */
+  readonly slotOrder: Date;
 }
 
 export const createProduct = (input: {
@@ -33,6 +37,8 @@ export const createProduct = (input: {
       createdAt: input.now,
       autopilotSince: null,
       locale: defaultLocale,
+      archivedAt: null,
+      slotOrder: input.now,
     })),
   );
 

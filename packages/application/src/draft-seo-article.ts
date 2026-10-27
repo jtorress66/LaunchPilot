@@ -22,6 +22,7 @@ import type {
   SubscriptionRepository,
   TaskRepository,
 } from "@nuvantre/ports";
+import { ensureActive } from "./active-product";
 import { loadApprovedBrief } from "./approved-brief";
 import { checkContentAllowance } from "./content-allowance";
 import type { UseCaseError } from "./errors";
@@ -53,6 +54,8 @@ export class DraftSeoArticle {
     const owned = await loadOwnedTask(this.deps, input.workspace, input.taskId);
     if (!owned.ok) return owned;
     const { task, product } = owned.value;
+    const active = await ensureActive(this.deps, product);
+    if (!active.ok) return active;
     const brief = await loadApprovedBrief(this.deps.briefs, product.id);
     if (!brief.ok) return brief;
 

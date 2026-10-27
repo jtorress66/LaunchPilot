@@ -11,8 +11,10 @@ import type {
   ContentItemRepository,
   ProductRepository,
   PublishError,
+  SubscriptionRepository,
   TaskRepository,
 } from "@nuvantre/ports";
+import { ensureActive } from "./active-product";
 import type { UseCaseError } from "./errors";
 import { completeTaskOf } from "./complete-task";
 import { loadOwnedItem } from "./owned-content";
@@ -28,6 +30,7 @@ export class PublishContentItem {
     private readonly deps: {
       readonly contentItems: ContentItemRepository;
       readonly products: ProductRepository;
+      readonly subscriptions: SubscriptionRepository;
       readonly tasks: TaskRepository;
       readonly publishers: PublisherRegistry;
       readonly clock: Clock;
@@ -40,7 +43,9 @@ export class PublishContentItem {
   }): Promise<Result<ContentItem, UseCaseError | PublishError>> {
     const owned = await loadOwnedItem(this.deps, input.workspace, input.itemId);
     if (!owned.ok) return owned;
-    const { item } = owned.value;
+    const { item, product } = owned.value;
+    const active = await ensureActive(this.deps, product);
+    if (!active.ok) return active;
     const publishable = toPublishable(item);
     if (!publishable.ok) return publishable;
     const publisher = await this.deps.publishers.forProduct(item.channel, item.productId);

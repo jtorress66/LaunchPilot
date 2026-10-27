@@ -15,6 +15,7 @@ import {
   postForm,
   productForm,
   scheduleForm,
+  swapProductForm,
   seedKeywordsForm,
   signUpForm,
   upgradeForm,
@@ -170,6 +171,19 @@ describe("form parsing", () => {
       ok: false,
       error: { platform: "Choose the platform your blog runs on" },
     });
+  });
+
+  it("reads which active product to pause when making another one active", () => {
+    expect(parseForm(swapProductForm, form({ pause: "prod_1" }))).toEqual({
+      ok: true,
+      value: { pause: "prod_1" },
+    });
+    for (const pause of ["", "../etc", "a b"]) {
+      expect(parseForm(swapProductForm, form({ pause }))).toEqual({
+        ok: false,
+        error: { pause: "Choose which product to pause" },
+      });
+    }
   });
 
   it("reads one to five seed topics, one per line", () => {

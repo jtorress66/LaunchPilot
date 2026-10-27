@@ -24,12 +24,13 @@ import type {
   IdGenerator,
   MetricsSource,
   ProductRepository,
+  SubscriptionRepository,
   WeeklyReportAnalyst,
   WeeklyReportRepository,
 } from "@nuvantre/ports";
 import { failure, type UseCaseError } from "./errors";
 import type { MetricsSourceRegistry } from "./metrics-source-registry";
-import { loadOwnedProduct } from "./owned-product";
+import { ensureActive, loadActiveProduct } from "./active-product";
 
 /** Builds, annotates and saves one product's report for one week. Shared by the use cases below. */
 export class WeeklyReportBuilder {
@@ -90,6 +91,7 @@ export class GenerateWeeklyReport {
   constructor(
     private readonly deps: {
       readonly products: ProductRepository;
+      readonly subscriptions: SubscriptionRepository;
       readonly analyticsConnections: AnalyticsConnectionRepository;
       readonly builder: WeeklyReportBuilder;
       readonly clock: Clock;
@@ -100,7 +102,7 @@ export class GenerateWeeklyReport {
     workspace: Workspace;
     productId: ProductId;
   }): Promise<Result<WeeklyReport, UseCaseError>> {
-    const product = await loadOwnedProduct(this.deps.products, input.workspace, input.productId);
+    const product = await loadActiveProduct(this.deps, input.workspace, input.productId);
     if (!product.ok) return product;
     const connections = await this.deps.analyticsConnections.listByProduct(product.value.id);
     if (connections.length === 0) {
@@ -123,6 +125,7 @@ export class BuildDueReports {
   constructor(
     private readonly deps: {
       readonly products: ProductRepository;
+      readonly subscriptions: SubscriptionRepository;
       readonly analyticsConnections: AnalyticsConnectionRepository;
       readonly weeklyReports: WeeklyReportRepository;
       readonly builder: WeeklyReportBuilder;
@@ -144,6 +147,10 @@ export class BuildDueReports {
       if (built >= MAX_PER_RUN) continue;
       const product = await this.deps.products.findById(id);
       if (!product) continue;
+      if (!(await ensureActive(this.deps, product)).ok) {
+        skipped += 1;
+        continue;
+      }
       await this.deps.builder.build(product, week);
       built += 1;
     }

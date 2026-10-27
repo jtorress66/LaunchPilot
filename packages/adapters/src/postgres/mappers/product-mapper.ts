@@ -17,6 +17,8 @@ export const productMapper = {
     created_at: product.createdAt,
     autopilot_since: product.autopilotSince,
     locale: formatLocale(product.locale),
+    archived_at: product.archivedAt,
+    slot_order: product.slotOrder,
   }),
   fromRow: (row: ProductRow): Product => {
     const url = parseHttpUrl(row.url);
@@ -31,6 +33,8 @@ export const productMapper = {
       createdAt: row.created_at,
       autopilotSince: row.autopilot_since,
       locale: locale.value,
+      archivedAt: row.archived_at,
+      slotOrder: row.slot_order,
     };
   },
 };

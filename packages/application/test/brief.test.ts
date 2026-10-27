@@ -256,7 +256,9 @@ describe("GetDashboard brief status", () => {
   it("shows whether each product's brief is missing, a draft or approved", async () => {
     const { world, workspace, user, product } = await withProduct();
     const status = async () =>
-      (await new GetDashboard(world).execute(workspace)).briefStatus[product.id];
+      (await new GetDashboard(world).execute(workspace)).cards.find(
+        (card) => card.product.id === product.id,
+      )?.briefStatus;
     expect(await status()).toBe("none");
     await generate(world, workspace, product);
     expect(await status()).toBe("draft");

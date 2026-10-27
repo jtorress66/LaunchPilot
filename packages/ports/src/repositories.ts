@@ -91,6 +91,24 @@ export interface ContentItemRepository extends Repository<ContentItemId, Content
   listByProduct(productId: ProductId): Promise<readonly ContentItem[]>;
   /** Items of these products created at or after `since`, for monthly plan limits. */
   countCreatedSince(productIds: readonly ProductId[], since: Date): Promise<number>;
+  /** How many items each product has in each status; statuses with none are left out. */
+  countByStatus(productIds: readonly ProductId[]): Promise<readonly StatusCount[]>;
+  /** How many items each product published at or after `since`; products with none are left out. */
+  countPublishedSince(
+    productIds: readonly ProductId[],
+    since: Date,
+  ): Promise<readonly ProductCount[]>;
+}
+
+export interface StatusCount {
+  readonly productId: ProductId;
+  readonly status: ContentItemStatus;
+  readonly count: number;
+}
+
+export interface ProductCount {
+  readonly productId: ProductId;
+  readonly count: number;
 }
 
 export interface ChannelConnectionRepository {

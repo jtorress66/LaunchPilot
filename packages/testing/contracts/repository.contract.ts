@@ -149,6 +149,17 @@ export function describeProductRepositoryContract(
       expect((await repo.findById(prod(1)))?.autopilotSince).toEqual(since);
     });
 
+    it("keeps when a product was archived and its place in the plan's slots", async () => {
+      const repo = await make();
+      const product = {
+        ...aProduct({ id: prod(1) }),
+        archivedAt: new Date("2026-10-20T10:00:00.000Z"),
+        slotOrder: new Date("2026-10-21T11:00:00.000Z"),
+      };
+      await repo.save(product);
+      expect(await repo.findById(prod(1))).toEqual(product);
+    });
+
     it("keeps the language and market the product writes for", async () => {
       const repo = await make();
       const product = { ...aProduct({ id: prod(1) }), locale: { language: "pt", market: "BR" } };
@@ -342,6 +353,70 @@ export function describeContentItemRepositoryContract(
         3,
       );
       expect(await repo.countCreatedSince([], since)).toBe(0);
+    });
+
+    it("counts the items of each given product by status", async () => {
+      const repo = await make();
+      await Promise.all(
+        [
+          aContentItem({ id: contentItemId("item_1"), status: "in_review" }),
+          aContentItem({ id: contentItemId("item_2"), status: "in_review" }),
+          aContentItem({ id: contentItemId("item_3"), status: "scheduled" }),
+          aContentItem({
+            id: contentItemId("item_4"),
+            productId: productId("prod_2"),
+            status: "in_review",
+          }),
+        ].map((i) => repo.save(i)),
+      );
+      const counts = await repo.countByStatus([productId("prod_1"), productId("prod_2")]);
+      const byKey = (list: typeof counts) =>
+        [...list].sort((x, y) =>
+          `${x.productId}${x.status}`.localeCompare(`${y.productId}${y.status}`),
+        );
+      expect(byKey(counts)).toEqual([
+        { productId: "prod_1", status: "in_review", count: 2 },
+        { productId: "prod_1", status: "scheduled", count: 1 },
+        { productId: "prod_2", status: "in_review", count: 1 },
+      ]);
+      expect(await repo.countByStatus([productId("prod_2")])).toEqual([
+        { productId: "prod_2", status: "in_review", count: 1 },
+      ]);
+      expect(await repo.countByStatus([])).toEqual([]);
+    });
+
+    it("counts each given product's items published since a date", async () => {
+      const repo = await make();
+      const published = (id: string, product: string, at: string) => {
+        const item = aContentItem({
+          id: contentItemId(id),
+          productId: productId(product),
+          status: "published",
+        });
+        if (!item.publication) throw new Error("fixture has no publication");
+        return { ...item, publication: { ...item.publication, at: new Date(at) } };
+      };
+      await Promise.all(
+        [
+          published("item_1", "prod_1", "2026-02-28T23:59:59.000Z"),
+          published("item_2", "prod_1", "2026-03-01T00:00:00.000Z"),
+          published("item_3", "prod_1", "2026-03-20T00:00:00.000Z"),
+          published("item_4", "prod_2", "2026-03-05T00:00:00.000Z"),
+        ].map((i) => repo.save(i)),
+      );
+      const since = new Date("2026-03-01T00:00:00.000Z");
+      const counts = await repo.countPublishedSince(
+        [productId("prod_1"), productId("prod_2")],
+        since,
+      );
+      expect([...counts].sort((x, y) => x.productId.localeCompare(y.productId))).toEqual([
+        { productId: "prod_1", count: 2 },
+        { productId: "prod_2", count: 1 },
+      ]);
+      expect(await repo.countPublishedSince([productId("prod_2")], since)).toEqual([
+        { productId: "prod_2", count: 1 },
+      ]);
+      expect(await repo.countPublishedSince([], since)).toEqual([]);
     });
   });
 }

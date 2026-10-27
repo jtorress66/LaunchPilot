@@ -58,6 +58,7 @@ import { loadApprovedBrief } from "./approved-brief";
 import { remainingContentAllowance } from "./content-allowance";
 import type { DrafterRegistry } from "./drafter-registry";
 import type { UseCaseError } from "./errors";
+import { ensureActive, loadActiveProduct } from "./active-product";
 import { loadOwnedProduct } from "./owned-product";
 
 const KEYWORD_IDEAS = 50;
@@ -306,6 +307,7 @@ export class RunAutopilotNow {
   constructor(
     private readonly deps: {
       readonly products: ProductRepository;
+      readonly subscriptions: SubscriptionRepository;
       readonly loop: RunWeeklyLoop;
       readonly clock: Clock;
     },
@@ -315,7 +317,7 @@ export class RunAutopilotNow {
     workspace: Workspace;
     productId: ProductId;
   }): Promise<Result<AutopilotRun, UseCaseError>> {
-    const product = await loadOwnedProduct(this.deps.products, input.workspace, input.productId);
+    const product = await loadActiveProduct(this.deps, input.workspace, input.productId);
     if (!product.ok) return product;
     return ok(
       await this.deps.loop.execute({
@@ -337,6 +339,7 @@ export class RunDueLoops {
   constructor(
     private readonly deps: {
       readonly products: ProductRepository;
+      readonly subscriptions: SubscriptionRepository;
       readonly autopilotRuns: AutopilotRunRepository;
       readonly loop: RunWeeklyLoop;
       readonly clock: Clock;
@@ -350,7 +353,10 @@ export class RunDueLoops {
     let ran = 0;
     let skipped = 0;
     for (const product of await this.deps.products.listWithAutopilot()) {
-      if (await this.deps.autopilotRuns.findByProductAndWeek(product.id, week.start)) {
+      if (
+        (await this.deps.autopilotRuns.findByProductAndWeek(product.id, week.start)) ||
+        !(await ensureActive(this.deps, product)).ok
+      ) {
         skipped += 1;
         continue;
       }
@@ -364,7 +370,11 @@ export class RunDueLoops {
 
 export class SetAutopilot {
   constructor(
-    private readonly deps: { readonly products: ProductRepository; readonly clock: Clock },
+    private readonly deps: {
+      readonly products: ProductRepository;
+      readonly subscriptions: SubscriptionRepository;
+      readonly clock: Clock;
+    },
   ) {}
 
   async execute(input: {
@@ -374,6 +384,10 @@ export class SetAutopilot {
   }): Promise<Result<Product, UseCaseError>> {
     const product = await loadOwnedProduct(this.deps.products, input.workspace, input.productId);
     if (!product.ok) return product;
+    if (input.enabled) {
+      const active = await ensureActive(this.deps, product.value);
+      if (!active.ok) return active;
+    }
     const changed = input.enabled
       ? enableAutopilot(product.value, this.deps.clock.now())
       : disableAutopilot(product.value);

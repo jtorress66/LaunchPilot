@@ -1,7 +1,7 @@
 import { planIds, plans } from "@nuvantre/domain";
 import type { Metadata } from "next";
 import { getAppContainer } from "../../../container";
-import { upgradeAction } from "../../_lib/actions";
+import { cancelLocalPlanAction, upgradeAction } from "../../_lib/actions";
 import { requireUser } from "../../_lib/auth";
 
 export const metadata: Metadata = { title: "Billing — Nuvantre" };
@@ -10,6 +10,10 @@ const notices: Record<string, { tone: string; text: string }> = {
   success: {
     tone: "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200",
     text: "Payment received. Your plan is updated as soon as the payment provider confirms it.",
+  },
+  canceled_plan: {
+    tone: "border-slate-300 bg-slate-50 text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200",
+    text: "Plan cancelled (test mode). You are back on Free.",
   },
   canceled: {
     tone: "border-slate-300 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300",
@@ -38,6 +42,16 @@ export default async function BillingPage({
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
           You are on the <strong>{dashboard.plan.name}</strong> plan. Cancel any time.
         </p>
+        {getAppContainer().localCheckout && dashboard.plan.priceMonthlyUsd > 0 ? (
+          <form action={cancelLocalPlanAction} className="mt-3">
+            <button
+              type="submit"
+              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-900"
+            >
+              Cancel plan (test)
+            </button>
+          </form>
+        ) : null}
       </div>
       {notice ? (
         <p role="status" className={`rounded-lg border px-4 py-3 text-sm ${notice.tone}`}>

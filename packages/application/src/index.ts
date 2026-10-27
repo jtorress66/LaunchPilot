@@ -4,6 +4,7 @@ export * from "./log-in";
 export * from "./log-out";
 export * from "./authenticate-session";
 export * from "./create-product";
+export * from "./product-lineup";
 export * from "./get-dashboard";
 export * from "./start-checkout";
 export * from "./handle-billing-webhook";

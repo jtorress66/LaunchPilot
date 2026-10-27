@@ -13,6 +13,6 @@ export const createPublishDueJob = ({ publishDue, log }: PublishDueJobDeps): Pub
   createLoggedJob({
     event: "worker.publish_due",
     work: () => publishDue.execute(),
-    worthLogging: (s) => s.published + s.retrying + s.failed > 0,
+    worthLogging: (s) => s.published + s.retrying + s.failed + s.held > 0,
     log,
   });

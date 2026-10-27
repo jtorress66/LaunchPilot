@@ -15,13 +15,15 @@ import type {
   Clock,
   IdGenerator,
   ProductRepository,
+  SubscriptionRepository,
   SiteCrawler,
 } from "@nuvantre/ports";
 import { failure, type UseCaseError } from "./errors";
-import { loadOwnedProduct } from "./owned-product";
+import { loadActiveProduct } from "./active-product";
 
 export interface GenerateBriefDeps {
   readonly products: ProductRepository;
+  readonly subscriptions: SubscriptionRepository;
   readonly briefs: BriefRepository;
   readonly crawler: SiteCrawler;
   readonly drafter: BriefDrafter;
@@ -46,7 +48,7 @@ export class GenerateBrief {
     workspace: Workspace;
     productId: ProductId;
   }): Promise<Result<GeneratedBrief, UseCaseError | BriefDraftError>> {
-    const product = await loadOwnedProduct(this.deps.products, input.workspace, input.productId);
+    const product = await loadActiveProduct(this.deps, input.workspace, input.productId);
     if (!product.ok) return product;
 
     const site = await this.deps.crawler.crawl(product.value.url);

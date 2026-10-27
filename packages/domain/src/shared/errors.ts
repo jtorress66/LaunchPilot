@@ -16,7 +16,10 @@ export type DomainErrorCode =
   | "invalid_locale"
   | "invalid_slug"
   | "seo_not_supported"
-  | "unknown_platform";
+  | "unknown_platform"
+  | "product_paused"
+  | "product_archived"
+  | "no_free_slot";
 
 export interface DomainError {
   readonly code: DomainErrorCode;

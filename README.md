@@ -62,6 +62,8 @@ through two ports, `CheckoutProvider` and `BillingWebhookVerifier`:
 
 - `BILLING_PROVIDER=local` (development and tests only; refused unless `APP_ENV` is `development`
   or `test`): an in-app test checkout that sends an HMAC-signed webhook through the same endpoint.
+  Its billing page also offers **Cancel plan (test)**, which sends a cancellation webhook, to try a
+  downgrade.
 - `BILLING_PROVIDER=stripe`: Stripe Checkout (subscription mode) plus signed webhooks at
   `POST /api/billing/webhook`. Prices are found by lookup key, so no price ids are configured.
 
@@ -78,6 +80,33 @@ through two ports, `CheckoutProvider` and `BillingWebhookVerifier`:
 **CI secret:** the `e2e-stripe` job buys a plan on real Stripe test-mode Checkout. Add your test key
 under GitHub → repository **Settings → Secrets and variables → Actions → New repository secret**,
 name `STRIPE_SECRET_KEY`. Until then that job fails with a message saying the secret is missing.
+
+### Several products
+
+A workspace holds as many products as its plan allows. Archived products don't count.
+
+- **Switching:** every product page has a **Product** switcher. It keeps the section, so a
+  product's SEO page leads to the next product's SEO page. Tabs move between Brief, SEO, Social,
+  Launch and Analytics.
+- **Dashboard:** one card per product, showing:
+  - whether the product is active or paused, and its brief status
+  - items waiting for approval, scheduled, and published this month
+  - whether a blog is connected, and whether autopilot is on
+  - visitors in the latest weekly report
+- **Paused:** when a workspace has more products than its plan allows (after a downgrade, for
+  example), the products after the plan's limit are paused. By default the oldest stay active.
+  - A paused product can be read, edited and approved.
+  - Nothing is drafted, published or scheduled for it, and its autopilot and weekly reports don't
+    run. Every refusal says why and how to free a slot.
+  - Its due posts stay scheduled (the publish job counts them as `held`) and go out once it is
+    active again.
+  - **Make active** swaps a paused product with the active product the founder picks.
+- **Archived:** archiving puts a product aside. Its work is kept, it frees a slot and it leaves the
+  switcher. **Restore** brings it back, if the plan has a free slot.
+
+Which products are active is worked out from the plan each time, not stored: `allocateSlots` in
+`packages/domain/src/product/product-slots.ts`, enforced by `loadActiveProduct` and `ensureActive`
+in `packages/application/src/active-product.ts`.
 
 ### Onboarding and the Product Brief
 

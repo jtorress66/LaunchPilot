@@ -14,7 +14,7 @@ export const checkCanCreateProduct = (
     : err(
         domainError(
           "plan_limit_reached",
-          `The ${name} plan includes ${products(limits.products)}. Upgrade to add more.`,
+          `The ${name} plan includes ${products(limits.products)}. Upgrade or archive one to add more.`,
         ),
       );
 };

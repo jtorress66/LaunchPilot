@@ -1,9 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { CreateProduct, GetDashboard } from "../src";
 import { makeWorld, signedUp, type World } from "./world";
-import { FakeWebhookVerifier, InMemorySubscriptionRepository } from "@nuvantre/testing";
+import {
+  aBlogConnection,
+  aContentItem,
+  aProduct,
+  aWeeklyReport,
+  FakeWebhookVerifier,
+  InMemorySubscriptionRepository,
+} from "@nuvantre/testing";
 import { HandleBillingWebhook } from "../src";
-import type { Workspace } from "@nuvantre/domain";
+import { contentItemId, productId, type Workspace } from "@nuvantre/domain";
 
 const upgrade = async (world: World, workspace: Workspace, plan: "starter" | "growth") => {
   const { payload, signature } = FakeWebhookVerifier.sign({
@@ -54,7 +61,7 @@ describe("CreateProduct", () => {
       ok: false,
       error: {
         code: "plan_limit_reached",
-        message: "The Free plan includes 1 product. Upgrade to add more.",
+        message: "The Free plan includes 1 product. Upgrade or archive one to add more.",
       },
     });
   });
@@ -90,7 +97,66 @@ describe("GetDashboard", () => {
       usage: { products: 1 },
       canAddProduct: false,
     });
-    expect(dashboard.products.map((p) => p.name)).toEqual(["Acme"]);
+    expect(dashboard.cards.map((card) => card.product.name)).toEqual(["Acme"]);
+  });
+
+  it("shows a card per product with its standing and what is going on", async () => {
+    const world = makeWorld();
+    const { workspace } = await signedUp(world);
+    const product = (id: string, day: number) =>
+      aProduct({
+        id: productId(id),
+        workspaceId: workspace.id,
+        name: id,
+        createdAt: new Date(Date.UTC(2026, 3, day)),
+      });
+    const [a, b, c] = [product("A", 1), product("B", 2), product("C", 3)];
+    await Promise.all(
+      [a, { ...b }, { ...c, archivedAt: new Date(Date.UTC(2026, 3, 9)) }].map((p) =>
+        world.products.save(p),
+      ),
+    );
+    const item = (id: string, status: "in_review" | "scheduled" | "published") =>
+      world.contentItems.save(aContentItem({ id: contentItemId(id), productId: a.id, status }));
+    await item("i1", "in_review");
+    await item("i2", "in_review");
+    await item("i3", "scheduled");
+    await world.contentItems.save({
+      ...aContentItem({ id: contentItemId("i4"), productId: a.id, status: "published" }),
+      ...{
+        publication: { externalUrl: "https://blog.acme.dev/a" as never, at: world.clock.now() },
+      },
+    });
+    await world.connections.save(aBlogConnection({ productId: a.id }));
+    const report = aWeeklyReport({ productId: a.id });
+    await world.weeklyReports.save(report);
+    const visitors = report.metrics.find((m) => m.name === "visitors");
+
+    const dashboard = await new GetDashboard(world).execute(workspace);
+    expect(dashboard.usage.products).toBe(2);
+    expect(dashboard.cards).toEqual([
+      {
+        product: a,
+        standing: "active",
+        briefStatus: "none",
+        waitingForApproval: 2,
+        scheduled: 1,
+        publishedThisMonth: 1,
+        blogConnected: true,
+        visitors: { value: visitors?.value, change: visitors?.change },
+      },
+      {
+        product: b,
+        standing: "paused",
+        briefStatus: "none",
+        waitingForApproval: 0,
+        scheduled: 0,
+        publishedThisMonth: 0,
+        blogConnected: false,
+        visitors: null,
+      },
+    ]);
+    expect(dashboard.archived.map((p) => p.id)).toEqual(["C"]);
   });
 
   it("reflects an upgrade", async () => {
