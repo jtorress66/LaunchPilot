@@ -1,0 +1,15 @@
+{
+  "errors": [
+    {
+      "message": "Validation error, cannot save post.",
+      "context": "Value in [posts.title] exceeds maximum length of 255 characters.",
+      "type": "ValidationError",
+      "details": null,
+      "property": "title",
+      "help": null,
+      "code": null,
+      "id": "1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "ghostErrorCode": null
+    }
+  ]
+}

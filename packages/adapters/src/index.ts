@@ -33,6 +33,9 @@ export {
   type BlogPublisherFactories,
 } from "./blog/blog-publisher-provider";
 export { BlogVerifierRegistry } from "./blog/blog-verifier-registry";
+export type { BlogNetwork } from "./blog/blog-http";
+export { GhostConnectionVerifier } from "./ghost/ghost-connection-verifier";
+export { GhostPublisher, ghostPublisherFactory } from "./ghost/ghost-publisher";
 export { DataForSeoKeywordProvider } from "./dataforseo/dataforseo-keyword-provider";
 export { SeedKeywordProvider } from "./offline/seed-keyword-provider";
 export type { ZernioOptions } from "./zernio/api";
