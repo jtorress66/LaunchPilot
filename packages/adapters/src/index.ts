@@ -26,8 +26,13 @@ export {
 } from "./crawler/http-site-crawler";
 export { AesGcmTokenCipher } from "./crypto/aes-gcm-token-cipher";
 export { WordPressConnectionVerifier } from "./wordpress/wordpress-connection-verifier";
-export { WordPressPublisher } from "./wordpress/wordpress-publisher";
-export { WordPressPublisherProvider } from "./wordpress/wordpress-publisher-provider";
+export { WordPressPublisher, wordPressPublisherFactory } from "./wordpress/wordpress-publisher";
+export {
+  BlogPublisherProvider,
+  type BlogPublisherFactory,
+  type BlogPublisherFactories,
+} from "./blog/blog-publisher-provider";
+export { BlogVerifierRegistry } from "./blog/blog-verifier-registry";
 export { DataForSeoKeywordProvider } from "./dataforseo/dataforseo-keyword-provider";
 export { SeedKeywordProvider } from "./offline/seed-keyword-provider";
 export type { ZernioOptions } from "./zernio/api";

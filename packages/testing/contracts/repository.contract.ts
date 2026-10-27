@@ -378,5 +378,18 @@ export function describeChannelConnectionRepositoryContract(
       await repo.save(replacement);
       expect(await repo.findByProductAndChannel(productId("prod_1"), "blog")).toEqual(replacement);
     });
+
+    it("keeps the platform and its settings when a product switches platform", async () => {
+      const repo = await make();
+      await repo.save(aBlogConnection());
+      const shopify = aBlogConnection({
+        id: channelConnectionId("conn_shop"),
+        siteUrl: "https://acme.myshopify.com",
+        platform: "shopify",
+        settings: { blogId: "gid://shopify/Blog/1", blogHandle: "news" },
+      });
+      await repo.save(shopify);
+      expect(await repo.findByProductAndChannel(productId("prod_1"), "blog")).toEqual(shopify);
+    });
   });
 }

@@ -1,4 +1,4 @@
-import { err, ok, type Result } from "@nuvantre/domain";
+import { ok, type Result } from "@nuvantre/domain";
 import type {
   BlogConnectionVerifier,
   BlogCredentials,
@@ -6,7 +6,8 @@ import type {
   VerifiedBlog,
 } from "@nuvantre/ports";
 import { z } from "zod";
-import { httpGet, safeRequest, type HttpFailure } from "../net/safe-http";
+import { connectFailure as fromHttpFailure, connectionError as failure } from "../blog/blog-http";
+import { httpGet, safeRequest } from "../net/safe-http";
 import { basicAuth, httpOptions, parseJson, restUrl, type WordPressNetwork } from "./rest";
 
 const siteIndex = z.object({
@@ -19,23 +20,16 @@ const currentUser = z.object({
   capabilities: z.record(z.string(), z.unknown()).default({}),
 });
 
-const failure = (code: ConnectionError["code"], message: string, retryable = false) =>
-  err<ConnectionError>({ code, message, retryable });
-
-const fromHttpFailure = (error: HttpFailure) =>
-  error.reason === "blocked"
-    ? failure("blocked", "That address cannot be used for a blog")
-    : failure("unreachable", "The blog could not be reached", true);
-
 /** Checks a WordPress site and its Application Password before Nuvantre stores them. */
 export class WordPressConnectionVerifier implements BlogConnectionVerifier {
   constructor(private readonly network: WordPressNetwork) {}
 
   async verify({
     siteUrl,
-    username,
+    settings,
     secret,
   }: BlogCredentials): Promise<Result<VerifiedBlog, ConnectionError>> {
+    const username = settings.username ?? "";
     const options = httpOptions(this.network);
     const indexResponse = await httpGet(restUrl(siteUrl, "/"), options);
     if (!indexResponse.ok) return fromHttpFailure(indexResponse.error);
@@ -46,7 +40,7 @@ export class WordPressConnectionVerifier implements BlogConnectionVerifier {
       !index.data.namespaces.includes("wp/v2")
     ) {
       return failure(
-        "not_wordpress",
+        "wrong_platform",
         "This address is not a WordPress site with the REST API enabled",
       );
     }
@@ -66,7 +60,7 @@ export class WordPressConnectionVerifier implements BlogConnectionVerifier {
     }
     const user = currentUser.safeParse(parseJson(me.value.body));
     if (me.value.status !== 200 || !user.success) {
-      return failure("not_wordpress", "WordPress answered in an unexpected way", true);
+      return failure("wrong_platform", "WordPress answered in an unexpected way", true);
     }
     if (user.data.capabilities.publish_posts !== true) {
       return failure(
@@ -74,6 +68,6 @@ export class WordPressConnectionVerifier implements BlogConnectionVerifier {
         "This WordPress user cannot publish posts. Use an Editor or Administrator account.",
       );
     }
-    return ok({ siteName: index.data.name, siteUrl: home });
+    return ok({ siteName: index.data.name, siteUrl: home, settings: { username } });
   }
 }
