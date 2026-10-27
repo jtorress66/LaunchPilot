@@ -1,0 +1,14 @@
+{
+  "message": "INVALID_ARGUMENT: draftPost.title must not be empty",
+  "details": {
+    "validationError": {
+      "fieldViolations": [
+        {
+          "field": "draftPost.title",
+          "description": "must not be empty",
+          "violatedRule": "REQUIRED_FIELD"
+        }
+      ]
+    }
+  }
+}

@@ -42,6 +42,9 @@ export { ShopifyPublisher, shopifyPublisherFactory } from "./shopify/shopify-pub
 export type { WebflowNetwork } from "./webflow/webflow-api";
 export { WebflowConnectionVerifier } from "./webflow/webflow-connection-verifier";
 export { WebflowPublisher, webflowPublisherFactory } from "./webflow/webflow-publisher";
+export type { WixNetwork } from "./wix/wix-api";
+export { WixConnectionVerifier } from "./wix/wix-connection-verifier";
+export { WixPublisher, wixPublisherFactory } from "./wix/wix-publisher";
 export { DataForSeoKeywordProvider } from "./dataforseo/dataforseo-keyword-provider";
 export { SeedKeywordProvider } from "./offline/seed-keyword-provider";
 export type { ZernioOptions } from "./zernio/api";
