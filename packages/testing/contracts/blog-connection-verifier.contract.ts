@@ -18,9 +18,11 @@ export function describeBlogConnectionVerifierContract(
       if (!result.ok) throw new Error(result.error.message);
       expect(result.value.siteName.trim()).not.toBe("");
       expect(result.value.siteUrl).toMatch(/^https?:\/\//);
+      // Whatever the founder typed is kept, alongside anything the verifier looked up.
+      expect(result.value.settings).toMatchObject(valid.settings);
     });
 
-    it("rejects a wrong password as invalid_credentials, without echoing it", async () => {
+    it("rejects a wrong key or password as invalid_credentials, without echoing it", async () => {
       const { verifier, valid } = await make();
       const wrong = { ...valid, secret: "wrong-password-1234" };
       const result = await verifier.verify(wrong);

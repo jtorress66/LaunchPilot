@@ -14,6 +14,7 @@ import {
   toPublishable,
   transition,
   type Actor,
+  type BlogPlatform,
   type Brief,
   type BriefContent,
   type BriefId,
@@ -217,15 +218,22 @@ export const aPublishableItem = (
   unwrap(toPublishable(aContentItem({ id: contentItemId(id), channel, status: "approved" })));
 
 export const aBlogConnection = (
-  overrides: Partial<{ id: ChannelConnectionId; productId: ProductId; siteUrl: string }> = {},
+  overrides: Partial<{
+    id: ChannelConnectionId;
+    productId: ProductId;
+    siteUrl: string;
+    platform: BlogPlatform;
+    settings: Readonly<Record<string, string>>;
+  }> = {},
 ): ChannelConnection =>
   unwrap(
     createBlogConnection({
       id: overrides.id ?? channelConnectionId("conn_1"),
       productId: overrides.productId ?? productId("prod_1"),
       siteUrl: overrides.siteUrl ?? "https://blog.acme.dev",
+      platform: overrides.platform ?? "wordpress",
       siteName: "Acme Blog",
-      username: "admin",
+      settings: overrides.settings ?? { username: "admin" },
       encryptedSecret: "v1:fixture-ciphertext",
       now: fixtureNow,
     }),

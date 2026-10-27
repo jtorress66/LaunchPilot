@@ -27,6 +27,7 @@ export * from "./seo/content-locale";
 export * from "./seo/slug";
 export * from "./seo/internal-links";
 export * from "./connections/channel-connection";
+export * from "./connections/blog-platform";
 export * from "./social/post-angles";
 export * from "./social/social-profile";
 export * from "./calendar/calendar";
