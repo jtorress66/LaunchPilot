@@ -10,7 +10,11 @@ const runtime = (lines: string[]) => ({
   clock: new FixedClock(new Date("2026-10-28T09:00:00.000Z")),
 });
 
-type Built = { built: number; skipped: number; reports: readonly WeeklyReport[] };
+interface Built {
+  built: number;
+  skipped: number;
+  reports: readonly WeeklyReport[];
+}
 
 const setup = (
   run: () => Promise<Built>,
