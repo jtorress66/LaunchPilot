@@ -22,6 +22,7 @@ import {
   workspaceId,
 } from "@nuvantre/domain";
 import { describe, expect, it } from "vitest";
+import { aClientWorkspace } from "../src/fixtures/agency";
 import {
   aBlogConnection,
   aBrief,
@@ -107,6 +108,36 @@ export function describeWorkspaceRepositoryContract(
       await repo.save(mine);
       expect(await repo.findByOwner(userId("user_founder"))).toEqual(mine);
       expect(await repo.findByOwner(userId("user_nobody"))).toBeUndefined();
+    });
+
+    it("finds a founder's own workspace, never one of their agency's clients", async () => {
+      const repo = await make();
+      const agency = aWorkspace({ id: ws(1), ownerId: userId("user_founder") });
+      await repo.save(agency);
+      await repo.save(aClientWorkspace({ id: ws(2), agency }));
+      expect(await repo.findByOwner(userId("user_founder"))).toEqual(agency);
+    });
+
+    it("lists an agency's clients, oldest first, and only theirs", async () => {
+      const repo = await make();
+      const agency = aWorkspace({ id: ws(1) });
+      const other = aWorkspace({ id: ws(9), name: "Another agency" });
+      const first = aClientWorkspace({ id: ws(2), name: "Acme", agency });
+      const second = {
+        ...aClientWorkspace({ id: ws(3), name: "Globex", agency }),
+        createdAt: new Date(first.createdAt.getTime() + 1000),
+      };
+      for (const w of [
+        agency,
+        other,
+        second,
+        first,
+        aClientWorkspace({ id: ws(4), agency: other }),
+      ]) {
+        await repo.save(w);
+      }
+      expect(await repo.listClients(ws(1))).toEqual([first, second]);
+      expect(await repo.listClients(ws(2))).toEqual([]);
     });
   });
 }

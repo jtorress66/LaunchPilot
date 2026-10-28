@@ -4,6 +4,7 @@ export interface WorkspaceRow {
   id: string;
   owner_id: string;
   name: string;
+  agency_id: string | null;
   created_at: Date;
 }
 
@@ -128,6 +129,7 @@ export interface UserRow {
 export interface SessionRow {
   token_hash: string;
   user_id: string;
+  workspace_id: string | null;
   created_at: Date;
   expires_at: Date;
 }
@@ -218,7 +220,46 @@ export interface AutopilotRunRow {
   ran_at: Date;
 }
 
+export interface MembershipRow {
+  workspace_id: string;
+  user_id: string;
+  role: string;
+  created_at: Date;
+}
+
+export interface InvitationRow {
+  id: string;
+  workspace_id: string;
+  email: string;
+  role: string;
+  token_hash: string;
+  invited_by: string;
+  created_at: Date;
+  expires_at: Date;
+  accepted_at: Date | null;
+}
+
+export interface BrandingRow {
+  workspace_id: string;
+  sender_name: string;
+  accent_color: string;
+  logo_url: string | null;
+  reply_to: string;
+  footer: string | null;
+}
+
+export interface ReportRecipientsRow {
+  product_id: string;
+  /** jsonb: string[]; text on the way in. */
+  emails: string;
+  weekly: boolean;
+}
+
 export interface Database {
+  memberships: MembershipRow;
+  invitations: InvitationRow;
+  report_branding: BrandingRow;
+  report_recipients: ReportRecipientsRow;
   users: UserRow;
   sessions: SessionRow;
   subscriptions: SubscriptionRow;

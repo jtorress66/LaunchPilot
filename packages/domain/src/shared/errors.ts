@@ -19,7 +19,13 @@ export type DomainErrorCode =
   | "unknown_platform"
   | "product_paused"
   | "product_archived"
-  | "no_free_slot";
+  | "no_free_slot"
+  | "nested_client"
+  | "invalid_role"
+  | "invitation_expired"
+  | "invitation_used"
+  | "invitation_email_mismatch"
+  | "invalid_branding";
 
 export interface DomainError {
   readonly code: DomainErrorCode;

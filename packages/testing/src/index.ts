@@ -27,3 +27,5 @@ export { FakeWeeklyReportAnalyst } from "./fakes/fake-weekly-report-analyst";
 export * from "./fixtures/analytics";
 export * from "./fixtures/orchestration";
 export * from "./fakes/hardening-fakes";
+export * from "./fakes/agency-fakes";
+export * from "./fixtures/agency";

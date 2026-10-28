@@ -73,7 +73,17 @@ export class InMemoryWorkspaceRepository implements WorkspaceRepository {
   readonly save = this.base.save.bind(this.base);
 
   findByOwner(ownerId: UserId): Promise<Workspace | undefined> {
-    return Promise.resolve(this.base.store.filter((w) => w.ownerId === ownerId)[0]);
+    return Promise.resolve(
+      this.base.store.filter((w) => w.ownerId === ownerId && w.agencyId === null)[0],
+    );
+  }
+
+  listClients(agencyId: WorkspaceId): Promise<readonly Workspace[]> {
+    return Promise.resolve(
+      this.base.store
+        .filter((w) => w.agencyId === agencyId)
+        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()),
+    );
   }
 }
 

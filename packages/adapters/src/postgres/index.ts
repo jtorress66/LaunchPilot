@@ -20,6 +20,12 @@ import {
   PostgresWeeklyReportRepository,
 } from "./repositories/postgres-analytics-repositories";
 import { PostgresAutopilotRunRepository } from "./repositories/postgres-autopilot-run-repository";
+import {
+  PostgresBrandingRepository,
+  PostgresInvitationRepository,
+  PostgresMembershipRepository,
+  PostgresReportRecipientRepository,
+} from "./repositories/postgres-agency-repositories";
 import type { Database } from "./schema";
 
 export type { Database } from "./schema";
@@ -35,6 +41,10 @@ export { syncDirectories, type DirectorySyncOutcome } from "./sync-directories";
 export { loadSeedDirectories } from "./seeds/load-seed";
 export { parseSeedDirectories } from "./seeds/parse-seed";
 export {
+  PostgresBrandingRepository,
+  PostgresInvitationRepository,
+  PostgresMembershipRepository,
+  PostgresReportRecipientRepository,
   PostgresAutopilotRunRepository,
   PostgresAnalyticsConnectionRepository,
   PostgresWeeklyReportRepository,
@@ -73,4 +83,8 @@ export const createPostgresRepositories = (db: Kysely<Database>) => ({
   analyticsConnections: new PostgresAnalyticsConnectionRepository(db),
   weeklyReports: new PostgresWeeklyReportRepository(db),
   autopilotRuns: new PostgresAutopilotRunRepository(db),
+  memberships: new PostgresMembershipRepository(db),
+  invitations: new PostgresInvitationRepository(db),
+  branding: new PostgresBrandingRepository(db),
+  reportRecipients: new PostgresReportRecipientRepository(db),
 });

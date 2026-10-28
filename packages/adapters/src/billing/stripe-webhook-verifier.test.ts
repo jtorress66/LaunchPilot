@@ -67,6 +67,11 @@ describe("StripeWebhookVerifier mapping", () => {
     },
   );
 
+  it("recognises the Agency price", async () => {
+    const result = await deliver(subscriptionUpdate("active", "nuvantre_agency_monthly"));
+    expect(result).toMatchObject({ ok: true, value: { plan: "agency" } });
+  });
+
   it("reports a price whose lookup key it does not know as a configuration problem", async () => {
     const result = await deliver(subscriptionUpdate("active", "someone_elses_price"));
     expect(result).toMatchObject({ ok: false, error: { code: "misconfigured" } });

@@ -27,3 +27,5 @@ export type * from "./error-reporter";
 export type * from "./audit-trail";
 export type * from "./job-lock";
 export type * from "./readiness-probe";
+export type * from "./agency";
+export type * from "./mailer";
