@@ -34,6 +34,12 @@ export function AppHeader({
               Inbox{inboxCount > 0 ? ` (${String(inboxCount)})` : ""}
             </Link>
             <Link
+              href="/app/activity"
+              className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+            >
+              Activity
+            </Link>
+            <Link
               href="/app/billing"
               className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             >

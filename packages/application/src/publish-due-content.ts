@@ -3,6 +3,7 @@ import {
   transition,
   type ContentItem,
   type ContentItemEvent,
+  type Product,
   type ProductId,
 } from "@nuvantre/domain";
 import type {
@@ -13,10 +14,16 @@ import type {
   TaskRepository,
 } from "@nuvantre/ports";
 import { ensureActive } from "./active-product";
+import { recordAudit, type AuditDeps } from "./audit";
 import { completeTaskOf } from "./complete-task";
 import type { PublisherRegistry } from "./publisher-registry";
 
 const BATCH_SIZE = 20;
+
+interface Standing {
+  readonly product: Product | undefined;
+  readonly active: boolean;
+}
 const MAX_ATTEMPTS = 3;
 
 /** Counts only: the job's log never includes post text, URLs or secrets. */
@@ -45,7 +52,7 @@ export class PublishDueContent {
       readonly tasks: TaskRepository;
       readonly publishers: PublisherRegistry;
       readonly clock: Clock;
-    },
+    } & AuditDeps,
   ) {}
 
   async execute(): Promise<PublishRunSummary> {
@@ -55,21 +62,21 @@ export class PublishDueContent {
       .sort((a, b) => (a.publishAt?.getTime() ?? 0) - (b.publishAt?.getTime() ?? 0))
       .slice(0, BATCH_SIZE);
     const summary = { published: 0, retrying: 0, failed: 0, held: 0 };
-    const active = new Map<ProductId, boolean>();
+    const loaded = new Map<ProductId, Standing>();
     for (const item of due) {
-      if (!active.has(item.productId))
-        active.set(item.productId, await this.isActive(item.productId));
-      summary[active.get(item.productId) ? await this.publishOne(item) : "held"] += 1;
+      const standing = loaded.get(item.productId) ?? (await this.standingOf(item.productId));
+      loaded.set(item.productId, standing);
+      summary[standing.active ? await this.publishOne(item, standing.product) : "held"] += 1;
     }
     return summary;
   }
 
-  private async isActive(id: ProductId): Promise<boolean> {
+  private async standingOf(id: ProductId): Promise<Standing> {
     const product = await this.deps.products.findById(id);
-    return product ? (await ensureActive(this.deps, product)).ok : true;
+    return { product, active: product ? (await ensureActive(this.deps, product)).ok : true };
   }
 
-  private async publishOne(item: ContentItem): Promise<Outcome> {
+  private async publishOne(item: ContentItem, product: Product | undefined): Promise<Outcome> {
     const publishable = toPublishable(item);
     if (!publishable.ok) return this.fail(item, publishable.error.message);
     const publisher = await this.deps.publishers.forProduct(item.channel, item.productId);
@@ -78,6 +85,14 @@ export class PublishDueContent {
     if (receipt.ok) {
       await this.record(item, { type: "markPublished", externalUrl: receipt.value.externalUrl });
       await completeTaskOf(this.deps.tasks, item);
+      if (product) {
+        await recordAudit(this.deps, {
+          workspaceId: product.workspaceId,
+          actor: { kind: "system" },
+          action: "content_published",
+          subject: { kind: "content", id: item.id, label: item.title },
+        });
+      }
       return "published";
     }
     if (receipt.error.retryable && item.publishAttempts + 1 < MAX_ATTEMPTS) {

@@ -28,6 +28,7 @@ import {
   GenerateBrief,
   GetBrief,
   ArchiveProduct,
+  GetActivity,
   GetDashboard,
   GetProductLineup,
   RestoreProduct,
@@ -74,6 +75,11 @@ import {
 } from "@nuvantre/agents";
 import {
   AesGcmTokenCipher,
+  createSentryErrorReporter,
+  JsonLogErrorReporter,
+  PostgresAuditTrail,
+  PostgresRateLimiter,
+  PostgresReadinessProbe,
   DataForSeoKeywordProvider,
   SeedKeywordProvider,
   BlogPublisherProvider,
@@ -113,13 +119,14 @@ import {
   SearchConsoleSource,
   type GoogleOptions,
 } from "@nuvantre/adapters";
-import type { MetricsSource } from "@nuvantre/ports";
+import type { ErrorReporter, MetricsSource } from "@nuvantre/ports";
 import {
   parseWebConfig,
   type ClaudeConfig,
   type GoogleConfig,
   type WebConfig,
 } from "./server/config";
+import { createRateGuard } from "./server/rate-limit";
 import type { HealthHandlerDeps } from "./server/health-handler";
 
 /** Composition root: the only place in the web app where concrete adapters are created. */
@@ -190,7 +197,27 @@ const googleOptionsFor = ({ clientId, clientSecret, baseUrl }: GoogleConfig): Go
   ...(baseUrl === null ? {} : { urls: googleStubUrls(baseUrl) }),
 });
 
-type Repositories = ReturnType<typeof createPostgresRepositories>;
+/** Postgres repositories plus the hardening stores: audit trail, rate limits, readiness. */
+const repositoriesFor = (config: WebConfig) => {
+  const db = createDatabase(config.databaseUrl);
+  return {
+    ...createPostgresRepositories(db),
+    audit: new PostgresAuditTrail(db),
+    limiter: new PostgresRateLimiter(db, container.clock),
+    readiness: new PostgresReadinessProbe(db),
+    errors: errorReporterFor(config),
+  };
+};
+
+/** Sentry when SENTRY_DSN is set, else one scrubbed JSON line per unexpected error. */
+const errorReporterFor = ({ monitoring }: WebConfig): ErrorReporter =>
+  monitoring.sentry
+    ? createSentryErrorReporter(monitoring.sentry)
+    : new JsonLogErrorReporter((line) => {
+        process.stderr.write(`${line}\n`);
+      });
+
+type Repositories = ReturnType<typeof repositoriesFor>;
 
 /**
  * Analytics wiring. Google's sources and connect flow exist only when an OAuth client is
@@ -298,7 +325,7 @@ const blogPublishersFor = (config: WebConfig) => {
 
 const build = (config: WebConfig) => {
   const billing = billingFor(config);
-  const repositories = createPostgresRepositories(createDatabase(config.databaseUrl));
+  const repositories = repositoriesFor(config);
   const network = { allowPrivateNetwork: config.allowPrivateNetwork };
   const cipher = new AesGcmTokenCipher(config.tokenEncryptionKey);
   const zernio = zernioOptionsFor(config.social);
@@ -340,6 +367,14 @@ const build = (config: WebConfig) => {
   });
   return {
     appUrl: config.appUrl,
+    trustProxy: config.hardening.trustProxy,
+    rateGuard: createRateGuard({
+      limiter: repositories.limiter,
+      overrides: config.hardening.rateLimitOverrides,
+    }),
+    errors: repositories.errors,
+    readiness: [repositories.readiness],
+    getActivity: new GetActivity(deps),
     webhookSignatureHeader: billing.webhookSignatureHeader,
     localCheckout: billing.localCheckout,
     signUp: new SignUp(deps),

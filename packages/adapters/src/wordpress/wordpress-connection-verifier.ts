@@ -12,7 +12,7 @@ import { basicAuth, httpOptions, parseJson, restUrl, type WordPressNetwork } fro
 
 const siteIndex = z.object({
   name: z.string(),
-  home: z.string().url(),
+  home: z.url(),
   namespaces: z.array(z.string()),
 });
 

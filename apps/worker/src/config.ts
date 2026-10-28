@@ -8,7 +8,7 @@ export interface DatabaseConfig {
 
 const schema = z.object({
   DATABASE_URL: z
-    .string({ required_error: "DATABASE_URL is required" })
+    .string({ error: "DATABASE_URL is required" })
     .refine((value) => /^postgres(ql)?:\/\/\S+$/.test(value), {
       message: "DATABASE_URL must be a postgres:// or postgresql:// URL",
     }),
@@ -65,14 +65,14 @@ const KEY_MESSAGE =
   "TOKEN_ENCRYPTION_KEY must be 32 random bytes, base64-encoded (openssl rand -base64 32)";
 
 const zernioKey = z
-  .string({ required_error: "ZERNIO_API_KEY is required" })
+  .string({ error: "ZERNIO_API_KEY is required" })
   .min(1, "ZERNIO_API_KEY is required");
-const zernioBaseUrl = z.string().url("ZERNIO_BASE_URL must be an absolute URL").optional();
+const zernioBaseUrl = z.url("ZERNIO_BASE_URL must be an absolute URL").optional();
 
 const publisherSchema = z.object({
   APP_ENV: z.enum(["development", "test", "production"]).default("production"),
   TOKEN_ENCRYPTION_KEY: z
-    .string({ required_error: KEY_MESSAGE })
+    .string({ error: KEY_MESSAGE })
     .refine(
       (value) => /^[A-Za-z0-9+/]+={0,2}$/.test(value) && Buffer.from(value, "base64").length === 32,
       KEY_MESSAGE,
@@ -85,8 +85,8 @@ const publisherSchema = z.object({
     .default(60_000),
   ZERNIO_API_KEY: zernioKey,
   ZERNIO_BASE_URL: zernioBaseUrl,
-  WEBFLOW_API_BASE_URL: z.string().url("WEBFLOW_API_BASE_URL must be an absolute URL").optional(),
-  WIX_API_BASE_URL: z.string().url("WIX_API_BASE_URL must be an absolute URL").optional(),
+  WEBFLOW_API_BASE_URL: z.url("WEBFLOW_API_BASE_URL must be an absolute URL").optional(),
+  WIX_API_BASE_URL: z.url("WIX_API_BASE_URL must be an absolute URL").optional(),
 });
 
 /** Everything the scheduled publish job needs, validated before it touches the database. */
@@ -148,7 +148,7 @@ const reportsSchema = z.object({
     .default(3_600_000),
   GOOGLE_CLIENT_ID: z.string().min(1).optional(),
   GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
-  GOOGLE_API_BASE_URL: z.string().url("GOOGLE_API_BASE_URL must be an absolute URL").optional(),
+  GOOGLE_API_BASE_URL: z.url("GOOGLE_API_BASE_URL must be an absolute URL").optional(),
   ANALYST: z.enum(["claude", "template"]).default("claude"),
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
   ANTHROPIC_MODEL: z
@@ -235,7 +235,7 @@ const loopSchema = z.object({
   KEYWORD_PROVIDER: z.enum(["dataforseo", "offline"]).default("dataforseo"),
   DATAFORSEO_LOGIN: z.string().min(1).optional(),
   DATAFORSEO_PASSWORD: z.string().min(1).optional(),
-  DATAFORSEO_BASE_URL: z.string().url("DATAFORSEO_BASE_URL must be an absolute URL").optional(),
+  DATAFORSEO_BASE_URL: z.url("DATAFORSEO_BASE_URL must be an absolute URL").optional(),
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
   ANTHROPIC_MODEL: z
     .string()
@@ -355,4 +355,34 @@ export const parseBlogSmokeConfig = (
     });
   }
   return ok(checks);
+};
+
+export interface MonitoringConfig {
+  /** Null: errors are logged as JSON lines only. */
+  readonly sentry: {
+    readonly dsn: string;
+    readonly environment: string;
+    readonly release: string;
+  } | null;
+}
+
+const monitoringSchema = z.object({
+  SENTRY_DSN: z.url("SENTRY_DSN must be a Sentry DSN URL").optional(),
+  APP_ENV: z.enum(["development", "test", "production"]).default("production"),
+  APP_VERSION: z.string().min(1).default("0.1.0"),
+});
+
+/** Where unexpected errors go: Sentry when SENTRY_DSN is set, else the JSON log. */
+export const parseMonitoringConfig = (
+  env: Readonly<Record<string, string | undefined>>,
+): Result<MonitoringConfig, string> => {
+  const parsed = monitoringSchema.safeParse(env);
+  if (!parsed.success) return err(parsed.error.issues[0]?.message ?? "Invalid configuration");
+  const c = parsed.data;
+  return ok({
+    sentry:
+      c.SENTRY_DSN === undefined
+        ? null
+        : { dsn: c.SENTRY_DSN, environment: c.APP_ENV, release: c.APP_VERSION },
+  });
 };

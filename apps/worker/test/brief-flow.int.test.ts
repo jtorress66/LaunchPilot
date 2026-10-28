@@ -1,6 +1,7 @@
 import {
   createDatabase,
   createPostgresRepositories,
+  PostgresAuditTrail,
   ScryptPasswordHasher,
   SystemClock,
   UuidIdGenerator,
@@ -15,7 +16,7 @@ import {
   SignUp,
   UpdateBrief,
 } from "@nuvantre/application";
-import { FakeSiteCrawler } from "@nuvantre/testing";
+import { FakeErrorReporter, FakeSiteCrawler } from "@nuvantre/testing";
 import { afterAll, describe, expect, it } from "vitest";
 import { inject } from "vitest";
 
@@ -32,6 +33,8 @@ afterAll(async () => {
 
 const world = () => ({
   ...createPostgresRepositories(db),
+  audit: new PostgresAuditTrail(db),
+  errors: new FakeErrorReporter(),
   ids: new UuidIdGenerator(),
   clock: new SystemClock(),
   hasher: new ScryptPasswordHasher(),

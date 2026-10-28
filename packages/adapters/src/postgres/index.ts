@@ -24,6 +24,12 @@ import type { Database } from "./schema";
 
 export type { Database } from "./schema";
 export { createDatabase } from "./database";
+export {
+  PostgresAuditTrail,
+  PostgresJobLock,
+  PostgresRateLimiter,
+  PostgresReadinessProbe,
+} from "./repositories/postgres-hardening";
 export { migrateDown, migrateToLatest, type MigrationOutcome } from "./migrate";
 export { syncDirectories, type DirectorySyncOutcome } from "./sync-directories";
 export { loadSeedDirectories } from "./seeds/load-seed";

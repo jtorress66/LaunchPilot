@@ -1,6 +1,7 @@
 import {
   createDatabase,
   createPostgresRepositories,
+  PostgresAuditTrail,
   RandomTokenGenerator,
   ScryptPasswordHasher,
   SystemClock,
@@ -19,7 +20,12 @@ import {
   PublisherRegistry,
   SignUp,
 } from "@nuvantre/application";
-import { FakeKeywordProvider, FakePublisherProvider, FakeSiteCrawler } from "@nuvantre/testing";
+import {
+  FakeErrorReporter,
+  FakeKeywordProvider,
+  FakePublisherProvider,
+  FakeSiteCrawler,
+} from "@nuvantre/testing";
 import { afterAll, describe, expect, inject, it } from "vitest";
 
 declare module "vitest" {
@@ -45,6 +51,8 @@ describe("SEO flow on Postgres", () => {
     const repositories = createPostgresRepositories(db);
     const deps = {
       ...repositories,
+      audit: new PostgresAuditTrail(db),
+      errors: new FakeErrorReporter(),
       connections: repositories.channelConnections,
       ids: new UuidIdGenerator(),
       clock,

@@ -26,6 +26,11 @@ import {
   AesGcmTokenCipher,
   createPostgresRepositories,
   BlogPublisherProvider,
+  createSentryErrorReporter,
+  JsonLogErrorReporter,
+  PostgresAuditTrail,
+  PostgresJobLock,
+  PostgresRateLimiter,
   BlogVerifierRegistry,
   GhostConnectionVerifier,
   ShopifyConnectionVerifier,
@@ -59,12 +64,19 @@ import {
   type GoogleOptions,
   SeedKeywordProvider,
 } from "@nuvantre/adapters";
-import type { BlogCredentials, Clock, MetricsSource, TokenCipher } from "@nuvantre/ports";
+import type {
+  BlogCredentials,
+  Clock,
+  ErrorReporter,
+  MetricsSource,
+  TokenCipher,
+} from "@nuvantre/ports";
 import type {
   AnalystConfig,
   DatabaseConfig,
   GoogleConfig,
   LoopConfig,
+  MonitoringConfig,
   PublisherConfig,
   ReportsConfig,
   StripeSetupConfig,
@@ -182,7 +194,24 @@ const blogPublishersFor = ({ allowPrivateNetwork, blogs }: PublisherConfig) => {
 };
 
 /** The scheduled publish job over Postgres, with one publisher provider per channel. */
-export const createPublishDue = (config: PublisherConfig) => {
+/** Sentry when configured, else one scrubbed JSON line per error. */
+export const createErrorReporter = ({ sentry }: MonitoringConfig): ErrorReporter =>
+  sentry ? createSentryErrorReporter(sentry) : new JsonLogErrorReporter(container.log);
+
+/**
+ * What every scheduled job runs with: an advisory lock per job, so a second worker skips work
+ * already running, and error reporting. Also the rate-limit table the purge job keeps small.
+ */
+export const createJobRuntime = (connectionString: string, errors: ErrorReporter) => {
+  const db = createDatabase(connectionString);
+  return {
+    runtime: { log: container.log, errors, lock: new PostgresJobLock(db), clock: container.clock },
+    limits: new PostgresRateLimiter(db, container.clock),
+    close: () => db.destroy(),
+  };
+};
+
+export const createPublishDue = (config: PublisherConfig, errors: ErrorReporter) => {
   const db = createDatabase(config.connectionString);
   const repositories = createPostgresRepositories(db);
   const cipher = new AesGcmTokenCipher(config.tokenEncryptionKey);
@@ -200,6 +229,9 @@ export const createPublishDue = (config: PublisherConfig) => {
       tasks: repositories.tasks,
       publishers,
       clock: container.clock,
+      audit: new PostgresAuditTrail(db),
+      errors,
+      ids: new UuidIdGenerator(),
     }),
     close: () => db.destroy(),
   };

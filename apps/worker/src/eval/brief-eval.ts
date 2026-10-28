@@ -1,6 +1,7 @@
 import { err, isGrounded, ok, type Result } from "@nuvantre/domain";
 import type { BriefDraft, BriefDraftError } from "@nuvantre/ports";
 import { z } from "zod";
+import { evalThresholds, meets } from "./thresholds";
 
 /** One recorded site the brief agent is evaluated on. */
 const evalCaseSchema = z.object({
@@ -11,8 +12,8 @@ const evalCaseSchema = z.object({
   /** Claims the site never makes; none may appear anywhere in the brief. */
   forbidden: z.array(z.string().min(1)),
   site: z.object({
-    url: z.string().url(),
-    pages: z.array(z.object({ url: z.string().url(), title: z.string(), text: z.string() })).min(1),
+    url: z.url(),
+    pages: z.array(z.object({ url: z.url(), title: z.string(), text: z.string() })).min(1),
   }),
 });
 
@@ -121,8 +122,6 @@ export interface EvalSummary {
 }
 
 /** Thresholds: every brief grounded (safety rule) and every case passing. */
-export const GROUNDING_THRESHOLD = 1;
-export const PASS_THRESHOLD = 1;
 
 export const summarise = (scores: readonly CaseScore[]): EvalSummary => {
   const rate = (count: number) => (scores.length === 0 ? 0 : count / scores.length);
@@ -132,7 +131,10 @@ export const summarise = (scores: readonly CaseScore[]): EvalSummary => {
     cases: scores.length,
     groundingRate,
     passRate,
-    meetsThresholds:
-      scores.length > 0 && groundingRate >= GROUNDING_THRESHOLD && passRate >= PASS_THRESHOLD,
+    meetsThresholds: meets(
+      scores.length,
+      { grounding: groundingRate, pass: passRate },
+      evalThresholds.brief,
+    ),
   };
 };

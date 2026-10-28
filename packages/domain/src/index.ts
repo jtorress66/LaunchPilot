@@ -45,3 +45,4 @@ export * from "./orchestration/week-plan";
 export * from "./orchestration/agent-review";
 export * from "./orchestration/autopilot";
 export * from "./orchestration/autopilot-run";
+export * from "./audit/audit-entry";

@@ -2,6 +2,7 @@ import { channels, err, ok, type Result } from "@nuvantre/domain";
 import type { ReviewError, ReviewRequest, ReviewVerdict } from "@nuvantre/ports";
 import { z } from "zod";
 import { localeOf } from "./seo-eval";
+import { evalThresholds, meets } from "./thresholds";
 
 const draftSchema = z.object({
   /** What is wrong with the draft, or "good": shown when its verdict is wrong. */
@@ -10,7 +11,7 @@ const draftSchema = z.object({
   channel: z.enum(channels),
   title: z.string(),
   body: z.string().min(1),
-  link: z.string().url().optional(),
+  link: z.url().optional(),
   /** Only a model can catch this one (e.g. the wrong language); the rule checks cannot. */
   modelOnly: z.boolean().default(false),
 });
@@ -106,5 +107,9 @@ export interface ReviewSummary {
 /** Threshold: the reviewer agrees with every label. */
 export const summariseReviews = (scores: readonly ReviewScore[]): ReviewSummary => {
   const passRate = scores.length === 0 ? 0 : scores.filter((s) => s.passed).length / scores.length;
-  return { drafts: scores.length, passRate, meetsThresholds: scores.length > 0 && passRate === 1 };
+  return {
+    drafts: scores.length,
+    passRate,
+    meetsThresholds: meets(scores.length, { pass: passRate }, evalThresholds.reviewer),
+  };
 };

@@ -36,6 +36,8 @@ describe("parseWebConfig", () => {
         allowPrivateNetwork: false,
         tokenEncryptionKey: KEY,
         blogs: { webflowApiBaseUrl: null, wixApiBaseUrl: null },
+        hardening: { trustProxy: false, rateLimitOverrides: {} },
+        monitoring: { sentry: null },
         brief: {
           drafter: { kind: "claude", apiKey: "sk-ant-test-key", model: "claude-opus-5-5" },
         },
@@ -175,11 +177,58 @@ describe("parseWebConfig AI settings", () => {
     ["ALLOW_PRIVATE_NETWORK", { ALLOW_PRIVATE_NETWORK: "true" }],
     ["WEBFLOW_API_BASE_URL", { WEBFLOW_API_BASE_URL: "http://127.0.0.1:4040/webflow/" }],
     ["WIX_API_BASE_URL", { WIX_API_BASE_URL: "http://127.0.0.1:4040/wix/" }],
+    ["RATE_LIMIT_OVERRIDES", { RATE_LIMIT_OVERRIDES: "signup=1000" }],
   ])("refuses %s in production", (setting, override) => {
     expect(parseWebConfig({ ...stripe, ...override })).toEqual({
       ok: false,
       error: `${setting} is only allowed when APP_ENV is development or test`,
     });
+  });
+});
+
+describe("parseWebConfig hardening and monitoring", () => {
+  it("reads the client address from the proxy only when TRUST_PROXY is set", () => {
+    expect(parseWebConfig({ ...stripe, TRUST_PROXY: "true" })).toMatchObject({
+      ok: true,
+      value: { hardening: { trustProxy: true } },
+    });
+  });
+
+  it("lets development and test raise named rate limits", () => {
+    expect(
+      parseWebConfig({ ...local, RATE_LIMIT_OVERRIDES: "signup=1000, draft=500" }),
+    ).toMatchObject({
+      ok: true,
+      value: { hardening: { rateLimitOverrides: { signup: 1000, draft: 500 } } },
+    });
+    for (const bad of ["signin=5", "signup=lots", "signup"]) {
+      expect(parseWebConfig({ ...local, RATE_LIMIT_OVERRIDES: bad })).toEqual({
+        ok: false,
+        error: "RATE_LIMIT_OVERRIDES must look like signup=1000,draft=500",
+      });
+    }
+  });
+
+  it("reports errors to Sentry when SENTRY_DSN is set", () => {
+    expect(
+      parseWebConfig({
+        ...stripe,
+        SENTRY_DSN: "https://key@o1.ingest.sentry.io/2",
+        APP_VERSION: "1.2.3",
+      }),
+    ).toMatchObject({
+      ok: true,
+      value: {
+        monitoring: {
+          sentry: {
+            dsn: "https://key@o1.ingest.sentry.io/2",
+            environment: "production",
+            release: "1.2.3",
+          },
+        },
+      },
+    });
+    expect(parseWebConfig({ ...stripe, SENTRY_DSN: "nope" }).ok).toBe(false);
   });
 });
 

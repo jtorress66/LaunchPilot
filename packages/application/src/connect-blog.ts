@@ -18,6 +18,7 @@ import type {
 } from "@nuvantre/ports";
 import type { UseCaseError } from "./errors";
 import { loadOwnedProduct } from "./owned-product";
+import { founderOf, recordAudit, type AuditDeps } from "./audit";
 
 export interface ConnectedBlog {
   readonly platform: BlogPlatform;
@@ -35,7 +36,7 @@ export class ConnectBlog {
       readonly cipher: TokenCipher;
       readonly ids: IdGenerator;
       readonly clock: Clock;
-    },
+    } & AuditDeps,
   ) {}
 
   async execute(input: {
@@ -66,6 +67,12 @@ export class ConnectBlog {
     if (!connection.ok) return connection;
     await this.deps.connections.save(connection.value);
     const { provider, siteName } = connection.value;
+    await recordAudit(this.deps, {
+      workspaceId: input.workspace.id,
+      actor: founderOf(input.workspace),
+      action: "blog_connected",
+      subject: { kind: "connection", id: connection.value.id, label: siteName },
+    });
     return ok({ platform: provider, siteName, siteUrl: connection.value.siteUrl });
   }
 }

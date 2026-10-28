@@ -11,6 +11,7 @@ import {
   type FieldErrors,
 } from "../../server/forms";
 import { analyticsFailureMessage, fieldFor } from "../../server/messages";
+import { refusedByLimit } from "./limits";
 import { requireUser } from "./auth";
 import { idParam } from "./params";
 
@@ -33,6 +34,8 @@ export async function connectPlausibleAction(
   const { workspace } = await requireUser();
   const form = parseForm(plausibleForm, data);
   if (!form.ok) return { errors: form.error };
+  const limited = await refusedByLimit("connect", workspace.id);
+  if (limited) return { errors: { form: limited } };
   const result = await getAppContainer().analytics.connectPlausible.execute({
     workspace,
     productId: productId(id),

@@ -11,6 +11,7 @@ import {
 import type { Draft, DraftError } from "@nuvantre/ports";
 import { z } from "zod";
 import { writesIn } from "./language-check";
+import { evalThresholds, meets } from "./thresholds";
 
 /** One recorded brief and keyword the SEO writer is evaluated on. */
 const seoEvalCaseSchema = z.object({
@@ -29,7 +30,7 @@ const seoEvalCaseSchema = z.object({
   /** "de-DE"; US English when absent. */
   locale: z.string().optional(),
   /** Published articles the writer may link to. */
-  internalLinks: z.array(z.object({ title: z.string(), url: z.string().url() })).optional(),
+  internalLinks: z.array(z.object({ title: z.string(), url: z.url() })).optional(),
 });
 
 export type SeoEvalCase = z.infer<typeof seoEvalCaseSchema>;
@@ -175,6 +176,6 @@ export const summariseArticles = (scores: readonly ArticleScore[]): ArticleSumma
     cases: scores.length,
     factRate,
     passRate,
-    meetsThresholds: scores.length > 0 && factRate === 1 && passRate === 1,
+    meetsThresholds: meets(scores.length, { facts: factRate, pass: passRate }, evalThresholds.seo),
   };
 };

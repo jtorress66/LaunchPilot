@@ -11,6 +11,8 @@ import {
   summarisePlans,
   type PlanScore,
 } from "./strategist-eval";
+import { EVAL_RESULTS_FILE, recordEvalResult } from "./results";
+import { evalThresholds } from "./thresholds";
 
 const PRICES: Partial<Record<string, { inputPerMillion: number; outputPerMillion: number }>> = {
   "claude-opus-5-5": { inputPerMillion: 4, outputPerMillion: 20 },
@@ -47,9 +49,15 @@ for (const file of files) {
 const summary = summarisePlans(scores);
 const prices = PRICES[config.value.model];
 console.log(
-  `\nStrategist eval on ${config.value.model}: ${summary.plans} weeks, pass ${percent(summary.passRate)} (threshold 100%)`,
+  `\nStrategist eval on ${config.value.model}: ${summary.plans} weeks, pass ${percent(summary.passRate)} (threshold ${percent(evalThresholds.strategist.pass)})`,
 );
 console.log(
   `Usage: ${meter.usage.calls} calls, ${meter.usage.inputTokens} input + ${meter.usage.outputTokens} output tokens${prices ? `, about $${meter.costUsd(prices).toFixed(2)}` : ""}`,
 );
+await recordEvalResult(EVAL_RESULTS_FILE, "strategist", {
+  model: config.value.model,
+  cases: summary.plans,
+  rates: { pass: summary.passRate },
+  passed: summary.meetsThresholds,
+});
 if (!summary.meetsThresholds) fail("scores are below the thresholds");

@@ -1,10 +1,18 @@
 import type { PublishRunSummary } from "@nuvantre/application";
+import { FakeErrorReporter, FixedClock, InMemoryJobLock } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { createPublishDueJob } from "./publish-due-job";
 
+const runtime = (lines: string[]) => ({
+  log: (l: string) => lines.push(l),
+  errors: new FakeErrorReporter(),
+  lock: new InMemoryJobLock(),
+  clock: new FixedClock(new Date("2026-10-28T09:00:00.000Z")),
+});
+
 const setup = (run: () => Promise<PublishRunSummary>) => {
   const lines: string[] = [];
-  const job = createPublishDueJob({ publishDue: { execute: run }, log: (l) => lines.push(l) });
+  const job = createPublishDueJob({ publishDue: { execute: run }, runtime: runtime(lines) });
   return { job, lines };
 };
 

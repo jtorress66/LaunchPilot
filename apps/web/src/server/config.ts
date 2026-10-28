@@ -1,5 +1,24 @@
+import { rateLimits, type RateLimitPolicy } from "@nuvantre/application";
 import { err, ok, type Result } from "@nuvantre/domain";
 import { z } from "zod";
+
+const OVERRIDES_MESSAGE = "RATE_LIMIT_OVERRIDES must look like signup=1000,draft=500";
+
+const isPolicy = (name: string): name is RateLimitPolicy => Object.hasOwn(rateLimits, name);
+
+/** "signup=1000,draft=500" → { signup: 1000, draft: 500 }; null when malformed. */
+const parseOverrides = (value: string): Partial<Record<RateLimitPolicy, number>> | null => {
+  const overrides: Partial<Record<RateLimitPolicy, number>> = {};
+  for (const part of value
+    .split(",")
+    .map((p) => p.trim())
+    .filter((p) => p !== "")) {
+    const [name = "", limit = ""] = part.split("=").map((p) => p.trim());
+    if (!isPolicy(name) || !/^\d+$/.test(limit)) return null;
+    overrides[name] = Number(limit);
+  }
+  return overrides;
+};
 
 export type BillingConfig =
   | { readonly provider: "local"; readonly secret: string }
@@ -48,6 +67,22 @@ export interface BlogApisConfig {
   readonly wixApiBaseUrl: string | null;
 }
 
+export interface HardeningConfig {
+  /** Read the client's address from X-Forwarded-For; only behind a proxy that sets it. */
+  readonly trustProxy: boolean;
+  /** Development and test only: raised limits for named rate-limit policies. */
+  readonly rateLimitOverrides: Readonly<Partial<Record<RateLimitPolicy, number>>>;
+}
+
+export interface MonitoringConfig {
+  /** Null: unexpected errors are logged as scrubbed JSON lines only. */
+  readonly sentry: {
+    readonly dsn: string;
+    readonly environment: string;
+    readonly release: string;
+  } | null;
+}
+
 export interface WebConfig {
   readonly databaseUrl: string;
   readonly appUrl: string;
@@ -57,6 +92,8 @@ export interface WebConfig {
   /** Encrypts blog passwords and tokens at rest. */
   readonly tokenEncryptionKey: string;
   readonly blogs: BlogApisConfig;
+  readonly hardening: HardeningConfig;
+  readonly monitoring: MonitoringConfig;
   readonly brief: { readonly drafter: BriefDrafterConfig };
   readonly seo: { readonly keywords: KeywordProviderConfig; readonly writer: ArticleWriterConfig };
   readonly social: { readonly writer: SocialWriterConfig; readonly zernio: ZernioConfig };
@@ -73,18 +110,19 @@ const KEY_MESSAGE =
   "TOKEN_ENCRYPTION_KEY must be 32 random bytes, base64-encoded (openssl rand -base64 32)";
 
 const required = (name: string) =>
-  z.string({ required_error: `${name} is required` }).min(1, `${name} is required`);
+  z.string({ error: `${name} is required` }).min(1, `${name} is required`);
 
 const shared = {
   DATABASE_URL: z
-    .string({ required_error: "DATABASE_URL is required" })
+    .string({ error: "DATABASE_URL is required" })
     .regex(/^postgres(ql)?:\/\/\S+$/, "DATABASE_URL must be a postgres:// URL"),
-  APP_URL: z
-    .string({ required_error: "APP_URL is required" })
-    .url("APP_URL must be an absolute URL"),
+  APP_URL: z.url({
+    error: (issue) =>
+      issue.input === undefined ? "APP_URL is required" : "APP_URL must be an absolute URL",
+  }),
   APP_ENV: z.enum(["development", "test", "production"]).default("production"),
   TOKEN_ENCRYPTION_KEY: z
-    .string({ required_error: KEY_MESSAGE })
+    .string({ error: KEY_MESSAGE })
     .refine(
       (value) => /^[A-Za-z0-9+/]+={0,2}$/.test(value) && Buffer.from(value, "base64").length === 32,
       KEY_MESSAGE,
@@ -99,17 +137,24 @@ const shared = {
     .default("claude-opus-5-5"),
   DATAFORSEO_LOGIN: z.string().min(1).optional(),
   DATAFORSEO_PASSWORD: z.string().min(1).optional(),
-  DATAFORSEO_BASE_URL: z.string().url("DATAFORSEO_BASE_URL must be an absolute URL").optional(),
+  DATAFORSEO_BASE_URL: z.url("DATAFORSEO_BASE_URL must be an absolute URL").optional(),
   ALLOW_PRIVATE_NETWORK: z.enum(["true", "false"]).default("false"),
-  WEBFLOW_API_BASE_URL: z.string().url("WEBFLOW_API_BASE_URL must be an absolute URL").optional(),
-  WIX_API_BASE_URL: z.string().url("WIX_API_BASE_URL must be an absolute URL").optional(),
+  WEBFLOW_API_BASE_URL: z.url("WEBFLOW_API_BASE_URL must be an absolute URL").optional(),
+  WIX_API_BASE_URL: z.url("WIX_API_BASE_URL must be an absolute URL").optional(),
+  TRUST_PROXY: z.enum(["true", "false"]).default("false"),
+  RATE_LIMIT_OVERRIDES: z
+    .string()
+    .optional()
+    .refine((value) => value === undefined || parseOverrides(value) !== null, OVERRIDES_MESSAGE),
+  SENTRY_DSN: z.url("SENTRY_DSN must be a Sentry DSN URL").optional(),
+  APP_VERSION: z.string().min(1).default("0.1.0"),
   SOCIAL_WRITER: z.enum(["claude", "template"]).default("claude"),
   LAUNCH_WRITER: z.enum(["claude", "template"]).default("claude"),
   ZERNIO_API_KEY: required("ZERNIO_API_KEY"),
-  ZERNIO_BASE_URL: z.string().url("ZERNIO_BASE_URL must be an absolute URL").optional(),
+  ZERNIO_BASE_URL: z.url("ZERNIO_BASE_URL must be an absolute URL").optional(),
   GOOGLE_CLIENT_ID: z.string().min(1).optional(),
   GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
-  GOOGLE_API_BASE_URL: z.string().url("GOOGLE_API_BASE_URL must be an absolute URL").optional(),
+  GOOGLE_API_BASE_URL: z.url("GOOGLE_API_BASE_URL must be an absolute URL").optional(),
   ANALYST: z.enum(["claude", "template"]).default("claude"),
   STRATEGIST: z.enum(["claude", "template"]).default("claude"),
   REVIEWER: z.enum(["claude", "template"]).default("claude"),
@@ -150,6 +195,7 @@ const devOnlySettings: readonly [string, (c: Env) => boolean][] = [
   ["ALLOW_PRIVATE_NETWORK", (c) => c.ALLOW_PRIVATE_NETWORK === "true"],
   ["WEBFLOW_API_BASE_URL", (c) => c.WEBFLOW_API_BASE_URL !== undefined],
   ["WIX_API_BASE_URL", (c) => c.WIX_API_BASE_URL !== undefined],
+  ["RATE_LIMIT_OVERRIDES", (c) => c.RATE_LIMIT_OVERRIDES !== undefined],
 ];
 
 const claude = (c: Env): ClaudeConfig | undefined =>
@@ -220,6 +266,16 @@ export const parseWebConfig = (
     blogs: {
       webflowApiBaseUrl: c.WEBFLOW_API_BASE_URL ?? null,
       wixApiBaseUrl: c.WIX_API_BASE_URL ?? null,
+    },
+    hardening: {
+      trustProxy: c.TRUST_PROXY === "true",
+      rateLimitOverrides: parseOverrides(c.RATE_LIMIT_OVERRIDES ?? "") ?? {},
+    },
+    monitoring: {
+      sentry:
+        c.SENTRY_DSN === undefined
+          ? null
+          : { dsn: c.SENTRY_DSN, environment: c.APP_ENV, release: c.APP_VERSION },
     },
     brief: { drafter: c.BRIEF_DRAFTER === "claude" && ai ? ai : { kind: "extractive" } },
     seo: { keywords, writer: c.ARTICLE_WRITER === "claude" && ai ? ai : { kind: "template" } },

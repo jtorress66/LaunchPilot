@@ -19,6 +19,7 @@ import type {
 } from "@nuvantre/ports";
 import type { UseCaseError } from "./errors";
 import { loadOwnedProduct } from "./owned-product";
+import { founderOf, recordAudit, type AuditDeps } from "./audit";
 
 export const PLAUSIBLE_CLOUD = "https://plausible.io/";
 
@@ -32,7 +33,7 @@ export class ConnectPlausible {
       readonly cipher: TokenCipher;
       readonly ids: IdGenerator;
       readonly clock: Clock;
-    },
+    } & AuditDeps,
   ) {}
 
   async execute(input: {
@@ -65,6 +66,12 @@ export class ConnectPlausible {
     });
     if (!connection.ok) return connection;
     await this.deps.analyticsConnections.save(connection.value);
+    await recordAudit(this.deps, {
+      workspaceId: input.workspace.id,
+      actor: founderOf(input.workspace),
+      action: "analytics_connected",
+      subject: { kind: "connection", id: connection.value.id, label: "Plausible" },
+    });
     return ok({ siteId: connection.value.siteId, baseUrl: connection.value.baseUrl });
   }
 }

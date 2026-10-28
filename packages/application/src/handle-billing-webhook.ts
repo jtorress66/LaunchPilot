@@ -1,15 +1,18 @@
 import {
   applyBillingEvent,
+  effectivePlan,
   err,
   ok,
+  plans,
   type BillingEvent,
   type Result,
   type Subscription,
 } from "@nuvantre/domain";
 import type { BillingWebhookVerifier, SubscriptionRepository } from "@nuvantre/ports";
+import { recordAudit, type AuditDeps } from "./audit";
 import { failure, type UseCaseError } from "./errors";
 
-export interface HandleBillingWebhookDeps {
+export interface HandleBillingWebhookDeps extends AuditDeps {
   readonly verifier: BillingWebhookVerifier;
   readonly subscriptions: SubscriptionRepository;
 }
@@ -32,7 +35,18 @@ export class HandleBillingWebhook {
 
     const subscription = await this.find(event);
     if (!subscription.ok) return subscription;
-    await this.deps.subscriptions.save(applyBillingEvent(subscription.value, event));
+    const next = applyBillingEvent(subscription.value, event);
+    await this.deps.subscriptions.save(next);
+    const before = effectivePlan(subscription.value, event.occurredAt);
+    const after = effectivePlan(next, event.occurredAt);
+    if (after !== before) {
+      await recordAudit(this.deps, {
+        workspaceId: next.workspaceId,
+        actor: { kind: "system" },
+        action: "plan_changed",
+        subject: { kind: "plan", id: after, label: plans[after].name },
+      });
+    }
     return ok({ handled: true });
   }
 

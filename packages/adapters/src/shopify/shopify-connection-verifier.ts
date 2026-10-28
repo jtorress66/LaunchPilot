@@ -15,7 +15,7 @@ const SHOP_QUERY = `query NuvantreConnect {
 }`;
 
 const shopData = z.object({
-  shop: z.object({ name: z.string().min(1), primaryDomain: z.object({ url: z.string().url() }) }),
+  shop: z.object({ name: z.string().min(1), primaryDomain: z.object({ url: z.url() }) }),
   blogs: z.object({ nodes: z.array(z.object({ id: z.string(), handle: z.string() })) }),
 });
 

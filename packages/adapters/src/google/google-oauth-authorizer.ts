@@ -9,7 +9,7 @@ const exchanged = z.object({
   id_token: z.string(),
 });
 
-const idClaims = z.object({ email: z.string().email() });
+const idClaims = z.object({ email: z.email() });
 
 const READ_SCOPES = GOOGLE_SCOPES.filter((s) => s.startsWith("https://"));
 

@@ -10,6 +10,7 @@ import {
   publishFailureMessage,
   socialFailureMessage,
 } from "../../server/messages";
+import { refusedByLimit } from "./limits";
 import { requireUser } from "./auth";
 import { idParam } from "./params";
 
@@ -29,6 +30,8 @@ export async function connectSocialAction(id: string, channel: string): Promise<
   // Bound arguments arrive from the browser, so the channel is validated like any input.
   const social = socialChannels.find((c) => c === channel);
   if (!social) notFound();
+  const limited = await refusedByLimit("connect", workspace.id);
+  if (limited) return formError(limited);
   const app = getAppContainer();
   const result = await app.connectSocial.execute({
     workspace,
@@ -42,6 +45,8 @@ export async function connectSocialAction(id: string, channel: string): Promise<
 
 export async function draftSocialWeekAction(id: string): Promise<SocialActionState> {
   const { workspace } = await requireUser();
+  const limited = await refusedByLimit("draft", workspace.id);
+  if (limited) return formError(limited);
   const result = await getAppContainer().draftSocialWeek.execute({
     workspace,
     productId: productId(idParam(id)),

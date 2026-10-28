@@ -86,6 +86,8 @@ try {
     DATABASE_URL: container.getConnectionUri(),
     APP_URL: "http://localhost:3000",
     APP_ENV: "test",
+    // Every spec signs up from one address; login keeps its real limit for hardening.spec.
+    RATE_LIMIT_OVERRIDES: "signup=1000,draft=1000,connect=1000,webhook=10000",
     BILLING_PROVIDER: "local",
     LOCAL_BILLING_SECRET: randomBytes(32).toString("hex"),
     TOKEN_ENCRYPTION_KEY: randomBytes(32).toString("base64"),

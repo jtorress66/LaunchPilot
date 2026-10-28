@@ -1,0 +1,15 @@
+# Secret scan (CI `security` job): gitleaks' default rules, with test fixtures allowed.
+# Fixtures hold made-up keys and recorded responses with fake tokens; nothing else may.
+title = "Nuvantre"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Test fixtures with fake credentials"
+paths = [
+  '''(^|/)test/''',
+  '''(^|/)e2e/fixtures/''',
+  '''^packages/testing/''',
+  '''\.test\.ts$''',
+]

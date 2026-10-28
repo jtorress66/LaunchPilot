@@ -4,11 +4,21 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { getAppContainer } from "../../container";
-import { SESSION_COOKIE, sessionCookieOptions } from "../../server/session-cookie";
+import {
+  sessionCookieName,
+  sessionCookieNames,
+  sessionCookieOptions,
+} from "../../server/session-cookie";
+
+/** The session token, from the __Host- cookie or one set before the prefix. */
+const readSessionToken = async (): Promise<string | undefined> => {
+  const store = await cookies();
+  return sessionCookieNames.map((name) => store.get(name)?.value).find(Boolean);
+};
 
 /** The signed-in founder and workspace, or a redirect to the login page. Cached per request. */
 export const requireUser = cache(async () => {
-  const token = (await cookies()).get(SESSION_COOKIE)?.value;
+  const token = await readSessionToken();
   if (!token) redirect("/login");
   const result = await getAppContainer().authenticate.execute(token);
   if (!result.ok) redirect("/login?expired=1");
@@ -16,16 +26,17 @@ export const requireUser = cache(async () => {
 });
 
 export const setSessionCookie = async (session: Session): Promise<void> => {
+  const { appUrl } = getAppContainer();
   (await cookies()).set(
-    SESSION_COOKIE,
+    sessionCookieName(appUrl),
     session.token,
-    sessionCookieOptions(getAppContainer().appUrl, session.expiresAt),
+    sessionCookieOptions(appUrl, session.expiresAt),
   );
 };
 
 export const takeSessionCookie = async (): Promise<string | undefined> => {
+  const token = await readSessionToken();
   const store = await cookies();
-  const token = store.get(SESSION_COOKIE)?.value;
-  store.delete(SESSION_COOKIE);
+  for (const name of sessionCookieNames) store.delete(name);
   return token;
 };

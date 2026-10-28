@@ -23,6 +23,7 @@ import type {
 } from "@nuvantre/ports";
 import { failure, type UseCaseError } from "./errors";
 import { loadOwnedProduct } from "./owned-product";
+import { founderOf, recordAudit, type AuditDeps } from "./audit";
 
 /** Where Google sends the founder back after consent. Registered in the Google Cloud console. */
 export const googleCallbackUrl = (appUrl: string) => `${appUrl}/api/google/callback`;
@@ -157,7 +158,7 @@ export class ChooseAnalyticsProperties {
     private readonly deps: {
       readonly products: ProductRepository;
       readonly analyticsConnections: AnalyticsConnectionRepository;
-    },
+    } & AuditDeps,
   ) {}
 
   async execute(
@@ -170,6 +171,12 @@ export class ChooseAnalyticsProperties {
     const chosen = chooseGoogleProperties(connection, input);
     if (!chosen.ok) return chosen;
     await this.deps.analyticsConnections.save(chosen.value);
+    await recordAudit(this.deps, {
+      workspaceId: input.workspace.id,
+      actor: founderOf(input.workspace),
+      action: "analytics_connected",
+      subject: { kind: "connection", id: chosen.value.id, label: "Google" },
+    });
     const { searchConsoleSite, ga4PropertyId } = chosen.value;
     return ok({ searchConsoleSite, ga4PropertyId });
   }

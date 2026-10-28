@@ -20,8 +20,11 @@ import type {
 } from "@nuvantre/ports";
 import { failure, type UseCaseError } from "./errors";
 import { loadOwnedProduct } from "./owned-product";
+import { founderOf, recordAudit, type AuditDeps } from "./audit";
 
-interface Deps {
+const channelNames = { x: "X", linkedin: "LinkedIn" } as const;
+
+interface Deps extends AuditDeps {
   readonly products: ProductRepository;
   readonly socialProfiles: SocialProfileRepository;
   readonly linker: SocialAccountLinker;
@@ -33,6 +36,7 @@ interface Deps {
  * Gives the founder the provider's page for linking one channel. The product's profile is
  * created on first use; Nuvantre never sees the founder's passwords.
  */
+
 export class ConnectSocial {
   constructor(private readonly deps: Deps) {}
 
@@ -93,6 +97,18 @@ export class RefreshSocialLinks {
     if (!accounts.ok) return accounts;
     const updated = withLinkedAccounts(profile, accounts.value);
     await this.deps.socialProfiles.save(updated);
+    if (updated.linkedAccounts.length > 0) {
+      await recordAudit(this.deps, {
+        workspaceId: input.workspace.id,
+        actor: founderOf(input.workspace),
+        action: "social_connected",
+        subject: {
+          kind: "connection",
+          id: updated.id,
+          label: updated.linkedAccounts.map((a) => channelNames[a.channel]).join(", "),
+        },
+      });
+    }
     return ok(updated);
   }
 }
