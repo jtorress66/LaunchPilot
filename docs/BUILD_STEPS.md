@@ -20,7 +20,7 @@ Place this file at `docs/BUILD_STEPS.md`. Work on one step at a time. Tick a ste
 | 10.6 | More blogs | Ghost, Shopify, Webflow and Wix publishers through `PublisherRegistry`, each with a connect flow | Each passes the publisher contract against recorded API responses; E2E publish for each (stubbed platform) | [x] |
 | 10.7 | Several products | Product switcher, per-plan product limits revisited, a dashboard across products | E2E: a founder on Growth manages 3 products and switches between them | [x] |
 | 11 | Hardening for beta | Security review, rate limits, monitoring, eval thresholds, audit log | Beta checklist complete | [x] |
-| 12 | Agency | Client workspaces, roles, white-label weekly reports | E2E: an agency adds a client and sends a branded report | [ ] |
+| 12 | Agency | Client workspaces, roles, white-label weekly reports | E2E: an agency adds a client and sends a branded report | [x] |
 
 ## Prompt to start each step in Claude Code
 
