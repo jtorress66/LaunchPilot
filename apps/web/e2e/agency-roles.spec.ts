@@ -17,7 +17,8 @@ test("a client viewer joins from the invitation and reads reports, but can chang
 
   const client = `viewer+${randomUUID().slice(0, 8)}@acme.test`;
   await page.getByRole("navigation", { name: "App" }).getByRole("link", { name: "Team" }).click();
-  await page.getByLabel("Email").fill(client);
+  await expect(page.getByRole("heading", { name: "Team", level: 1 })).toBeVisible();
+  await page.getByLabel("Email", { exact: true }).fill(client);
   await page.getByLabel("Role").selectOption("viewer");
   await page.getByRole("button", { name: "Send invitation" }).click();
   await expect(page.getByRole("status")).toHaveText(`Invitation sent to ${client}`);
