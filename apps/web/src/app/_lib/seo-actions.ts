@@ -14,7 +14,7 @@ import {
 } from "../../server/forms";
 import { draftFailureMessage, keywordFailureMessage } from "../../server/messages";
 import { refusedByLimit } from "./limits";
-import { requireUser } from "./auth";
+import { requireAccess } from "./auth";
 import { idParam } from "./params";
 
 export interface SeoActionState {
@@ -32,7 +32,7 @@ export async function connectBlogAction(
   _state: SeoActionState,
   data: FormData,
 ): Promise<SeoActionState> {
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("connect");
   const choice = parseForm(blogPlatformForm, data);
   if (!choice.ok) return { errors: choice.error };
   const form = parseForm(blogConnectionFormFor(choice.value.platform), data);
@@ -54,7 +54,7 @@ export async function planSeoAction(
   _state: SeoActionState,
   data: FormData,
 ): Promise<SeoActionState> {
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("draft");
   const form = parseForm(seedKeywordsForm, data);
   if (!form.ok) return { errors: form.error };
   const limitedPlan = await refusedByLimit("draft", workspace.id);
@@ -74,7 +74,7 @@ export async function setLocaleAction(
   _state: SeoActionState,
   data: FormData,
 ): Promise<SeoActionState> {
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("manage_products");
   const form = parseForm(localeForm, data);
   if (!form.ok) return { errors: form.error };
   const result = await getAppContainer().setProductLocale.execute({
@@ -88,7 +88,7 @@ export async function setLocaleAction(
 }
 
 export async function draftArticleAction(id: string): Promise<SeoActionState> {
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("draft");
   const limited = await refusedByLimit("draft", workspace.id);
   if (limited) return formError(limited);
   const result = await getAppContainer().draftSeoArticle.execute({

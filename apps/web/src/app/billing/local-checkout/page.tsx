@@ -18,7 +18,7 @@ export default async function LocalCheckoutPage({
   if (!getAppContainer().localCheckout) notFound();
   const { user } = await requireUser();
   const { plan: planId } = await searchParams;
-  if (planId !== "starter" && planId !== "growth") notFound();
+  if (planId !== "starter" && planId !== "growth" && planId !== "agency") notFound();
   const plan = plans[planId];
 
   return (

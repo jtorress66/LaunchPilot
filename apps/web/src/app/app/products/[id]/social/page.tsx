@@ -8,7 +8,7 @@ import { channelName } from "../../../../../components/social/channel-name";
 import { DraftWeekButton } from "../../../../../components/social/draft-week-button";
 import { SocialConnectCard } from "../../../../../components/social/social-connect-card";
 import { getAppContainer } from "../../../../../container";
-import { requireUser } from "../../../../_lib/auth";
+import { requireAccess } from "../../../../_lib/auth";
 import { idParam } from "../../../../_lib/params";
 
 export const metadata: Metadata = { title: "Social — Nuvantre" };
@@ -24,7 +24,7 @@ interface SocialPageProps {
 export default async function SocialPage({ params, searchParams }: SocialPageProps) {
   const [{ id: raw }, { linked }] = await Promise.all([params, searchParams]);
   const id = idParam(raw);
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("draft");
   const result = await getAppContainer().getSocialOverview.execute({
     workspace,
     productId: productId(id),

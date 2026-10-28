@@ -6,7 +6,7 @@ import { BriefEditor } from "../../../../../components/brief/brief-editor";
 import { BriefStatusBadge } from "../../../../../components/brief/brief-status-badge";
 import { DraftBriefForm } from "../../../../../components/brief/draft-brief-form";
 import { getAppContainer } from "../../../../../container";
-import { requireUser } from "../../../../_lib/auth";
+import { requireAccess } from "../../../../_lib/auth";
 
 export const metadata: Metadata = { title: "Product Brief — Nuvantre" };
 
@@ -18,7 +18,7 @@ interface BriefPageProps {
 export default async function BriefPage({ params, searchParams }: BriefPageProps) {
   const [{ id }, { saved }] = await Promise.all([params, searchParams]);
   if (!/^[\w-]{1,100}$/.test(id)) notFound();
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("draft");
   const result = await getAppContainer().getBrief.execute({ workspace, productId: productId(id) });
   if (!result.ok) notFound();
   const { product, brief } = result.value;

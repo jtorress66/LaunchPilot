@@ -7,7 +7,7 @@ import { KeywordPlanTable } from "../../../../../components/seo/keyword-plan-tab
 import { LocaleForm } from "../../../../../components/seo/locale-form";
 import { SeoPlanForm } from "../../../../../components/seo/seo-plan-form";
 import { getAppContainer } from "../../../../../container";
-import { requireUser } from "../../../../_lib/auth";
+import { requireAccess } from "../../../../_lib/auth";
 import { idParam } from "../../../../_lib/params";
 
 export const metadata: Metadata = { title: "SEO — Nuvantre" };
@@ -17,7 +17,7 @@ const card =
 
 export default async function SeoPage({ params }: { readonly params: Promise<{ id: string }> }) {
   const id = idParam((await params).id);
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("draft");
   const result = await getAppContainer().getSeoOverview.execute({
     workspace,
     productId: productId(id),

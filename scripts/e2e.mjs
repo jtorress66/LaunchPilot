@@ -11,6 +11,7 @@ import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { startAnalyticsStub } from "./e2e-analytics.mjs";
 import { startBlogsStub } from "./e2e-blogs.mjs";
 import { startGhost } from "./e2e-ghost.mjs";
+import { startResendStub } from "./e2e-resend.mjs";
 import { startZernioStub } from "./e2e-zernio.mjs";
 import { startWordPress } from "./e2e-wordpress.mjs";
 
@@ -75,6 +76,7 @@ const site = await startFixtureSite();
 const zernio = await startZernioStub();
 const analytics = await startAnalyticsStub();
 const blogs = await startBlogsStub();
+const resend = await startResendStub();
 const [container, wordpress, ghost] = await Promise.all([
   new PostgreSqlContainer("postgres:16-alpine").start(),
   startWordPress(),
@@ -87,7 +89,7 @@ try {
     APP_URL: "http://localhost:3000",
     APP_ENV: "test",
     // Every spec signs up from one address; login keeps its real limit for hardening.spec.
-    RATE_LIMIT_OVERRIDES: "signup=1000,draft=1000,connect=1000,webhook=10000",
+    RATE_LIMIT_OVERRIDES: "signup=1000,draft=1000,connect=1000,webhook=10000,email=1000",
     BILLING_PROVIDER: "local",
     LOCAL_BILLING_SECRET: randomBytes(32).toString("hex"),
     TOKEN_ENCRYPTION_KEY: randomBytes(32).toString("base64"),
@@ -108,6 +110,7 @@ try {
     ...analytics.env,
     ...blogs.env,
     ...ghost.env,
+    ...resend.env,
   };
   status = await run("pnpm", ["--silent", "db:migrate"], env);
   if (status === 0)
@@ -118,5 +121,6 @@ try {
   await zernio.stop();
   await analytics.stop();
   await blogs.stop();
+  await resend.stop();
 }
 process.exit(status);

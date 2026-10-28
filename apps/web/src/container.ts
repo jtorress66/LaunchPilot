@@ -56,6 +56,18 @@ import {
   MetricsSourceRegistry,
   StartGoogleConnect,
   WeeklyReportBuilder,
+  AcceptInvitation,
+  AddClient,
+  GetBranding,
+  GetInvitation,
+  GetReportRecipients,
+  InviteMember,
+  ListClients,
+  ListTeam,
+  RemoveMember,
+  SendReport,
+  SwitchWorkspace,
+  UpdateBranding,
 } from "@nuvantre/application";
 import {
   ReviewerAgent,
@@ -118,6 +130,9 @@ import {
   PlausibleStatsVerifier,
   SearchConsoleSource,
   type GoogleOptions,
+  LogMailer,
+  ResendMailer,
+  Sha256TokenHasher,
 } from "@nuvantre/adapters";
 import type { ErrorReporter, MetricsSource } from "@nuvantre/ports";
 import {
@@ -208,6 +223,18 @@ const repositoriesFor = (config: WebConfig) => {
     errors: errorReporterFor(config),
   };
 };
+
+/** Resend from the verified address, or (development and test) one log line per email. */
+const mailerFor = ({ mail }: WebConfig) =>
+  mail.kind === "resend"
+    ? new ResendMailer({
+        apiKey: mail.apiKey,
+        from: mail.from,
+        ...(mail.baseUrl === undefined ? {} : { baseUrl: mail.baseUrl }),
+      })
+    : new LogMailer((line) => {
+        process.stdout.write(`${line}\n`);
+      });
 
 /** Sentry when SENTRY_DSN is set, else one scrubbed JSON line per unexpected error. */
 const errorReporterFor = ({ monitoring }: WebConfig): ErrorReporter =>
@@ -352,6 +379,8 @@ const build = (config: WebConfig) => {
     ids: new UuidIdGenerator(),
     tokens: new RandomTokenGenerator(),
     hasher: new ScryptPasswordHasher(),
+    tokenHasher: new Sha256TokenHasher(),
+    mailer: mailerFor(config),
     appUrl: config.appUrl,
   };
   // The weekly loop drafts with the same writers as the SEO and Social pages: one per channel.
@@ -420,6 +449,18 @@ const build = (config: WebConfig) => {
     setProductLocale: new SetProductLocale(deps),
     runAutopilotNow: new RunAutopilotNow({ ...deps, loop }),
     getAutopilotStatus: new GetAutopilotStatus(deps),
+    switchWorkspace: new SwitchWorkspace(deps),
+    addClient: new AddClient(deps),
+    listClients: new ListClients(deps),
+    inviteMember: new InviteMember(deps),
+    getInvitation: new GetInvitation(deps),
+    acceptInvitation: new AcceptInvitation(deps),
+    listTeam: new ListTeam(deps),
+    removeMember: new RemoveMember(deps),
+    getBranding: new GetBranding(deps),
+    updateBranding: new UpdateBranding(deps),
+    sendReport: new SendReport(deps),
+    getReportRecipients: new GetReportRecipients(deps),
   };
 };
 

@@ -4,7 +4,7 @@ import { productId } from "@nuvantre/domain";
 import { revalidatePath } from "next/cache";
 import { getAppContainer } from "../../container";
 import { parseForm, swapProductForm, type FieldErrors } from "../../server/forms";
-import { requireUser } from "./auth";
+import { requireAccess } from "./auth";
 import { idParam } from "./params";
 
 export interface ProductActionState {
@@ -16,7 +16,7 @@ const refresh = () => {
 };
 
 export async function archiveProductAction(id: string): Promise<ProductActionState> {
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("manage_products");
   const result = await getAppContainer().archiveProduct.execute({
     workspace,
     productId: productId(idParam(id)),
@@ -27,7 +27,7 @@ export async function archiveProductAction(id: string): Promise<ProductActionSta
 }
 
 export async function restoreProductAction(id: string): Promise<ProductActionState> {
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("manage_products");
   const result = await getAppContainer().restoreProduct.execute({
     workspace,
     productId: productId(idParam(id)),
@@ -42,7 +42,7 @@ export async function makeProductActiveAction(
   _state: ProductActionState,
   data: FormData,
 ): Promise<ProductActionState> {
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("manage_products");
   const form = parseForm(swapProductForm, data);
   if (!form.ok) return { errors: form.error };
   const result = await getAppContainer().swapActiveProduct.execute({

@@ -9,7 +9,13 @@ import {
   type Workspace,
   type WorkspaceId,
 } from "@nuvantre/domain";
-import type { AuditTrail, Clock, ErrorReporter, IdGenerator } from "@nuvantre/ports";
+import type {
+  AuditTrail,
+  Clock,
+  ErrorReporter,
+  IdGenerator,
+  UserRepository,
+} from "@nuvantre/ports";
 
 export interface AuditDeps {
   readonly audit: AuditTrail;
@@ -56,13 +62,17 @@ const PAGE_SIZE = 50;
 
 export interface ActivityPage {
   readonly entries: readonly AuditEntry[];
+  /** Email address of each person behind an entry on this page, by user id. */
+  readonly people: Readonly<Record<string, string>>;
   /** Pass back as `before` for the next page; null on the last page. */
   readonly nextBefore: Date | null;
 }
 
 /** The workspace's history, newest first, a page at a time. */
 export class GetActivity {
-  constructor(private readonly deps: { readonly audit: AuditTrail }) {}
+  constructor(
+    private readonly deps: { readonly audit: AuditTrail; readonly users: UserRepository },
+  ) {}
 
   async execute(input: { workspace: Workspace; before?: Date }): Promise<ActivityPage> {
     // One extra row tells whether another page follows.
@@ -71,8 +81,17 @@ export class GetActivity {
       ...(input.before ? { before: input.before } : {}),
     });
     const entries = rows.slice(0, PAGE_SIZE);
+    const ids = new Set(
+      entries.flatMap((e) => (e.actor.kind === "founder" ? [e.actor.userId] : [])),
+    );
+    const people: Record<string, string> = {};
+    for (const id of ids) {
+      const user = await this.deps.users.findById(id);
+      if (user) people[id] = user.email;
+    }
     return {
       entries,
+      people,
       nextBefore: rows.length > PAGE_SIZE ? (entries.at(-1)?.at ?? null) : null,
     };
   }

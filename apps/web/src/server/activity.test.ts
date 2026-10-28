@@ -64,3 +64,42 @@ describe("describeActivity", () => {
     expect(sentence).not.toContain("undefined");
   });
 });
+
+describe("describeActivity in a shared workspace", () => {
+  const people = { usr_1: "owner@brightside.agency", usr_2: "member@brightside.agency" };
+
+  it("says You only for the person reading, and names the others", () => {
+    expect(describeActivity(entry(), { viewerId: userId("usr_1"), people }).sentence).toBe(
+      "You approved “Ship faster”",
+    );
+    expect(describeActivity(entry(), { viewerId: userId("usr_2"), people }).sentence).toBe(
+      "owner@brightside.agency approved “Ship faster”",
+    );
+    expect(describeActivity(entry(), { viewerId: userId("usr_9"), people: {} }).sentence).toBe(
+      "A teammate approved “Ship faster”",
+    );
+  });
+
+  it.each([
+    ["client_added", "workspace", "Acme Corp", "You added the client Acme Corp"],
+    ["member_invited", "member", "client@acme.test", "You invited client@acme.test"],
+    ["member_joined", "member", "client@acme.test", "You joined as client@acme.test"],
+    ["member_removed", "member", "client@acme.test", "You removed client@acme.test"],
+    [
+      "branding_updated",
+      "branding",
+      "Brightside Agency",
+      "You updated the report branding (Brightside Agency)",
+    ],
+    [
+      "report_sent",
+      "report",
+      "Acme Analytics 2026-W42",
+      "You emailed the report Acme Analytics 2026-W42",
+    ],
+  ] as const)("describes %s", (action, kind, label, sentence) => {
+    expect(describeActivity(entry({ action, subject: { kind, id: "x", label } })).sentence).toBe(
+      sentence,
+    );
+  });
+});

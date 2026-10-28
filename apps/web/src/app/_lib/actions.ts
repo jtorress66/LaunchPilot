@@ -6,6 +6,7 @@ import { getAppContainer } from "../../container";
 import {
   logInForm,
   parseForm,
+  parseInviteToken,
   productForm,
   signUpForm,
   upgradeForm,
@@ -13,7 +14,7 @@ import {
 } from "../../server/forms";
 import { fieldFor } from "../../server/messages";
 import { refusedByLimit, requestAddress } from "./limits";
-import { requireUser, setSessionCookie, takeSessionCookie } from "./auth";
+import { requireAccess, setSessionCookie, takeSessionCookie } from "./auth";
 
 export interface FormState {
   readonly errors?: FieldErrors;
@@ -24,6 +25,12 @@ const failed = (error: { code: string; message: string }): FormState => ({
   errors: { [fieldFor(error.code)]: error.message },
 });
 
+/** Back to the invitation someone signed in to accept, else the dashboard. */
+const afterSignIn = (data: FormData): string => {
+  const invite = parseInviteToken(data.get("invite"));
+  return invite ? `/invite/${invite}` : "/app";
+};
+
 export async function signUpAction(_state: FormState, data: FormData): Promise<FormState> {
   const form = parseForm(signUpForm, data);
   if (!form.ok) return { errors: form.error };
@@ -32,7 +39,7 @@ export async function signUpAction(_state: FormState, data: FormData): Promise<F
   const result = await getAppContainer().signUp.execute(form.value);
   if (!result.ok) return failed(result.error);
   await setSessionCookie(result.value.session);
-  redirect("/app");
+  redirect(afterSignIn(data));
 }
 
 export async function logInAction(_state: FormState, data: FormData): Promise<FormState> {
@@ -44,7 +51,7 @@ export async function logInAction(_state: FormState, data: FormData): Promise<Fo
   const result = await getAppContainer().logIn.execute(form.value);
   if (!result.ok) return failed(result.error);
   await setSessionCookie(result.value);
-  redirect("/app");
+  redirect(afterSignIn(data));
 }
 
 export async function logOutAction(): Promise<void> {
@@ -54,7 +61,7 @@ export async function logOutAction(): Promise<void> {
 }
 
 export async function createProductAction(_state: FormState, data: FormData): Promise<FormState> {
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("manage_products");
   const form = parseForm(productForm, data);
   if (!form.ok) return { errors: form.error };
   const result = await getAppContainer().createProduct.execute({ workspace, ...form.value });
@@ -65,7 +72,7 @@ export async function createProductAction(_state: FormState, data: FormData): Pr
 }
 
 export async function upgradeAction(data: FormData): Promise<void> {
-  const { user, workspace } = await requireUser();
+  const { user, workspace } = await requireAccess("manage_billing");
   const form = parseForm(upgradeForm, data);
   if (!form.ok) redirect("/app/billing");
   const result = await getAppContainer().startCheckout.execute({
@@ -78,7 +85,7 @@ export async function upgradeAction(data: FormData): Promise<void> {
 
 /** Test-mode "Cancel plan": drops to Free, as a cancellation would. Unavailable with Stripe. */
 export async function cancelLocalPlanAction(): Promise<void> {
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("manage_billing");
   const simulator = getAppContainer().localCheckout;
   if (!simulator) redirect("/app/billing");
   const result = await simulator.cancel({ workspaceId: workspace.id });
@@ -87,7 +94,7 @@ export async function cancelLocalPlanAction(): Promise<void> {
 
 /** The "Pay" button of the local test-mode checkout. Unavailable when Stripe is configured. */
 export async function payLocalCheckoutAction(data: FormData): Promise<void> {
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("manage_billing");
   const form = parseForm(upgradeForm, data);
   const simulator = getAppContainer().localCheckout;
   if (!form.ok || !simulator) redirect("/app/billing");

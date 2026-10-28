@@ -69,3 +69,14 @@ const analyticsMessages: Partial<Record<string, string>> = {
 /** What the founder sees when connecting analytics fails. Provider details stay out of the UI. */
 export const analyticsFailureMessage = (error: { code: string; message: string }): string =>
   analyticsMessages[error.code] ?? error.message;
+
+const mailMessages: Partial<Record<string, string>> = {
+  mailer_unavailable: "Email is unavailable right now. Try again in a few minutes.",
+  mailer_unauthorized: "Email is not set up correctly. Check the Resend settings.",
+};
+
+/** What the person sees when an invitation or report email cannot be sent. */
+export const mailFailureMessage = (error: { code: string; message: string }): string => {
+  if (error.code === "mailer_rejected") return `The email was refused: ${error.message}`;
+  return mailMessages[error.code] ?? error.message;
+};

@@ -12,7 +12,7 @@ import {
 } from "../../server/forms";
 import { analyticsFailureMessage, fieldFor } from "../../server/messages";
 import { refusedByLimit } from "./limits";
-import { requireUser } from "./auth";
+import { requireAccess } from "./auth";
 import { idParam } from "./params";
 
 export interface AnalyticsActionState {
@@ -31,7 +31,7 @@ export async function connectPlausibleAction(
   data: FormData,
 ): Promise<AnalyticsActionState> {
   const id = idParam(rawId);
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("connect");
   const form = parseForm(plausibleForm, data);
   if (!form.ok) return { errors: form.error };
   const limited = await refusedByLimit("connect", workspace.id);
@@ -56,7 +56,7 @@ export async function chooseGooglePropertiesAction(
   data: FormData,
 ): Promise<AnalyticsActionState> {
   const id = idParam(rawId);
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("connect");
   const google = getAppContainer().analytics.google;
   if (!google) notFound();
   const form = parseForm(analyticsPropertiesForm, data);
@@ -75,7 +75,7 @@ const PROVIDERS = ["google", "plausible"] as const;
 
 export async function disconnectAnalyticsAction(rawId: string, provider: string): Promise<void> {
   const id = idParam(rawId);
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("connect");
   const known = PROVIDERS.find((p) => p === provider);
   if (!known) notFound();
   await getAppContainer().analytics.disconnect.execute({
@@ -88,7 +88,7 @@ export async function disconnectAnalyticsAction(rawId: string, provider: string)
 
 export async function buildReportAction(rawId: string): Promise<AnalyticsActionState> {
   const id = idParam(rawId);
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("draft");
   const result = await getAppContainer().analytics.generateReport.execute({
     workspace,
     productId: productId(id),

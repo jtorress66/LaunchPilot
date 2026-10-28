@@ -296,4 +296,10 @@ describe("GetActivity", () => {
     expect(next.entries).toHaveLength(11);
     expect(next.nextBefore).toBeNull();
   });
+
+  it("names the people behind the entries on the page", async () => {
+    const s = await setUp();
+    const page = await new GetActivity(s.world).execute({ workspace: s.workspace });
+    expect(page.people).toEqual({ [s.user.id]: "founder@acme.dev" });
+  });
 });

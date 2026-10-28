@@ -5,14 +5,14 @@ import Link from "next/link";
 import { InboxApproveButton } from "../../../components/inbox/approve-button";
 import { channelName } from "../../../components/social/channel-name";
 import { getAppContainer } from "../../../container";
-import { requireUser } from "../../_lib/auth";
+import { requireAccess } from "../../_lib/auth";
 
 export const metadata: Metadata = { title: "Inbox — Nuvantre" };
 
 const PREVIEW = 600;
 
 export default async function InboxPage() {
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("approve");
   const entries = await getAppContainer().getInbox.execute({ workspace });
 
   return (

@@ -205,6 +205,9 @@ jobs:
       DATAFORSEO_PASSWORD: unused-in-the-stripe-journey
       # Nor does it post to social accounts.
       ZERNIO_API_KEY: unused-in-the-stripe-journey
+      # Nor does it send email; production config needs the settings present.
+      RESEND_API_KEY: unused-in-the-stripe-journey
+      MAIL_FROM: reports@mail.nuvantre.app
       DATABASE_URL: postgres://nuvantre:nuvantre@localhost:5432/nuvantre
       APP_URL: http://localhost:3000
       BILLING_PROVIDER: stripe

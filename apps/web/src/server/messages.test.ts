@@ -6,6 +6,7 @@ import {
   keywordFailureMessage,
   publishFailureMessage,
   socialFailureMessage,
+  mailFailureMessage,
 } from "./messages";
 
 describe("fieldFor", () => {
@@ -106,5 +107,22 @@ describe("analyticsFailureMessage", () => {
     expect(
       analyticsFailureMessage({ code: "analytics_not_connected", message: "Connect first" }),
     ).toBe("Connect first");
+  });
+});
+
+describe("mailFailureMessage", () => {
+  it("tells the person what to do, without the provider's details", () => {
+    expect(mailFailureMessage({ code: "mailer_unavailable", message: "x" })).toBe(
+      "Email is unavailable right now. Try again in a few minutes.",
+    );
+    expect(mailFailureMessage({ code: "mailer_unauthorized", message: "x" })).toBe(
+      "Email is not set up correctly. Check the Resend settings.",
+    );
+    expect(mailFailureMessage({ code: "mailer_rejected", message: "Invalid from" })).toBe(
+      "The email was refused: Invalid from",
+    );
+    expect(mailFailureMessage({ code: "invalid_email", message: "“x” is not valid" })).toBe(
+      "“x” is not valid",
+    );
   });
 });

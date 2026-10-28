@@ -24,9 +24,12 @@ const sectionOf = (path: string) => path.split("/")[4] ?? "brief";
 export function ProductNav({
   current,
   products,
+  reportsOnly = false,
 }: {
   readonly current: string;
   readonly products: readonly SwitcherProduct[];
+  /** A client viewer only reads reports, so the other sections are not offered. */
+  readonly reportsOnly?: boolean;
 }) {
   const router = useRouter();
   const section = sectionOf(usePathname());
@@ -41,7 +44,9 @@ export function ProductNav({
           id="product-switcher"
           value={current}
           onChange={(event) => {
-            router.push(`/app/products/${event.target.value}/${section}`);
+            router.push(
+              `/app/products/${event.target.value}/${reportsOnly ? "analytics" : section}`,
+            );
           }}
           className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold shadow-sm sm:w-64 dark:border-slate-700 dark:bg-slate-900"
         >
@@ -53,16 +58,18 @@ export function ProductNav({
         </select>
       </div>
       <nav aria-label="Product sections" className="-mx-1 flex gap-1 overflow-x-auto text-sm">
-        {sections.map(({ slug, label }) => (
-          <Link
-            key={slug}
-            href={`/app/products/${current}/${slug}`}
-            aria-current={slug === section ? "page" : undefined}
-            className="rounded-lg px-3 py-1.5 font-medium whitespace-nowrap text-slate-600 hover:bg-slate-100 aria-[current=page]:bg-brand-50 aria-[current=page]:text-brand-700 dark:text-slate-400 dark:hover:bg-slate-900 dark:aria-[current=page]:bg-brand-700/15 dark:aria-[current=page]:text-brand-400"
-          >
-            {label}
-          </Link>
-        ))}
+        {sections
+          .filter(({ slug }) => !reportsOnly || slug === "analytics")
+          .map(({ slug, label }) => (
+            <Link
+              key={slug}
+              href={`/app/products/${current}/${slug}`}
+              aria-current={slug === section ? "page" : undefined}
+              className="rounded-lg px-3 py-1.5 font-medium whitespace-nowrap text-slate-600 hover:bg-slate-100 aria-[current=page]:bg-brand-50 aria-[current=page]:text-brand-700 dark:text-slate-400 dark:hover:bg-slate-900 dark:aria-[current=page]:bg-brand-700/15 dark:aria-[current=page]:text-brand-400"
+            >
+              {label}
+            </Link>
+          ))}
       </nav>
     </div>
   );

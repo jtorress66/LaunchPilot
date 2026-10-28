@@ -51,11 +51,12 @@ an email is registered. One founder owns one workspace.
 
 ### Plans and billing
 
-| Plan    | Price  | Products | Content items / month |
-| ------- | ------ | -------- | --------------------- |
-| Free    | $0     | 1        | 10                    |
-| Starter | $29/mo | 1        | 60                    |
-| Growth  | $79/mo | 3        | 200                   |
+| Plan    | Price   | Products                       | Content items / month   |
+| ------- | ------- | ------------------------------ | ----------------------- |
+| Free    | $0      | 1                              | 10                      |
+| Starter | $29/mo  | 1                              | 60                      |
+| Growth  | $79/mo  | 3                              | 200                     |
+| Agency  | $199/mo | 3, plus 10 clients with 3 each | 200, and 200 per client |
 
 Plans live in one catalog (`packages/domain/src/billing/plans.ts`). Billing providers plug in
 through two ports, `CheckoutProvider` and `BillingWebhookVerifier`:
@@ -70,7 +71,7 @@ through two ports, `CheckoutProvider` and `BillingWebhookVerifier`:
 **Using Stripe**
 
 1. In the Stripe dashboard (test mode) copy your secret key (`sk_test_…`).
-2. `STRIPE_SECRET_KEY=sk_test_… pnpm stripe:setup` creates the Starter and Growth prices (idempotent;
+2. `STRIPE_SECRET_KEY=sk_test_… pnpm stripe:setup` creates the Starter, Growth and Agency prices (idempotent;
    refuses live keys unless you pass `--live`).
 3. Locally: `stripe listen --forward-to localhost:3000/api/billing/webhook` prints the
    `whsec_…` webhook secret; set `BILLING_PROVIDER=stripe`, `STRIPE_SECRET_KEY` and
@@ -107,6 +108,40 @@ A workspace holds as many products as its plan allows. Archived products don't c
 Which products are active is worked out from the plan each time, not stored: `allocateSlots` in
 `packages/domain/src/product/product-slots.ts`, enforced by `loadActiveProduct` and `ensureActive`
 in `packages/application/src/active-product.ts`.
+
+### Agencies, roles and branded reports
+
+An agency on the **Agency** plan adds up to 10 **client workspaces** (**Clients** page). Each
+client has its own products, brief, content, Activity and reports, and runs on the client plan
+(3 products, 200 items a month) while the agency pays for Agency. If the agency leaves the plan,
+its clients drop to Free and their extra products pause.
+
+- **Switching:** the header's **Workspace** switcher lists the person's own workspace, each
+  workspace they were invited to, and (for agency staff) every client. The session remembers the
+  choice; access is checked again on every request.
+- **Roles** (one permission table, `packages/domain/src/agency/roles.ts`):
+
+  | Role          | Can                                                        |
+  | ------------- | ---------------------------------------------------------- |
+  | Owner         | everything, including billing, team, clients and branding  |
+  | Team member   | draft, approve, publish, connect accounts and send reports |
+  | Client viewer | read reports and Activity; nothing else                    |
+
+  An agency's owners and members keep their role in every client. Approving, scheduling and
+  publishing check the role in the use cases themselves, so a client viewer can never reach a
+  public channel. Every server action also checks it (`requireAccess`).
+
+- **Team:** owners invite people by email as a team member or client viewer. The link lasts 7
+  days; only a hash of its token is stored. A new person signs up from the link, then accepts.
+  The last owner cannot be removed.
+- **Branding** (**Branding** page, on the agency): sender name, accent colour, optional logo and
+  footer, and the reply-to address. Every client's reports use it.
+- **Report email:** a report page's **Email this report** sends it to up to 10 addresses from the
+  agency's name, in its colours, with no mention of Nuvantre. **Email every new weekly report**
+  makes the worker send each new weekly report to that list. Emails go through Resend
+  (`MAILER=resend`, `RESEND_API_KEY`, `MAIL_FROM` on a domain verified in Resend); a retry never
+  sends twice (idempotency key per report, recipients and day). Sending is rate limited to 50 an
+  hour per workspace.
 
 ### Onboarding and the Product Brief
 
@@ -593,6 +628,10 @@ The rule is enforced twice: by ESLint `no-restricted-imports` per layer, and by
 | `LOOP_INTERVAL_MS`      | `3600000`         | worker: how often it checks for due autopilot weeks (at least 60000)                  |
 | `SENTRY_DSN`            | none              | web, worker: report errors to Sentry too (secrets scrubbed); without it, JSON logs    |
 | `TRUST_PROXY`           | `false`           | web: `true` takes the client address from `X-Forwarded-For` (only behind a proxy)     |
+| `MAILER`                | `resend`          | web, worker: `resend`, or `log` to only log (development and test only)               |
+| `RESEND_API_KEY`        | none              | web, worker: sends invitations and reports through Resend. Never logged               |
+| `MAIL_FROM`             | none              | web, worker: the sending address, on a domain verified in Resend                      |
+| `RESEND_BASE_URL`       | Resend API        | web, worker: a local stand-in for Resend (development and test only)                  |
 | `RATE_LIMIT_OVERRIDES`  | none              | web: raise limits, e.g. `signup=1000,draft=500` (development and test only)           |
 
 All configuration is validated with Zod when the app first handles a request; an invalid value

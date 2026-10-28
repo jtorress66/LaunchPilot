@@ -2,15 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AuthShell } from "../../components/auth-shell";
 import { LogInForm } from "../../components/forms/auth-forms";
+import { parseInviteToken } from "../../server/forms";
 
 export const metadata: Metadata = { title: "Log in — Nuvantre" };
 
 export default async function LogInPage({
   searchParams,
 }: {
-  readonly searchParams: Promise<{ expired?: string }>;
+  readonly searchParams: Promise<{ expired?: string; invite?: string }>;
 }) {
-  const { expired } = await searchParams;
+  const { expired, invite } = await searchParams;
   return (
     <AuthShell
       title="Welcome back"
@@ -29,7 +30,7 @@ export default async function LogInPage({
         </>
       }
     >
-      <LogInForm />
+      <LogInForm invite={parseInviteToken(invite)} />
     </AuthShell>
   );
 }

@@ -6,6 +6,7 @@ import {
   type Email,
   type Product,
   type ProductId,
+  type ReportRecipients,
   type Result,
   type WeeklyReport,
   type Workspace,
@@ -156,5 +157,28 @@ export class SendWeeklyReportEmails {
       }
     }
     return { sent, failed };
+  }
+}
+
+/** The list a product's report goes to, for the "Email this report" form; null before any. */
+export class GetReportRecipients {
+  constructor(
+    private readonly deps: {
+      readonly products: ProductRepository;
+      readonly reportRecipients: ReportRecipientRepository;
+    },
+  ) {}
+
+  async execute(input: {
+    access: WorkspaceAccess;
+    productId: ProductId;
+  }): Promise<Result<ReportRecipients | null, UseCaseError>> {
+    const product = await loadOwnedProduct(
+      this.deps.products,
+      input.access.workspace,
+      input.productId,
+    );
+    if (!product.ok) return product;
+    return ok((await this.deps.reportRecipients.findByProduct(product.value.id)) ?? null);
   }
 }

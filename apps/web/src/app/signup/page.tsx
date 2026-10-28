@@ -2,10 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AuthShell } from "../../components/auth-shell";
 import { SignUpForm } from "../../components/forms/auth-forms";
+import { parseInviteToken } from "../../server/forms";
 
 export const metadata: Metadata = { title: "Create your account — Nuvantre" };
 
-export default function SignUpPage() {
+export default async function SignUpPage({
+  searchParams,
+}: {
+  readonly searchParams: Promise<{ invite?: string }>;
+}) {
+  const { invite } = await searchParams;
   return (
     <AuthShell
       title="Create your account"
@@ -22,7 +28,7 @@ export default function SignUpPage() {
         </>
       }
     >
-      <SignUpForm />
+      <SignUpForm invite={parseInviteToken(invite)} />
     </AuthShell>
   );
 }

@@ -14,6 +14,7 @@ import {
   AuthenticateSession,
   GetBranding,
   GetInvitation,
+  GetReportRecipients,
   InviteMember,
   ListClients,
   ListTeam,
@@ -570,5 +571,29 @@ describe("a client viewer", () => {
     for (const n of [1, 2, 3]) expect((await create(n)).ok).toBe(true);
     expect(await create(4)).toMatchObject({ ok: false, error: { code: "plan_limit_reached" } });
     expect(s.workspace.agencyId).toBeNull();
+  });
+});
+
+describe("GetReportRecipients", () => {
+  it("returns a product's saved list, or null before the first email", async () => {
+    const world = makeWorld();
+    const s = await anAgency(world);
+    const product = aProduct({ workspaceId: s.workspace.id });
+    await world.products.save(product);
+    const get = () =>
+      new GetReportRecipients(world).execute({ access: access(s), productId: product.id });
+    expect(await get()).toEqual({ ok: true, value: null });
+    await world.reportRecipients.save({
+      productId: product.id,
+      emails: ["client@acme.test" as never],
+      weekly: true,
+    });
+    expect(await get()).toMatchObject({ ok: true, value: { weekly: true } });
+    expect(
+      await new GetReportRecipients(world).execute({
+        access: access(s),
+        productId: productId("prod_other"),
+      }),
+    ).toMatchObject({ ok: false, error: { code: "product_not_found" } });
   });
 });

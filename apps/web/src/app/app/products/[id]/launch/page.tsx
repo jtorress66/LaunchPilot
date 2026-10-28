@@ -10,7 +10,7 @@ import { TrackerRow } from "../../../../../components/launch/tracker-row";
 import { channelName } from "../../../../../components/social/channel-name";
 import { getAppContainer } from "../../../../../container";
 import { parseDirectoryFilter } from "../../../../../server/forms";
-import { requireUser } from "../../../../_lib/auth";
+import { requireAccess } from "../../../../_lib/auth";
 import { idParam } from "../../../../_lib/params";
 
 export const metadata: Metadata = { title: "Launch — Nuvantre" };
@@ -26,7 +26,7 @@ interface LaunchPageProps {
 export default async function LaunchPage({ params, searchParams }: LaunchPageProps) {
   const [{ id: raw }, query] = await Promise.all([params, searchParams]);
   const id = idParam(raw);
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("draft");
   const app = getAppContainer();
   const filter = parseDirectoryFilter(query);
   const [overview, directories] = await Promise.all([
