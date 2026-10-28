@@ -11,6 +11,7 @@ import type {
   ContentItemRepository,
   ProductRepository,
   SubscriptionRepository,
+  WorkspaceRepository,
 } from "@nuvantre/ports";
 import { currentPlan } from "./current-plan";
 
@@ -20,6 +21,7 @@ export const checkContentAllowance = async (
     readonly products: ProductRepository;
     readonly contentItems: ContentItemRepository;
     readonly subscriptions: SubscriptionRepository;
+    readonly workspaces: WorkspaceRepository;
     readonly clock: Clock;
   },
   workspace: Workspace,
@@ -39,6 +41,7 @@ export const remainingContentAllowance = async (
     readonly products: ProductRepository;
     readonly contentItems: ContentItemRepository;
     readonly subscriptions: SubscriptionRepository;
+    readonly workspaces: WorkspaceRepository;
     readonly clock: Clock;
   },
   workspace: Workspace,

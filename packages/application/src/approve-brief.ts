@@ -1,15 +1,9 @@
-import {
-  approveBrief,
-  type Actor,
-  type Brief,
-  type ProductId,
-  type Result,
-  type Workspace,
-} from "@nuvantre/domain";
+import { approveBrief, type Brief, type ProductId, type Result } from "@nuvantre/domain";
 import type { BriefRepository, Clock, ProductRepository } from "@nuvantre/ports";
-import { recordAudit, type AuditDeps } from "./audit";
+import { founderOfAccess, recordAudit, type AuditDeps } from "./audit";
 import type { UseCaseError } from "./errors";
 import { loadOwnedBrief } from "./owned-brief";
+import { authorize, type WorkspaceAccess } from "./workspace-access";
 
 /** Records the founder's approval; agents can never approve a brief. */
 export class ApproveBrief {
@@ -22,19 +16,22 @@ export class ApproveBrief {
   ) {}
 
   async execute(input: {
-    workspace: Workspace;
+    access: WorkspaceAccess;
     productId: ProductId;
-    actor: Actor;
   }): Promise<Result<Brief, UseCaseError>> {
-    const brief = await loadOwnedBrief(this.deps, input.workspace, input.productId);
+    const allowed = authorize(input.access, "approve");
+    if (!allowed.ok) return allowed;
+    const { workspace } = input.access;
+    const actor = founderOfAccess(input.access);
+    const brief = await loadOwnedBrief(this.deps, workspace, input.productId);
     if (!brief.ok) return brief;
-    const approved = approveBrief(brief.value, input.actor, { now: this.deps.clock.now() });
+    const approved = approveBrief(brief.value, actor, { now: this.deps.clock.now() });
     if (!approved.ok) return approved;
     await this.deps.briefs.save(approved.value);
     const product = await this.deps.products.findById(input.productId);
     await recordAudit(this.deps, {
-      workspaceId: input.workspace.id,
-      actor: input.actor,
+      workspaceId: workspace.id,
+      actor,
       action: "brief_approved",
       subject: { kind: "brief", id: approved.value.id, label: product?.name ?? "Product Brief" },
     });

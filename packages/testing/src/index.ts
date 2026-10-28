@@ -29,3 +29,4 @@ export * from "./fixtures/orchestration";
 export * from "./fakes/hardening-fakes";
 export * from "./fakes/agency-fakes";
 export * from "./fixtures/agency";
+export { FakeTokenHasher } from "./fakes/fake-token-hasher";

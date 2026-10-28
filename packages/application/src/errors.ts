@@ -23,7 +23,12 @@ export type ApplicationErrorCode =
   | "analytics_not_connected"
   | "oauth_state_mismatch"
   | "report_not_found"
-  | "invalid_swap";
+  | "invalid_swap"
+  | "forbidden"
+  | "agency_plan_required"
+  | "invitation_not_found"
+  | "member_not_found"
+  | "last_owner";
 
 /** What a use case can report: a broken domain rule or an application-level refusal. */
 export type UseCaseError =

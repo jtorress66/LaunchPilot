@@ -27,6 +27,7 @@ import type {
   SubscriptionRepository,
   WeeklyReportAnalyst,
   WeeklyReportRepository,
+  WorkspaceRepository,
 } from "@nuvantre/ports";
 import { failure, type UseCaseError } from "./errors";
 import type { MetricsSourceRegistry } from "./metrics-source-registry";
@@ -92,6 +93,7 @@ export class GenerateWeeklyReport {
     private readonly deps: {
       readonly products: ProductRepository;
       readonly subscriptions: SubscriptionRepository;
+      readonly workspaces: WorkspaceRepository;
       readonly analyticsConnections: AnalyticsConnectionRepository;
       readonly builder: WeeklyReportBuilder;
       readonly clock: Clock;
@@ -126,6 +128,7 @@ export class BuildDueReports {
     private readonly deps: {
       readonly products: ProductRepository;
       readonly subscriptions: SubscriptionRepository;
+      readonly workspaces: WorkspaceRepository;
       readonly analyticsConnections: AnalyticsConnectionRepository;
       readonly weeklyReports: WeeklyReportRepository;
       readonly builder: WeeklyReportBuilder;
@@ -133,12 +136,19 @@ export class BuildDueReports {
     },
   ) {}
 
-  async execute(): Promise<{ built: number; skipped: number }> {
+  async execute(): Promise<{
+    built: number;
+    skipped: number;
+    /** The reports built by this run, for the weekly report emails. */
+    reports: readonly WeeklyReport[];
+  }> {
     const now = this.deps.clock.now();
     const week = lastCompleteWeek(now);
-    if (now.getTime() < week.end.getTime() + SETTLE_MS) return { built: 0, skipped: 0 };
+    if (now.getTime() < week.end.getTime() + SETTLE_MS)
+      return { built: 0, skipped: 0, reports: [] };
     let built = 0;
     let skipped = 0;
+    const reports: WeeklyReport[] = [];
     for (const id of await this.deps.analyticsConnections.listConnectedProductIds()) {
       if (await this.deps.weeklyReports.findByProductAndWeek(id, weekKey(week))) {
         skipped += 1;
@@ -151,9 +161,9 @@ export class BuildDueReports {
         skipped += 1;
         continue;
       }
-      await this.deps.builder.build(product, week);
+      reports.push(await this.deps.builder.build(product, week));
       built += 1;
     }
-    return { built, skipped };
+    return { built, skipped, reports };
   }
 }

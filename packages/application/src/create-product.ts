@@ -12,6 +12,7 @@ import type {
   IdGenerator,
   ProductRepository,
   SubscriptionRepository,
+  WorkspaceRepository,
 } from "@nuvantre/ports";
 import { founderOf, recordAudit, type AuditDeps } from "./audit";
 import { currentPlan } from "./current-plan";
@@ -20,6 +21,7 @@ import type { UseCaseError } from "./errors";
 export interface CreateProductDeps extends AuditDeps {
   readonly products: ProductRepository;
   readonly subscriptions: SubscriptionRepository;
+  readonly workspaces: WorkspaceRepository;
   readonly ids: IdGenerator;
   readonly clock: Clock;
 }

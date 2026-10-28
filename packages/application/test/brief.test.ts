@@ -8,7 +8,7 @@ import {
   GetDashboard,
   UpdateBrief,
 } from "../src";
-import { makeWorld, signedUp, type World } from "./world";
+import { makeWorld, signedUp, type World, ownerAccess } from "./world";
 
 const pages = [
   { url: "https://acme.dev/", title: "Acme", text: "Analytics for SaaS founders.\nMore." },
@@ -160,12 +160,11 @@ describe("UpdateBrief", () => {
   });
 
   it("returns an approved brief to draft when it is edited", async () => {
-    const { world, workspace, user, product } = await withProduct();
+    const { world, workspace, product } = await withProduct();
     await generate(world, workspace, product);
     await new ApproveBrief(world).execute({
-      workspace,
+      access: ownerAccess(workspace),
       productId: product.id,
-      actor: { kind: "founder", userId: user.id },
     });
     const result = await new UpdateBrief(world).execute({
       workspace,
@@ -203,9 +202,8 @@ describe("ApproveBrief", () => {
     const { world, workspace, user, product } = await withProduct();
     await generate(world, workspace, product);
     const result = await new ApproveBrief(world).execute({
-      workspace,
+      access: ownerAccess(workspace),
       productId: product.id,
-      actor: { kind: "founder", userId: user.id },
     });
     expect(result).toMatchObject({
       ok: true,
@@ -214,19 +212,19 @@ describe("ApproveBrief", () => {
     expect((await world.briefs.findLatestForProduct(product.id))?.status).toBe("approved");
   });
 
-  it("never lets an agent approve", async () => {
+  it("never lets a client viewer approve", async () => {
     const { world, workspace, product } = await withProduct();
     await generate(world, workspace, product);
     const result = await new ApproveBrief(world).execute({
-      workspace,
+      access: { ...ownerAccess(workspace), role: "viewer" },
       productId: product.id,
-      actor: { kind: "agent", agent: "brief" },
     });
-    expect(result.ok ? undefined : result.error.code).toBe("approval_requires_founder");
+    expect(result.ok ? undefined : result.error.code).toBe("forbidden");
+    expect((await world.briefs.findLatestForProduct(product.id))?.status).toBe("draft");
   });
 
   it("needs at least one fact", async () => {
-    const { world, workspace, user, product } = await withProduct();
+    const { world, workspace, product } = await withProduct();
     await generate(world, workspace, product);
     await new UpdateBrief(world).execute({
       workspace,
@@ -234,19 +232,17 @@ describe("ApproveBrief", () => {
       content: { ...edited, facts: [] },
     });
     const result = await new ApproveBrief(world).execute({
-      workspace,
+      access: ownerAccess(workspace),
       productId: product.id,
-      actor: { kind: "founder", userId: user.id },
     });
     expect(result.ok ? undefined : result.error.code).toBe("brief_has_no_facts");
   });
 
   it("reports a product without a brief", async () => {
-    const { world, workspace, user, product } = await withProduct();
+    const { world, workspace, product } = await withProduct();
     const result = await new ApproveBrief(world).execute({
-      workspace,
+      access: ownerAccess(workspace),
       productId: product.id,
-      actor: { kind: "founder", userId: user.id },
     });
     expect(result.ok ? undefined : result.error.code).toBe("brief_not_found");
   });
@@ -254,7 +250,7 @@ describe("ApproveBrief", () => {
 
 describe("GetDashboard brief status", () => {
   it("shows whether each product's brief is missing, a draft or approved", async () => {
-    const { world, workspace, user, product } = await withProduct();
+    const { world, workspace, product } = await withProduct();
     const status = async () =>
       (await new GetDashboard(world).execute(workspace)).cards.find(
         (card) => card.product.id === product.id,
@@ -263,9 +259,8 @@ describe("GetDashboard brief status", () => {
     await generate(world, workspace, product);
     expect(await status()).toBe("draft");
     await new ApproveBrief(world).execute({
-      workspace,
+      access: ownerAccess(workspace),
       productId: product.id,
-      actor: { kind: "founder", userId: user.id },
     });
     expect(await status()).toBe("approved");
   });

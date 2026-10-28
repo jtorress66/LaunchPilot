@@ -17,7 +17,7 @@ import {
   StartGoogleConnect,
   WeeklyReportBuilder,
 } from "../src";
-import { makeWorld, signedUp, type World } from "./world";
+import { makeWorld, signedUp, type World, ownerAccess } from "./world";
 
 interface Setup {
   world: World;
@@ -338,9 +338,8 @@ describe("GenerateWeeklyReport", () => {
       productId: setup.product.id,
     });
     await new ApproveBrief(setup.world).execute({
-      workspace: setup.workspace,
+      access: ownerAccess(setup.workspace),
       productId: setup.product.id,
-      actor: { kind: "founder", userId: setup.user.id },
     });
     await generate(setup);
     expect(setup.world.analyst.requests[1]?.brief).not.toBeNull();
@@ -377,8 +376,20 @@ describe("GenerateWeeklyReport", () => {
 });
 
 describe("BuildDueReports", () => {
-  const run = (world: World) =>
-    new BuildDueReports({ ...world, builder: builder(world) }).execute();
+  const job = (world: World) => new BuildDueReports({ ...world, builder: builder(world) });
+  const run = async (world: World) => {
+    const { built, skipped } = await job(world).execute();
+    return { built, skipped };
+  };
+
+  it("returns the reports it built, so they can be emailed", async () => {
+    const setup = await setUp();
+    await connectGoogle(setup);
+    setup.world.clock.set(new Date("2026-05-04T07:00:00.000Z"));
+    const { reports } = await job(setup.world).execute();
+    expect(reports.map((r) => r.productId)).toEqual([setup.product.id]);
+    expect(await setup.world.weeklyReports.listByProduct(setup.product.id)).toEqual(reports);
+  });
 
   it("builds last week's report for each connected product that has none, once", async () => {
     const setup = await setUp();

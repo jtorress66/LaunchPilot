@@ -24,7 +24,7 @@ import {
   ReviseContentItem,
   SetProductLocale,
 } from "../src";
-import { makeWorld, signedUp, type World } from "./world";
+import { makeWorld, signedUp, type World, ownerAccess } from "./world";
 
 const BLOG = {
   platform: "wordpress" as const,
@@ -67,17 +67,14 @@ const setUp = async ({ approveBrief = true } = {}): Promise<Setup> => {
   if (!brief.ok) throw new Error(brief.error.message);
   if (approveBrief) {
     await new ApproveBrief(world).execute({
-      workspace,
+      access: ownerAccess(workspace),
       productId: product.id,
-      actor: { kind: "founder", userId: user.id },
     });
   }
   world.keywords.setIdeas(ideas);
   world.blogVerifier.accept(BLOG, "Acme Blog");
   return { world, workspace, user, product };
 };
-
-const founder = ({ user }: Setup) => ({ kind: "founder" as const, userId: user.id });
 
 const plan = async (s: Setup, seeds = ["privacy analytics"]) => {
   const result = await new PlanSeoContent(s.world).execute({
@@ -104,9 +101,8 @@ const draft = async (s: Setup) => {
 const approved = async (s: Setup) => {
   const item = await draft(s);
   const result = await new ApproveContentItem(s.world).execute({
-    workspace: s.workspace,
+    access: ownerAccess(s.workspace),
     itemId: item.id,
-    actor: founder(s),
   });
   if (!result.ok) throw new Error(result.error.message);
   return result.value;
@@ -451,15 +447,15 @@ describe("ReviseContentItem and ApproveContentItem", () => {
     });
   });
 
-  it("never lets an agent approve", async () => {
+  it("never lets a client viewer approve", async () => {
     const s = await setUp();
     const item = await draft(s);
     const result = await new ApproveContentItem(s.world).execute({
-      workspace: s.workspace,
+      access: { ...ownerAccess(s.workspace), role: "viewer" },
       itemId: item.id,
-      actor: { kind: "agent", agent: "seo" },
     });
-    expect(result.ok ? undefined : result.error.code).toBe("approval_requires_founder");
+    expect(result.ok ? undefined : result.error.code).toBe("forbidden");
+    expect((await s.world.contentItems.findById(item.id))?.status).toBe("in_review");
   });
 
   it("rejects an invalid edit and hides other workspaces' items", async () => {
@@ -474,9 +470,8 @@ describe("ReviseContentItem and ApproveContentItem", () => {
     expect(blank.ok ? undefined : blank.error.code).toBe("invalid_text");
     const { workspace: other } = await signedUp(s.world, "other@acme.dev");
     const hidden = await new ApproveContentItem(s.world).execute({
-      workspace: other,
+      access: ownerAccess(other),
       itemId: item.id,
-      actor: founder(s),
     });
     expect(hidden.ok ? undefined : hidden.error.code).toBe("content_not_found");
   });
@@ -489,7 +484,7 @@ describe("PublishContentItem", () => {
     s.world.blogPublisher.connect(s.product.id);
     const item = await approved(s);
     const result = await new PublishContentItem(s.world).execute({
-      workspace: s.workspace,
+      access: ownerAccess(s.workspace),
       itemId: item.id,
     });
     expect(result).toMatchObject({
@@ -508,7 +503,7 @@ describe("PublishContentItem", () => {
     s.world.blogPublisher.connect(s.product.id);
     const item = await draft(s);
     const result = await new PublishContentItem(s.world).execute({
-      workspace: s.workspace,
+      access: ownerAccess(s.workspace),
       itemId: item.id,
     });
     expect(result.ok ? undefined : result.error.code).toBe("not_publishable");
@@ -519,7 +514,7 @@ describe("PublishContentItem", () => {
     const s = await setUp();
     const item = await approved(s);
     const result = await new PublishContentItem(s.world).execute({
-      workspace: s.workspace,
+      access: ownerAccess(s.workspace),
       itemId: item.id,
     });
     expect(result.ok ? undefined : result.error.code).toBe("not_connected");
@@ -535,7 +530,7 @@ describe("PublishContentItem", () => {
       retryable: true,
     });
     const result = await new PublishContentItem(s.world).execute({
-      workspace: s.workspace,
+      access: ownerAccess(s.workspace),
       itemId: item.id,
     });
     expect(result.ok ? undefined : result.error.code).toBe("unavailable");
@@ -545,7 +540,7 @@ describe("PublishContentItem", () => {
   it("reports an item that does not exist", async () => {
     const s = await setUp();
     const result = await new PublishContentItem(s.world).execute({
-      workspace: s.workspace,
+      access: ownerAccess(s.workspace),
       itemId: contentItemId("missing"),
     });
     expect(result.ok ? undefined : result.error.code).toBe("content_not_found");

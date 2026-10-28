@@ -21,7 +21,7 @@ import {
   RunWeeklyLoop,
   SetAutopilot,
 } from "../src";
-import { makeWorld, signedUp, type World } from "./world";
+import { makeWorld, signedUp, type World, ownerAccess } from "./world";
 
 interface Setup {
   world: World;
@@ -67,9 +67,8 @@ const setUp = async ({ approve = true, email = "founder@acme.dev" } = {}, world 
 
 const approveBrief = (s: Setup) =>
   new ApproveBrief(s.world).execute({
-    workspace: s.workspace,
+    access: ownerAccess(s.workspace),
     productId: s.product.id,
-    actor: { kind: "founder", userId: s.user.id },
   });
 
 const loop = (world: World) => new RunWeeklyLoop(world);

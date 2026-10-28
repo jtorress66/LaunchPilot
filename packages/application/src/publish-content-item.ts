@@ -4,7 +4,6 @@ import {
   type ContentItem,
   type ContentItemId,
   type Result,
-  type Workspace,
 } from "@nuvantre/domain";
 import type {
   Clock,
@@ -13,13 +12,15 @@ import type {
   PublishError,
   SubscriptionRepository,
   TaskRepository,
+  WorkspaceRepository,
 } from "@nuvantre/ports";
 import { ensureActive } from "./active-product";
-import { founderOf, recordAudit, type AuditDeps } from "./audit";
+import { founderOfAccess, recordAudit, type AuditDeps } from "./audit";
 import type { UseCaseError } from "./errors";
 import { completeTaskOf } from "./complete-task";
 import { loadOwnedItem } from "./owned-content";
 import type { PublisherRegistry } from "./publisher-registry";
+import { authorize, type WorkspaceAccess } from "./workspace-access";
 
 /**
  * Publishes an approved item through its channel's publisher. `toPublishable` lets only
@@ -32,6 +33,7 @@ export class PublishContentItem {
       readonly contentItems: ContentItemRepository;
       readonly products: ProductRepository;
       readonly subscriptions: SubscriptionRepository;
+      readonly workspaces: WorkspaceRepository;
       readonly tasks: TaskRepository;
       readonly publishers: PublisherRegistry;
       readonly clock: Clock;
@@ -39,10 +41,13 @@ export class PublishContentItem {
   ) {}
 
   async execute(input: {
-    workspace: Workspace;
+    access: WorkspaceAccess;
     itemId: ContentItemId;
   }): Promise<Result<ContentItem, UseCaseError | PublishError>> {
-    const owned = await loadOwnedItem(this.deps, input.workspace, input.itemId);
+    const allowed = authorize(input.access, "publish");
+    if (!allowed.ok) return allowed;
+    const { workspace } = input.access;
+    const owned = await loadOwnedItem(this.deps, workspace, input.itemId);
     if (!owned.ok) return owned;
     const { item, product } = owned.value;
     const active = await ensureActive(this.deps, product);
@@ -63,8 +68,8 @@ export class PublishContentItem {
     await this.deps.contentItems.save(published.value);
     await completeTaskOf(this.deps.tasks, item);
     await recordAudit(this.deps, {
-      workspaceId: input.workspace.id,
-      actor: founderOf(input.workspace),
+      workspaceId: workspace.id,
+      actor: founderOfAccess(input.access),
       action: "content_published",
       subject: { kind: "content", id: item.id, label: item.title },
     });

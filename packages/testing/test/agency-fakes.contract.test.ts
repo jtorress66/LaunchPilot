@@ -4,12 +4,14 @@ import {
   describeMailerContract,
   describeMembershipRepositoryContract,
   describeReportRecipientRepositoryContract,
+  describeTokenHasherContract,
 } from "../contracts";
 import {
   InMemoryBrandingRepository,
   InMemoryInvitationRepository,
   InMemoryMembershipRepository,
   InMemoryReportRecipientRepository,
+  FakeTokenHasher,
   RecordingMailer,
 } from "../src";
 
@@ -51,3 +53,5 @@ describeMailerContract("RecordingMailer", () => {
     },
   };
 });
+
+describeTokenHasherContract("FakeTokenHasher", () => new FakeTokenHasher());

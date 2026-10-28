@@ -31,3 +31,4 @@ export * from "./audit-trail.contract";
 export * from "./job-lock.contract";
 export * from "./agency-repositories.contract";
 export * from "./mailer.contract";
+export * from "./token-hasher.contract";

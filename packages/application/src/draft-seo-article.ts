@@ -21,6 +21,7 @@ import type {
   ProductRepository,
   SubscriptionRepository,
   TaskRepository,
+  WorkspaceRepository,
 } from "@nuvantre/ports";
 import { ensureActive } from "./active-product";
 import { loadApprovedBrief } from "./approved-brief";
@@ -41,6 +42,7 @@ export class DraftSeoArticle {
       readonly tasks: TaskRepository;
       readonly contentItems: ContentItemRepository;
       readonly subscriptions: SubscriptionRepository;
+      readonly workspaces: WorkspaceRepository;
       readonly writer: ContentDrafter;
       readonly ids: IdGenerator;
       readonly clock: Clock;

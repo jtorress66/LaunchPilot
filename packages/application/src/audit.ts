@@ -1,9 +1,11 @@
 import {
   createAuditEntry,
+  type Actor,
   type AuditAction,
   type AuditActor,
   type AuditEntry,
   type AuditSubject,
+  type UserId,
   type Workspace,
   type WorkspaceId,
 } from "@nuvantre/domain";
@@ -20,6 +22,12 @@ export interface AuditDeps {
 export const founderOf = (workspace: Workspace): AuditActor => ({
   kind: "founder",
   userId: workspace.ownerId,
+});
+
+/** The person acting through a workspace access. */
+export const founderOfAccess = (access: { readonly user: { readonly id: UserId } }): Actor => ({
+  kind: "founder",
+  userId: access.user.id,
 });
 
 /**

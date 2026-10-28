@@ -18,6 +18,7 @@ import type {
   Clock,
   IdGenerator,
   PasswordHasher,
+  MembershipRepository,
   SessionRepository,
   SubscriptionRepository,
   TokenGenerator,
@@ -31,6 +32,7 @@ export interface SignUpDeps {
   readonly workspaces: WorkspaceRepository;
   readonly subscriptions: SubscriptionRepository;
   readonly sessions: SessionRepository;
+  readonly memberships: MembershipRepository;
   readonly hasher: PasswordHasher;
   readonly tokens: TokenGenerator;
   readonly ids: IdGenerator;
@@ -77,6 +79,12 @@ export class SignUp {
 
     await this.deps.users.save(user);
     await this.deps.workspaces.save(workspace.value);
+    await this.deps.memberships.save({
+      workspaceId: workspace.value.id,
+      userId: user.id,
+      role: "owner",
+      createdAt: now,
+    });
     await this.deps.subscriptions.save(freeSubscription(workspace.value.id, now));
     await this.deps.sessions.save(session);
     return ok({ user, workspace: workspace.value, session });

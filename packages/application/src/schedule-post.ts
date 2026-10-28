@@ -4,32 +4,37 @@ import {
   type ContentItemEvent,
   type ContentItemId,
   type Result,
-  type Workspace,
 } from "@nuvantre/domain";
 import type {
   Clock,
   ContentItemRepository,
   ProductRepository,
   SubscriptionRepository,
+  WorkspaceRepository,
 } from "@nuvantre/ports";
 import { ensureActive } from "./active-product";
-import { founderOf, recordAudit, type AuditDeps } from "./audit";
+import { founderOfAccess, recordAudit, type AuditDeps } from "./audit";
 import type { UseCaseError } from "./errors";
 import { loadOwnedItem } from "./owned-content";
+import { authorize, type WorkspaceAccess } from "./workspace-access";
 
 interface Deps extends AuditDeps {
   readonly contentItems: ContentItemRepository;
   readonly products: ProductRepository;
   readonly subscriptions: SubscriptionRepository;
+  readonly workspaces: WorkspaceRepository;
   readonly clock: Clock;
 }
 
 const apply = async (
   deps: Deps,
-  workspace: Workspace,
+  access: WorkspaceAccess,
   itemId: ContentItemId,
   event: ContentItemEvent,
 ): Promise<Result<ContentItem, UseCaseError>> => {
+  const allowed = authorize(access, "publish");
+  if (!allowed.ok) return allowed;
+  const { workspace } = access;
   const owned = await loadOwnedItem(deps, workspace, itemId);
   if (!owned.ok) return owned;
   // Taking a post off the calendar stays possible for a paused product; putting one on does not.
@@ -43,7 +48,7 @@ const apply = async (
   if (event.type === "schedule") {
     await recordAudit(deps, {
       workspaceId: workspace.id,
-      actor: founderOf(workspace),
+      actor: founderOfAccess(access),
       action: "post_scheduled",
       subject: { kind: "content", id: next.value.id, label: next.value.title },
     });
@@ -56,11 +61,11 @@ export class SchedulePost {
   constructor(private readonly deps: Deps) {}
 
   execute(input: {
-    workspace: Workspace;
+    access: WorkspaceAccess;
     itemId: ContentItemId;
     publishAt: Date;
   }): Promise<Result<ContentItem, UseCaseError>> {
-    return apply(this.deps, input.workspace, input.itemId, {
+    return apply(this.deps, input.access, input.itemId, {
       type: "schedule",
       publishAt: input.publishAt,
     });
@@ -72,9 +77,9 @@ export class UnschedulePost {
   constructor(private readonly deps: Deps) {}
 
   execute(input: {
-    workspace: Workspace;
+    access: WorkspaceAccess;
     itemId: ContentItemId;
   }): Promise<Result<ContentItem, UseCaseError>> {
-    return apply(this.deps, input.workspace, input.itemId, { type: "unschedule" });
+    return apply(this.deps, input.access, input.itemId, { type: "unschedule" });
   }
 }

@@ -12,6 +12,7 @@ import type {
   ProductRepository,
   SubscriptionRepository,
   TaskRepository,
+  WorkspaceRepository,
 } from "@nuvantre/ports";
 import { ensureActive } from "./active-product";
 import { recordAudit, type AuditDeps } from "./audit";
@@ -49,6 +50,7 @@ export class PublishDueContent {
       readonly contentItems: ContentItemRepository;
       readonly products: ProductRepository;
       readonly subscriptions: SubscriptionRepository;
+      readonly workspaces: WorkspaceRepository;
       readonly tasks: TaskRepository;
       readonly publishers: PublisherRegistry;
       readonly clock: Clock;

@@ -3,12 +3,14 @@ import {
   describePasswordHasherContract,
   describeTokenCipherContract,
   describeTokenGeneratorContract,
+  describeTokenHasherContract,
 } from "@nuvantre/testing/contracts";
 import { randomBytes } from "node:crypto";
 import {
   AesGcmTokenCipher,
   RandomTokenGenerator,
   ScryptPasswordHasher,
+  Sha256TokenHasher,
   UuidIdGenerator,
 } from "../src";
 
@@ -21,3 +23,5 @@ describeTokenCipherContract(
   "AesGcmTokenCipher",
   () => new AesGcmTokenCipher(randomBytes(32).toString("base64")),
 );
+
+describeTokenHasherContract("Sha256TokenHasher", () => new Sha256TokenHasher());

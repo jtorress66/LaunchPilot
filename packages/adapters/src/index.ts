@@ -72,3 +72,4 @@ export { SentryErrorReporter } from "./monitoring/sentry-error-reporter";
 export { createSentryErrorReporter } from "./monitoring/sentry";
 export { ResendMailer, type ResendOptions } from "./resend/resend-mailer";
 export { LogMailer } from "./resend/log-mailer";
+export { Sha256TokenHasher } from "./crypto/sha256-token-hasher";

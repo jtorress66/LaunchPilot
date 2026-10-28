@@ -5,12 +5,12 @@ import { AuthenticateSession, LogOut } from "../src";
 import { makeWorld, signedUp } from "./world";
 
 describe("AuthenticateSession", () => {
-  it("resolves a valid session to its founder and workspace", async () => {
+  it("resolves a valid session to its founder, their workspace and their role there", async () => {
     const world = makeWorld();
     const { user, workspace, session } = await signedUp(world);
     expect(await new AuthenticateSession(world).execute(session.token)).toEqual({
       ok: true,
-      value: { user, workspace },
+      value: { user, workspace, role: "owner", workspaces: [{ workspace, role: "owner" }] },
     });
   });
 

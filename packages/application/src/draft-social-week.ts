@@ -32,6 +32,7 @@ import type {
   ProductRepository,
   SubscriptionRepository,
   TaskRepository,
+  WorkspaceRepository,
 } from "@nuvantre/ports";
 import { loadApprovedBrief } from "./approved-brief";
 import { checkContentAllowance } from "./content-allowance";
@@ -61,6 +62,7 @@ export class DraftSocialWeek {
       readonly tasks: TaskRepository;
       readonly contentItems: ContentItemRepository;
       readonly subscriptions: SubscriptionRepository;
+      readonly workspaces: WorkspaceRepository;
       readonly socialWriter: ContentDrafter;
       readonly ids: IdGenerator;
       readonly clock: Clock;
