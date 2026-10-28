@@ -386,3 +386,44 @@ export const parseMonitoringConfig = (
         : { dsn: c.SENTRY_DSN, environment: c.APP_ENV, release: c.APP_VERSION },
   });
 };
+
+/** How email goes out: Resend from a verified address, or (development and test) the log only. */
+export type MailConfig =
+  | {
+      readonly kind: "resend";
+      readonly apiKey: string;
+      readonly from: string;
+      readonly baseUrl?: string;
+    }
+  | { readonly kind: "log" };
+
+const mailSchema = z.object({
+  MAILER: z.enum(["resend", "log"]).default("resend"),
+  RESEND_API_KEY: z.string().min(1).optional(),
+  MAIL_FROM: z.string().optional(),
+  RESEND_BASE_URL: z.url("RESEND_BASE_URL must be an absolute URL").optional(),
+  APP_ENV: z.enum(["development", "test", "production"]).default("production"),
+});
+
+export const parseMailConfig = (
+  env: Readonly<Record<string, string | undefined>>,
+): Result<MailConfig, string> => {
+  const parsed = mailSchema.safeParse(env);
+  if (!parsed.success) return err(parsed.error.issues[0]?.message ?? "Invalid configuration");
+  const c = parsed.data;
+  const local = c.MAILER === "log" || c.RESEND_BASE_URL !== undefined;
+  if (local && c.APP_ENV === "production") {
+    return err("MAILER=log and RESEND_BASE_URL are for development and test only");
+  }
+  if (c.MAILER === "log") return ok({ kind: "log" });
+  if (c.RESEND_API_KEY === undefined) return err("RESEND_API_KEY is required to send email");
+  if (c.MAIL_FROM === undefined || !/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(c.MAIL_FROM)) {
+    return err("MAIL_FROM must be an address on a domain verified in Resend");
+  }
+  return ok({
+    kind: "resend",
+    apiKey: c.RESEND_API_KEY,
+    from: c.MAIL_FROM,
+    ...(c.RESEND_BASE_URL === undefined ? {} : { baseUrl: c.RESEND_BASE_URL }),
+  });
+};

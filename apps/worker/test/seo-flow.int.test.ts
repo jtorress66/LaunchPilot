@@ -81,11 +81,9 @@ describe("SEO flow on Postgres", () => {
         text: "Analytics for SaaS founders.\nStart a free 14-day trial.",
       },
     ]);
-    const founder = { kind: "founder" as const, userId: user.id };
+    const access = { user, workspace, role: "owner" as const };
     unwrap(await new GenerateBrief(deps).execute({ workspace, productId: product.id }));
-    unwrap(
-      await new ApproveBrief(deps).execute({ workspace, productId: product.id, actor: founder }),
-    );
+    unwrap(await new ApproveBrief(deps).execute({ access, productId: product.id }));
 
     deps.keywords.setIdeas([
       { keyword: "cookieless analytics", monthlySearches: 900, difficulty: 14 },
@@ -97,12 +95,10 @@ describe("SEO flow on Postgres", () => {
     const [first] = tasks;
     if (!first) throw new Error("no planned task");
     const item = unwrap(await new DraftSeoArticle(deps).execute({ workspace, taskId: first.id }));
-    unwrap(
-      await new ApproveContentItem(deps).execute({ workspace, itemId: item.id, actor: founder }),
-    );
+    unwrap(await new ApproveContentItem(deps).execute({ access, itemId: item.id }));
     blogPublisher.connect(product.id);
     const published = unwrap(
-      await new PublishContentItem(deps).execute({ workspace, itemId: item.id }),
+      await new PublishContentItem(deps).execute({ access, itemId: item.id }),
     );
     expect(published.status).toBe("published");
 

@@ -72,8 +72,8 @@ describe("brief flow on Postgres", () => {
     const edited = { ...generated.value.brief.content, audience: "Bootstrapped founders" };
     expect((await new UpdateBrief(deps).execute({ ...target, content: edited })).ok).toBe(true);
     const approved = await new ApproveBrief(deps).execute({
-      ...target,
-      actor: { kind: "founder", userId: user.id },
+      access: { user, workspace, role: "owner" },
+      productId: product.value.id,
     });
     expect(approved.ok).toBe(true);
 

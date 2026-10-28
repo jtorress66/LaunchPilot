@@ -3,6 +3,7 @@ import {
   parseDatabaseConfig,
   parseLoopConfig,
   parseBlogSmokeConfig,
+  parseMailConfig,
   parseMonitoringConfig,
   parsePublisherConfig,
   parseReportsConfig,
@@ -310,5 +311,45 @@ describe("parseMonitoringConfig", () => {
       ok: false,
       error: "SENTRY_DSN must be a Sentry DSN URL",
     });
+  });
+});
+
+describe("parseMailConfig", () => {
+  const resend = {
+    RESEND_API_KEY: "re_live_key",
+    MAIL_FROM: "reports@mail.nuvantre.app",
+  };
+
+  it("sends through Resend from the verified address by default", () => {
+    expect(parseMailConfig(resend)).toEqual({
+      ok: true,
+      value: { kind: "resend", apiKey: "re_live_key", from: "reports@mail.nuvantre.app" },
+    });
+  });
+
+  it("needs the Resend key and a sending address", () => {
+    expect(parseMailConfig({ MAIL_FROM: resend.MAIL_FROM })).toEqual({
+      ok: false,
+      error: "RESEND_API_KEY is required to send email",
+    });
+    expect(parseMailConfig({ RESEND_API_KEY: "re_x", MAIL_FROM: "nope" })).toEqual({
+      ok: false,
+      error: "MAIL_FROM must be an address on a domain verified in Resend",
+    });
+  });
+
+  it("allows a log-only mailer and a local Resend stand-in in development and test only", () => {
+    expect(parseMailConfig({ MAILER: "log", APP_ENV: "development" })).toEqual({
+      ok: true,
+      value: { kind: "log" },
+    });
+    expect(
+      parseMailConfig({ ...resend, APP_ENV: "test", RESEND_BASE_URL: "http://127.0.0.1:4011" }),
+    ).toMatchObject({ ok: true, value: { baseUrl: "http://127.0.0.1:4011" } });
+    expect(parseMailConfig({ MAILER: "log" })).toEqual({
+      ok: false,
+      error: "MAILER=log and RESEND_BASE_URL are for development and test only",
+    });
+    expect(parseMailConfig({ ...resend, RESEND_BASE_URL: "http://127.0.0.1:4011" }).ok).toBe(false);
   });
 });
