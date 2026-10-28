@@ -69,6 +69,17 @@ the hosting side that code cannot prove; they must be done before inviting beta 
 - [x] **OAuth tokens and API keys are encrypted at rest and never logged.** Cipher and mapper tests
   in `packages/adapters`, and `scrubSecrets` on every error report.
 
+## Agencies (step 12)
+
+- [x] **A client viewer can never approve, schedule or publish.** `authorize` in the use cases
+  (`packages/application/test/agency.test.ts`), `requireAccess` on every server action, and
+  `apps/web/e2e/agency-roles.spec.ts`.
+- [x] **Branded reports never mention Nuvantre and never send twice.**
+  `packages/application/test/report-email.test.ts`, `ResendMailer` tests
+  (`packages/adapters/test/resend/resend.int.test.ts`), `apps/web/e2e/agency.spec.ts`.
+- [ ] **owner:** verify the sending domain in Resend, set `RESEND_API_KEY` and `MAIL_FROM` on web
+  and worker, and run `pnpm stripe:setup --live` to create the Agency price.
+
 ## Operations
 
 - [ ] **owner:** enable daily backups with point-in-time recovery on the production Postgres, and

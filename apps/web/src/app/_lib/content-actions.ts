@@ -1,11 +1,11 @@
 "use server";
 
-import { contentItemId } from "@nuvantre/domain";
+import { contentItemId, type WorkspaceAction } from "@nuvantre/domain";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getAppContainer } from "../../container";
 import { articleForm, parseForm, type FieldErrors } from "../../server/forms";
-import { requireUser } from "./auth";
+import { requireAccess } from "./auth";
 import { idParam } from "./params";
 
 export interface ContentActionState {
@@ -15,9 +15,9 @@ export interface ContentActionState {
 const contentPath = (id: string) => `/app/content/${id}`;
 const formError = (message: string): ContentActionState => ({ errors: { form: message } });
 
-const target = async (id: string) => {
-  const { user, workspace } = await requireUser();
-  return { user, workspace, itemId: contentItemId(idParam(id)) };
+const target = async (id: string, action: WorkspaceAction) => {
+  const access = await requireAccess(action);
+  return { access, workspace: access.workspace, itemId: contentItemId(idParam(id)) };
 };
 
 export async function saveArticleAction(
@@ -25,7 +25,7 @@ export async function saveArticleAction(
   _state: ContentActionState,
   data: FormData,
 ): Promise<ContentActionState> {
-  const { workspace, itemId } = await target(id);
+  const { workspace, itemId } = await target(id, "draft");
   const form = parseForm(articleForm, data);
   if (!form.ok) return { errors: form.error };
   const result = await getAppContainer().reviseContentItem.execute({
@@ -38,19 +38,15 @@ export async function saveArticleAction(
 }
 
 export async function approveArticleAction(id: string): Promise<ContentActionState> {
-  const { user, workspace, itemId } = await target(id);
-  const result = await getAppContainer().approveContentItem.execute({
-    workspace,
-    itemId,
-    actor: { kind: "founder", userId: user.id },
-  });
+  const { access, itemId } = await target(id, "approve");
+  const result = await getAppContainer().approveContentItem.execute({ access, itemId });
   if (!result.ok) return formError(result.error.message);
   redirect(contentPath(id));
 }
 
 export async function publishArticleAction(id: string): Promise<ContentActionState> {
-  const { workspace, itemId } = await target(id);
-  const result = await getAppContainer().publishContentItem.execute({ workspace, itemId });
+  const { access, itemId } = await target(id, "publish");
+  const result = await getAppContainer().publishContentItem.execute({ access, itemId });
   if (!result.ok) return formError(result.error.message);
   revalidatePath("/app");
   redirect(contentPath(id));

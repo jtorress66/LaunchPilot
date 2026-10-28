@@ -13,7 +13,7 @@ import {
 } from "../../server/forms";
 import { draftFailureMessage } from "../../server/messages";
 import { refusedByLimit } from "./limits";
-import { requireUser } from "./auth";
+import { requireAccess } from "./auth";
 import { idParam } from "./params";
 
 export interface LaunchActionState {
@@ -30,7 +30,7 @@ const done = (id: string): LaunchActionState => {
 };
 
 export async function generateLaunchKitAction(id: string): Promise<LaunchActionState> {
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("draft");
   const limited = await refusedByLimit("draft", workspace.id);
   if (limited) return formError(limited);
   const result = await getAppContainer().generateLaunchKit.execute({
@@ -45,7 +45,7 @@ export async function saveLaunchKitAction(
   _state: LaunchActionState,
   data: FormData,
 ): Promise<LaunchActionState> {
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("draft");
   const form = parseForm(launchKitForm, data);
   if (!form.ok) return { errors: form.error };
   const result = await getAppContainer().reviseLaunchKit.execute({
@@ -59,11 +59,10 @@ export async function saveLaunchKitAction(
 }
 
 export async function approveLaunchKitAction(id: string): Promise<LaunchActionState> {
-  const { user, workspace } = await requireUser();
+  const access = await requireAccess("approve");
   const result = await getAppContainer().approveLaunchKit.execute({
-    workspace,
+    access,
     productId: productId(idParam(id)),
-    actor: { kind: "founder", userId: user.id },
   });
   return result.ok ? done(id) : formError(result.error.message);
 }
@@ -71,7 +70,7 @@ export async function approveLaunchKitAction(id: string): Promise<LaunchActionSt
 const SLUG = /^[a-z0-9-]{1,80}$/;
 
 export async function addToLaunchAction(id: string, slug: string): Promise<LaunchActionState> {
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("draft");
   // Bound arguments arrive from the browser, so the slug is validated like any input.
   if (!SLUG.test(slug)) notFound();
   const result = await getAppContainer().addToLaunch.execute({
@@ -85,7 +84,7 @@ export async function addToLaunchAction(id: string, slug: string): Promise<Launc
 const SIMPLE_EVENTS = ["submit", "skip", "reopen"] as const;
 
 const update = async (id: string, rowId: string, event: SubmissionEvent) => {
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("draft");
   const result = await getAppContainer().updateSubmission.execute({
     workspace,
     submissionId: submissionId(idParam(rowId)),

@@ -1,4 +1,4 @@
-import { describeWeek, productId } from "@nuvantre/domain";
+import { can, describeWeek, productId } from "@nuvantre/domain";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -45,7 +45,9 @@ const Notice = ({ text, tone }: { readonly text: string; readonly tone: "ok" | "
 export default async function AnalyticsPage({ params, searchParams }: AnalyticsPageProps) {
   const [{ id: raw }, query] = await Promise.all([params, searchParams]);
   const id = idParam(raw);
-  const { workspace } = await requireUser();
+  const { workspace, role } = await requireUser();
+  // Client viewers read reports; connecting sources and running autopilot is the agency's job.
+  const canWork = can(role, "connect");
   const app = getAppContainer();
   const [overview, autopilot] = await Promise.all([
     app.analytics.getOverview.execute({ workspace, productId: productId(id) }),
@@ -54,7 +56,7 @@ export default async function AnalyticsPage({ params, searchParams }: AnalyticsP
   if (!overview.ok || !autopilot.ok) notFound();
   const { product, google, plausible, reports, latest } = overview.value;
   const properties =
-    google && app.analytics.google
+    canWork && google && app.analytics.google
       ? await app.analytics.google.listProperties.execute({ workspace, productId: product.id })
       : null;
   const googleNotice = query.google ? googleNotices[query.google] : undefined;
@@ -87,11 +89,13 @@ export default async function AnalyticsPage({ params, searchParams }: AnalyticsP
         <Notice tone="ok" text="This week's run is done. Review the drafts in your Inbox." />
       ) : null}
 
-      <AutopilotCard
-        productId={product.id}
-        enabledSince={autopilot.value.enabledSince}
-        latest={autopilot.value.latest}
-      />
+      {canWork ? (
+        <AutopilotCard
+          productId={product.id}
+          enabledSince={autopilot.value.enabledSince}
+          latest={autopilot.value.latest}
+        />
+      ) : null}
 
       <div className="grid gap-8 lg:grid-cols-[1fr_22rem]">
         <section aria-labelledby="report" className={card}>
@@ -99,10 +103,18 @@ export default async function AnalyticsPage({ params, searchParams }: AnalyticsP
             <h2 id="report" className="text-lg font-semibold">
               Latest report
             </h2>
-            {google || plausible ? <BuildReportButton productId={product.id} /> : null}
+            {canWork && (google || plausible) ? <BuildReportButton productId={product.id} /> : null}
           </div>
           {latest ? (
-            <ReportView report={latest} />
+            <>
+              <Link
+                href={`/app/products/${product.id}/analytics/${latest.weekKey}`}
+                className="text-sm font-semibold text-brand-600 hover:underline dark:text-brand-400"
+              >
+                {can(role, "send_reports") ? "Open and email this report" : "Open this report"}
+              </Link>
+              <ReportView report={latest} />
+            </>
           ) : (
             <p className="text-sm text-slate-500">
               {google || plausible
@@ -130,75 +142,77 @@ export default async function AnalyticsPage({ params, searchParams }: AnalyticsP
           ) : null}
         </section>
 
-        <div className="space-y-8">
-          <section aria-labelledby="google" className={card}>
-            <h2 id="google" className="text-lg font-semibold">
-              Google
-            </h2>
-            {!app.analytics.google ? (
-              <p className="text-sm text-slate-500">
-                Google is not set up on this server. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET
-                (see README).
-              </p>
-            ) : google ? (
-              <>
-                <p className="text-sm" data-testid="google-account">
-                  Connected as {google.accountEmail}
+        {canWork ? (
+          <div className="space-y-8">
+            <section aria-labelledby="google" className={card}>
+              <h2 id="google" className="text-lg font-semibold">
+                Google
+              </h2>
+              {!app.analytics.google ? (
+                <p className="text-sm text-slate-500">
+                  Google is not set up on this server. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET
+                  (see README).
                 </p>
-                {properties?.ok ? (
-                  <GooglePropertiesForm
-                    productId={product.id}
-                    properties={properties.value.properties}
-                    chosen={properties.value.chosen}
-                  />
-                ) : (
-                  <p role="alert" className="text-sm text-red-700">
-                    {properties
-                      ? analyticsFailureMessage(properties.error)
-                      : "Google could not be reached."}
+              ) : google ? (
+                <>
+                  <p className="text-sm" data-testid="google-account">
+                    Connected as {google.accountEmail}
                   </p>
-                )}
-                <DisconnectButton
-                  productId={product.id}
-                  provider="google"
-                  label="Disconnect Google"
-                />
-              </>
-            ) : (
-              <>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
-                  Read-only access to Search Console and Google Analytics 4.
-                </p>
-                <a
-                  href={`/api/google/connect?product=${product.id}`}
-                  className="inline-flex rounded-lg bg-brand-600 px-4 py-2.5 font-semibold text-white hover:bg-brand-700"
-                >
-                  Connect Google
-                </a>
-              </>
-            )}
-          </section>
+                  {properties?.ok ? (
+                    <GooglePropertiesForm
+                      productId={product.id}
+                      properties={properties.value.properties}
+                      chosen={properties.value.chosen}
+                    />
+                  ) : (
+                    <p role="alert" className="text-sm text-red-700">
+                      {properties
+                        ? analyticsFailureMessage(properties.error)
+                        : "Google could not be reached."}
+                    </p>
+                  )}
+                  <DisconnectButton
+                    productId={product.id}
+                    provider="google"
+                    label="Disconnect Google"
+                  />
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Read-only access to Search Console and Google Analytics 4.
+                  </p>
+                  <a
+                    href={`/api/google/connect?product=${product.id}`}
+                    className="inline-flex rounded-lg bg-brand-600 px-4 py-2.5 font-semibold text-white hover:bg-brand-700"
+                  >
+                    Connect Google
+                  </a>
+                </>
+              )}
+            </section>
 
-          <section aria-labelledby="plausible" className={card}>
-            <h2 id="plausible" className="text-lg font-semibold">
-              Plausible
-            </h2>
-            {plausible ? (
-              <>
-                <p className="text-sm" data-testid="plausible-site">
-                  {plausible.siteId} on {new URL(plausible.baseUrl).host}
-                </p>
-                <DisconnectButton
-                  productId={product.id}
-                  provider="plausible"
-                  label="Disconnect Plausible"
-                />
-              </>
-            ) : (
-              <PlausibleConnectForm productId={product.id} />
-            )}
-          </section>
-        </div>
+            <section aria-labelledby="plausible" className={card}>
+              <h2 id="plausible" className="text-lg font-semibold">
+                Plausible
+              </h2>
+              {plausible ? (
+                <>
+                  <p className="text-sm" data-testid="plausible-site">
+                    {plausible.siteId} on {new URL(plausible.baseUrl).host}
+                  </p>
+                  <DisconnectButton
+                    productId={product.id}
+                    provider="plausible"
+                    label="Disconnect Plausible"
+                  />
+                </>
+              ) : (
+                <PlausibleConnectForm productId={product.id} />
+              )}
+            </section>
+          </div>
+        ) : null}
       </div>
     </div>
   );

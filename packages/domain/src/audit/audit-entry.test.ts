@@ -66,6 +66,12 @@ describe("createAuditEntry", () => {
       "plan_changed",
       "autopilot_enabled",
       "autopilot_disabled",
+      "client_added",
+      "member_invited",
+      "member_joined",
+      "member_removed",
+      "branding_updated",
+      "report_sent",
     ]);
   });
 });

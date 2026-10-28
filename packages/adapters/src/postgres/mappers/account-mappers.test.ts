@@ -1,3 +1,4 @@
+import { useWorkspace, workspaceId } from "@nuvantre/domain";
 import { aSession, aSubscription, aUser } from "@nuvantre/testing";
 import { describe, expect, it } from "vitest";
 import { sessionMapper } from "./session-mapper";
@@ -38,5 +39,12 @@ describe("account mappers", () => {
   it("refuses an unknown plan", () => {
     const row = { ...subscriptionMapper.toRow(aSubscription()), plan: "enterprise" };
     expect(() => subscriptionMapper.fromRow(row)).toThrow(/subscriptions\.plan/);
+  });
+
+  it("keeps the workspace a session switched to", () => {
+    const session = useWorkspace(aSession(), workspaceId("ws_client"));
+    const row = sessionMapper.toRow(session);
+    expect(row.workspace_id).toBe("ws_client");
+    expect(sessionMapper.fromRow(row, session.token)).toEqual(session);
   });
 });

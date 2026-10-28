@@ -11,10 +11,10 @@ export class StripeCheckoutProvider implements CheckoutProvider {
   constructor(private readonly stripe: Stripe) {}
 
   async createCheckout(request: CheckoutRequest): Promise<Result<{ url: string }, BillingError>> {
-    if (request.plan === "free") {
+    if (request.plan === "free" || request.plan === "client") {
       return err({
         code: "misconfigured",
-        message: "The Free plan has no checkout",
+        message: `The ${request.plan === "free" ? "Free" : "Agency client"} plan has no checkout`,
         retryable: false,
       });
     }

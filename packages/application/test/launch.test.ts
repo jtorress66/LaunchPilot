@@ -20,7 +20,7 @@ import {
   ReviseLaunchKit,
   UpdateSubmission,
 } from "../src";
-import { makeWorld, signedUp, type World } from "./world";
+import { makeWorld, signedUp, type World, ownerAccess } from "./world";
 
 interface Setup {
   world: World;
@@ -47,15 +47,12 @@ const setUp = async ({ approveBrief = true } = {}): Promise<Setup> => {
   await new GenerateBrief(world).execute({ workspace, productId: product.id });
   if (approveBrief) {
     await new ApproveBrief(world).execute({
-      workspace,
+      access: ownerAccess(workspace),
       productId: product.id,
-      actor: { kind: "founder", userId: user.id },
     });
   }
   return { world, workspace, user, product };
 };
-
-const founder = ({ user }: Setup) => ({ kind: "founder" as const, userId: user.id });
 
 const generate = async (s: Setup) => {
   const result = await new GenerateLaunchKit(s.world).execute({
@@ -68,9 +65,8 @@ const generate = async (s: Setup) => {
 
 const approveKit = async (s: Setup) => {
   const result = await new ApproveLaunchKit(s.world).execute({
-    workspace: s.workspace,
+    access: ownerAccess(s.workspace),
     productId: s.product.id,
-    actor: founder(s),
   });
   if (!result.ok) throw new Error(result.error.message);
   return result.value;
@@ -193,9 +189,8 @@ describe("ReviseLaunchKit and ApproveLaunchKit", () => {
   it("refuses to edit or approve a kit that does not exist yet", async () => {
     const s = await setUp();
     const approved = await new ApproveLaunchKit(s.world).execute({
-      workspace: s.workspace,
+      access: ownerAccess(s.workspace),
       productId: s.product.id,
-      actor: founder(s),
     });
     expect(approved.ok ? undefined : approved.error.code).toBe("launch_kit_not_found");
     const revised = await new ReviseLaunchKit(s.world).execute({
@@ -279,9 +274,8 @@ describe("UpdateSubmission", () => {
     const showHn = community.find((item) => item.channel === "hackernews");
     if (!showHn) throw new Error("no Show HN draft");
     await new ApproveContentItem(s.world).execute({
-      workspace: s.workspace,
+      access: ownerAccess(s.workspace),
       itemId: showHn.id,
-      actor: founder(s),
     });
     expect((await update(s, row.id, { type: "submit" })).ok).toBe(true);
   });

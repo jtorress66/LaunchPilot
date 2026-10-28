@@ -8,10 +8,16 @@ import { SubmitButton } from "./submit-button";
 
 const initial: FormState = {};
 
-export function SignUpForm() {
+/** Carries an invitation through sign-up or log-in, back to its page. */
+function InviteField({ invite }: { readonly invite: string | null }) {
+  return invite ? <input type="hidden" name="invite" value={invite} /> : null;
+}
+
+export function SignUpForm({ invite = null }: { readonly invite?: string | null }) {
   const [state, action] = useActionState(signUpAction, initial);
   return (
     <form action={action} className="space-y-4" noValidate>
+      <InviteField invite={invite} />
       <FormError message={state.errors?.form} />
       <Field
         label="Email"
@@ -33,10 +39,11 @@ export function SignUpForm() {
   );
 }
 
-export function LogInForm() {
+export function LogInForm({ invite = null }: { readonly invite?: string | null }) {
   const [state, action] = useActionState(logInAction, initial);
   return (
     <form action={action} className="space-y-4" noValidate>
+      <InviteField invite={invite} />
       <FormError message={state.errors?.form} />
       <Field
         label="Email"

@@ -41,8 +41,10 @@ export interface Repository<Id, T> {
 }
 
 export interface WorkspaceRepository extends Repository<WorkspaceId, Workspace> {
-  /** One founder owns one workspace for now. */
+  /** The person's own workspace: the one they own that is not an agency client. */
   findByOwner(ownerId: UserId): Promise<Workspace | undefined>;
+  /** An agency's client workspaces, oldest first. */
+  listClients(agencyId: WorkspaceId): Promise<readonly Workspace[]>;
 }
 
 export interface UserRepository extends Repository<UserId, User> {

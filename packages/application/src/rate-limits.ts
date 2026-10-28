@@ -12,6 +12,8 @@ export const rateLimits = {
   connect: { limit: 20, windowSeconds: 60 * 60 },
   /** Per address, for the billing webhook. */
   webhook: { limit: 120, windowSeconds: 60 },
+  /** Per workspace, for report and invitation emails. */
+  email: { limit: 50, windowSeconds: 3600 },
 } as const satisfies Record<string, RateLimitRule>;
 
 export type RateLimitPolicy = keyof typeof rateLimits;

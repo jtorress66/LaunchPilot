@@ -28,6 +28,10 @@ const idOf = (value: string | { id: string } | null): string | null =>
 const fromSeconds = (seconds: number | null | undefined) =>
   typeof seconds === "number" ? new Date(seconds * 1000) : null;
 
+/** The plans a checkout may activate; the client plan comes with an agency, never on its own. */
+const isSoldPlan = (plan: string | undefined): plan is "starter" | "growth" | "agency" =>
+  plan === "starter" || plan === "growth" || plan === "agency";
+
 const handlers: Partial<Record<Stripe.Event.Type, (event: Stripe.Event) => Mapped>> = {
   "checkout.session.completed": (event) => {
     const session = event.data.object as Stripe.Checkout.Session;
@@ -37,7 +41,7 @@ const handlers: Partial<Record<Stripe.Event.Type, (event: Stripe.Event) => Mappe
     const workspace = session.metadata?.workspace_id;
     const customer = idOf(session.customer);
     const subscription = idOf(session.subscription);
-    if (!workspace || (plan !== "starter" && plan !== "growth") || !customer || !subscription) {
+    if (!workspace || !isSoldPlan(plan) || !customer || !subscription) {
       return misconfigured("Checkout session is missing Nuvantre metadata");
     }
     return ok({

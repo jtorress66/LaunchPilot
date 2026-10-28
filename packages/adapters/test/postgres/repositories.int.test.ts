@@ -60,7 +60,8 @@ describeUserRepositoryContract("PostgresUserRepository", async () => {
 });
 
 describeSessionRepositoryContract("PostgresSessionRepository", async () => {
-  await resetWith(db, "users");
+  // Sessions may point at a workspace, so the contract's workspaces exist.
+  await resetWith(db, "workspaces");
   return new PostgresSessionRepository(db);
 });
 
@@ -181,13 +182,17 @@ describe("createPostgresRepositories", () => {
     expect(Object.keys(repos).sort()).toEqual([
       "analyticsConnections",
       "autopilotRuns",
+      "branding",
       "briefs",
       "campaigns",
       "channelConnections",
       "contentItems",
       "directories",
+      "invitations",
       "launchKits",
+      "memberships",
       "products",
+      "reportRecipients",
       "sessions",
       "socialProfiles",
       "submissions",

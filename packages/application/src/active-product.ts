@@ -11,15 +11,13 @@ import {
   type Workspace,
   type WorkspaceId,
 } from "@nuvantre/domain";
-import type { Clock, ProductRepository, SubscriptionRepository } from "@nuvantre/ports";
-import { currentPlan } from "./current-plan";
+import type { ProductRepository } from "@nuvantre/ports";
+import { currentPlan, type PlanDeps } from "./current-plan";
 import type { UseCaseError } from "./errors";
 import { loadOwnedProduct } from "./owned-product";
 
-export interface SlotDeps {
+export interface SlotDeps extends PlanDeps {
   readonly products: ProductRepository;
-  readonly subscriptions: SubscriptionRepository;
-  readonly clock: Clock;
 }
 
 /** The workspace's plan and which of its products may work under it, as of now. */

@@ -1,4 +1,4 @@
-import { parseEmail, userId, workspaceId, type Email } from "@nuvantre/domain";
+import { parseEmail, useWorkspace, userId, workspaceId, type Email } from "@nuvantre/domain";
 import type { SessionRepository, SubscriptionRepository, UserRepository } from "@nuvantre/ports";
 import { describe, expect, it } from "vitest";
 import { aSession, aSubscription, aUser } from "../src/fixtures/accounts";
@@ -55,6 +55,15 @@ export function describeSessionRepositoryContract(
       await repo.save(session);
       await repo.delete(session.token);
       expect(await repo.findByToken(session.token)).toBeUndefined();
+    });
+
+    it("keeps the workspace a person switched to", async () => {
+      const repo = await make();
+      const session = aSession();
+      await repo.save(session);
+      const switched = useWorkspace(session, workspaceId("ws_2"));
+      await repo.save(switched);
+      expect(await repo.findByToken(session.token)).toEqual(switched);
     });
 
     it("treats deleting an unknown token as a no-op", async () => {

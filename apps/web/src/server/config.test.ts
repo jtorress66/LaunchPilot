@@ -11,6 +11,8 @@ const base = {
   DATAFORSEO_LOGIN: "founder@acme.dev",
   DATAFORSEO_PASSWORD: "dfs-password",
   ZERNIO_API_KEY: "sk_test_zernio",
+  RESEND_API_KEY: "re_test_key",
+  MAIL_FROM: "reports@mail.nuvantre.app",
 };
 const local = {
   ...base,
@@ -37,6 +39,7 @@ describe("parseWebConfig", () => {
         tokenEncryptionKey: KEY,
         blogs: { webflowApiBaseUrl: null, wixApiBaseUrl: null },
         hardening: { trustProxy: false, rateLimitOverrides: {} },
+        mail: { kind: "resend", apiKey: "re_test_key", from: "reports@mail.nuvantre.app" },
         monitoring: { sentry: null },
         brief: {
           drafter: { kind: "claude", apiKey: "sk-ant-test-key", model: "claude-opus-5-5" },
@@ -182,6 +185,43 @@ describe("parseWebConfig AI settings", () => {
     expect(parseWebConfig({ ...stripe, ...override })).toEqual({
       ok: false,
       error: `${setting} is only allowed when APP_ENV is development or test`,
+    });
+  });
+});
+
+describe("parseWebConfig mail settings", () => {
+  it("sends invitations and reports through Resend from the verified address", () => {
+    expect(parseWebConfig(stripe)).toMatchObject({
+      ok: true,
+      value: {
+        mail: { kind: "resend", apiKey: "re_test_key", from: "reports@mail.nuvantre.app" },
+      },
+    });
+  });
+
+  it("needs the Resend key and a sending address", () => {
+    expect(parseWebConfig({ ...stripe, RESEND_API_KEY: undefined })).toEqual({
+      ok: false,
+      error: "RESEND_API_KEY is required to send email",
+    });
+    expect(parseWebConfig({ ...stripe, MAIL_FROM: "nope" })).toEqual({
+      ok: false,
+      error: "MAIL_FROM must be an address on a domain verified in Resend",
+    });
+  });
+
+  it("allows the log mailer and a local Resend stand-in in development and test only", () => {
+    expect(parseWebConfig({ ...local, MAILER: "log" })).toMatchObject({
+      ok: true,
+      value: { mail: { kind: "log" } },
+    });
+    expect(parseWebConfig({ ...local, RESEND_BASE_URL: "http://127.0.0.1:4011" })).toMatchObject({
+      ok: true,
+      value: { mail: { baseUrl: "http://127.0.0.1:4011" } },
+    });
+    expect(parseWebConfig({ ...stripe, MAILER: "log" })).toEqual({
+      ok: false,
+      error: "MAILER=log and RESEND_BASE_URL are for development and test only",
     });
   });
 });

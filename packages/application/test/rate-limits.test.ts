@@ -2,13 +2,14 @@ import { describe, expect, it } from "vitest";
 import { rateLimitKey, rateLimitMessage, rateLimits } from "../src";
 
 describe("rate-limit policies", () => {
-  it("cap sign-ins, sign-ups, AI drafting, connections and webhooks", () => {
+  it("cap sign-ins, sign-ups, AI drafting, connections, webhooks and report emails", () => {
     expect(rateLimits).toEqual({
       login: { limit: 10, windowSeconds: 900 },
       signup: { limit: 5, windowSeconds: 3600 },
       draft: { limit: 30, windowSeconds: 3600 },
       connect: { limit: 20, windowSeconds: 3600 },
       webhook: { limit: 120, windowSeconds: 60 },
+      email: { limit: 50, windowSeconds: 3600 },
     });
   });
 

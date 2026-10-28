@@ -1,13 +1,13 @@
 "use server";
 
-import { productId } from "@nuvantre/domain";
+import { productId, type WorkspaceAction } from "@nuvantre/domain";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getAppContainer } from "../../container";
 import { briefForm, parseForm, type FieldErrors } from "../../server/forms";
 import { draftFailureMessage } from "../../server/messages";
 import { refusedByLimit } from "./limits";
-import { requireUser } from "./auth";
+import { requireAccess } from "./auth";
 import { idParam } from "./params";
 
 export interface BriefActionState {
@@ -18,15 +18,15 @@ export interface BriefActionState {
 
 const briefPath = (id: string) => `/app/products/${id}/brief`;
 
-const target = async (id: string) => {
-  const { user, workspace } = await requireUser();
-  return { user, workspace, productId: productId(idParam(id)) };
+const target = async (id: string, action: WorkspaceAction) => {
+  const access = await requireAccess(action);
+  return { access, workspace: access.workspace, productId: productId(idParam(id)) };
 };
 
 const formError = (message: string): BriefActionState => ({ errors: { form: message } });
 
 export async function draftBriefAction(id: string): Promise<BriefActionState> {
-  const { workspace, productId } = await target(id);
+  const { workspace, productId } = await target(id, "draft");
   const limited = await refusedByLimit("draft", workspace.id);
   if (limited) return formError(limited);
   const result = await getAppContainer().generateBrief.execute({ workspace, productId });
@@ -40,7 +40,7 @@ export async function saveBriefAction(
   _state: BriefActionState,
   data: FormData,
 ): Promise<BriefActionState> {
-  const { workspace, productId } = await target(id);
+  const { workspace, productId } = await target(id, "draft");
   const form = parseForm(briefForm, data);
   if (!form.ok) return { errors: form.error };
   const result = await getAppContainer().updateBrief.execute({
@@ -54,12 +54,8 @@ export async function saveBriefAction(
 }
 
 export async function approveBriefAction(id: string): Promise<BriefActionState> {
-  const { user, workspace, productId } = await target(id);
-  const result = await getAppContainer().approveBrief.execute({
-    workspace,
-    productId,
-    actor: { kind: "founder", userId: user.id },
-  });
+  const { access, productId } = await target(id, "approve");
+  const result = await getAppContainer().approveBrief.execute({ access, productId });
   if (!result.ok) return formError(result.error.message);
   revalidatePath("/app");
   redirect(briefPath(id));

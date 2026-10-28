@@ -50,6 +50,7 @@ describe("migrations", () => {
           "0009_blog_platforms",
           "0010_product_slots",
           "0011_hardening",
+          "0012_agency",
         ],
       },
     });
@@ -62,9 +63,13 @@ describe("migrations", () => {
       "channel_connections",
       "content_items",
       "directories",
+      "invitations",
       "launch_kits",
+      "memberships",
       "products",
       "rate_limits",
+      "report_branding",
+      "report_recipients",
       "sessions",
       "social_profiles",
       "submissions",
@@ -106,6 +111,7 @@ describe("migrations", () => {
       ok: true,
       value: {
         applied: [
+          "0012_agency",
           "0011_hardening",
           "0010_product_slots",
           "0009_blog_platforms",
@@ -180,6 +186,53 @@ describe("migrations", () => {
       slots,
     );
     await slots.destroy();
+    expect(columns.rows).toEqual([]);
+  });
+
+  it("makes every workspace's owner its owner member, and gives existing ones no agency", async () => {
+    const agency = await scratchDatabase("migrations_agency");
+    const until = (name: string) =>
+      new Migrator({ db: agency, provider: migrationProvider }).migrateTo(name);
+    await until("0011_hardening");
+    await sql`INSERT INTO users (id, email, password_hash, created_at)
+      VALUES ('usr_1', 'a@acme.dev', 'x', now()), ('usr_2', 'b@acme.dev', 'x', now())`.execute(
+      agency,
+    );
+    await sql`INSERT INTO workspaces (id, owner_id, name, created_at)
+      VALUES ('ws_1', 'usr_1', 'Acme', '2026-03-04T05:06:07Z'), ('ws_2', 'usr_2', 'Globex', now())`.execute(
+      agency,
+    );
+
+    await until("0012_agency");
+    const members = await sql<{
+      workspace_id: string;
+      user_id: string;
+      role: string;
+      created_at: Date;
+    }>`
+      SELECT workspace_id, user_id, role, created_at FROM memberships ORDER BY workspace_id`.execute(
+      agency,
+    );
+    const workspaces = await sql<{ agency_id: string | null }>`
+      SELECT agency_id FROM workspaces`.execute(agency);
+    expect(members.rows).toEqual([
+      {
+        workspace_id: "ws_1",
+        user_id: "usr_1",
+        role: "owner",
+        created_at: new Date("2026-03-04T05:06:07Z"),
+      },
+      expect.objectContaining({ workspace_id: "ws_2", user_id: "usr_2", role: "owner" }) as unknown,
+    ]);
+    expect(workspaces.rows).toEqual([{ agency_id: null }, { agency_id: null }]);
+
+    await until("0011_hardening");
+    const columns = await sql<{ column_name: string }>`
+      SELECT column_name FROM information_schema.columns
+      WHERE (table_name, column_name) IN (('workspaces', 'agency_id'), ('sessions', 'workspace_id'))`.execute(
+      agency,
+    );
+    await agency.destroy();
     expect(columns.rows).toEqual([]);
   });
 

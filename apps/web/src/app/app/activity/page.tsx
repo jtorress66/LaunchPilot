@@ -20,7 +20,7 @@ export default async function ActivityPage({
 }: {
   readonly searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { workspace } = await requireUser();
+  const { user, workspace } = await requireUser();
   const { before } = pageQuery.parse(await searchParams);
   const page = await getAppContainer().getActivity.execute({
     workspace,
@@ -45,7 +45,7 @@ export default async function ActivityPage({
           className="divide-y divide-slate-200 rounded-2xl border border-slate-200 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900"
         >
           {page.entries.map((entry) => {
-            const line = describeActivity(entry);
+            const line = describeActivity(entry, { viewerId: user.id, people: page.people });
             return (
               <li key={entry.id} className="flex flex-wrap items-baseline gap-x-4 gap-y-1 p-4">
                 <time dateTime={entry.at.toISOString()} className="w-44 text-sm text-slate-500">

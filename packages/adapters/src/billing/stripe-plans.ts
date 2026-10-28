@@ -1,11 +1,13 @@
 import type { PlanId } from "@nuvantre/domain";
 
-type PaidPlan = Exclude<PlanId, "free">;
+/** Plans sold through Stripe. "client" is never sold: the agency pays for its clients. */
+type PaidPlan = Exclude<PlanId, "free" | "client">;
 
 /** Stripe prices are found by lookup key, so no price ids live in configuration. */
 export const stripeLookupKeys: Readonly<Record<PaidPlan, string>> = {
   starter: "nuvantre_starter_monthly",
   growth: "nuvantre_growth_monthly",
+  agency: "nuvantre_agency_monthly",
 };
 
 /** Prices created before the product was renamed from LaunchPilot; existing subscriptions use them. */

@@ -19,6 +19,12 @@ import {
   seedKeywordsForm,
   signUpForm,
   upgradeForm,
+  brandingForm,
+  clientForm,
+  inviteForm,
+  sendReportForm,
+  switchWorkspaceForm,
+  parseInviteToken,
 } from "./forms";
 
 const form = (entries: Record<string, string>) => {
@@ -367,5 +373,71 @@ describe("analytics forms", () => {
       ok: true,
       value: { searchConsoleSite: "sc-domain:acme.dev", ga4PropertyId: null },
     });
+  });
+});
+
+describe("agency forms", () => {
+  it("sells the Agency plan, never the client plan", () => {
+    expect(parseForm(upgradeForm, form({ plan: "agency" }))).toEqual({
+      ok: true,
+      value: { plan: "agency" },
+    });
+    expect(parseForm(upgradeForm, form({ plan: "client" })).ok).toBe(false);
+  });
+
+  it("reads a client's name, an invitation and a workspace to open", () => {
+    expect(parseForm(clientForm, form({ name: "Acme Corp" }))).toEqual({
+      ok: true,
+      value: { name: "Acme Corp" },
+    });
+    expect(parseForm(clientForm, form({})).ok).toBe(false);
+    expect(parseForm(inviteForm, form({ email: "a@acme.test", role: "viewer" }))).toEqual({
+      ok: true,
+      value: { email: "a@acme.test", role: "viewer" },
+    });
+    expect(parseForm(inviteForm, form({ email: "a@acme.test", role: "owner" })).ok).toBe(false);
+    expect(parseForm(switchWorkspaceForm, form({ workspaceId: "ws_1" }))).toEqual({
+      ok: true,
+      value: { workspaceId: "ws_1" },
+    });
+  });
+
+  it("reads branding, with the logo and footer optional", () => {
+    expect(
+      parseForm(
+        brandingForm,
+        form({ senderName: "Brightside", accentColor: "#0f766e", replyTo: "hi@b.agency" }),
+      ),
+    ).toEqual({
+      ok: true,
+      value: {
+        senderName: "Brightside",
+        accentColor: "#0f766e",
+        replyTo: "hi@b.agency",
+        logoUrl: "",
+        footer: "",
+      },
+    });
+  });
+
+  it("reads report recipients and whether to send every week", () => {
+    expect(
+      parseForm(sendReportForm, form({ recipients: "a@acme.test, b@acme.test", weekly: "on" })),
+    ).toEqual({ ok: true, value: { recipients: "a@acme.test, b@acme.test", weekly: true } });
+    expect(parseForm(sendReportForm, form({ recipients: "a@acme.test" }))).toEqual({
+      ok: true,
+      value: { recipients: "a@acme.test", weekly: false },
+    });
+    expect(parseForm(sendReportForm, form({ recipients: " " })).ok).toBe(false);
+  });
+});
+
+describe("parseInviteToken", () => {
+  it("keeps a well-formed invitation token and drops anything else", () => {
+    const token = "a".repeat(43);
+    expect(parseInviteToken(token)).toBe(token);
+    for (const bad of [undefined, "", "short", "../app", `${token}/x`, 42]) {
+      expect(parseInviteToken(bad)).toBeNull();
+    }
   });
 });

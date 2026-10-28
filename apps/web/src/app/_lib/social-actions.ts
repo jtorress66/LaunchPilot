@@ -11,7 +11,7 @@ import {
   socialFailureMessage,
 } from "../../server/messages";
 import { refusedByLimit } from "./limits";
-import { requireUser } from "./auth";
+import { requireAccess } from "./auth";
 import { idParam } from "./params";
 
 export interface SocialActionState {
@@ -26,7 +26,7 @@ const formError = (message: string): SocialActionState => ({ errors: { form: mes
 
 /** Sends the founder to the provider's page to link one channel; they come back to /linked. */
 export async function connectSocialAction(id: string, channel: string): Promise<SocialActionState> {
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("connect");
   // Bound arguments arrive from the browser, so the channel is validated like any input.
   const social = socialChannels.find((c) => c === channel);
   if (!social) notFound();
@@ -44,7 +44,7 @@ export async function connectSocialAction(id: string, channel: string): Promise<
 }
 
 export async function draftSocialWeekAction(id: string): Promise<SocialActionState> {
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("draft");
   const limited = await refusedByLimit("draft", workspace.id);
   if (limited) return formError(limited);
   const result = await getAppContainer().draftSocialWeek.execute({
@@ -65,7 +65,7 @@ export async function savePostAction(
   _state: SocialActionState,
   data: FormData,
 ): Promise<SocialActionState> {
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("draft");
   const form = parseForm(postForm, data);
   if (!form.ok) return { errors: form.error };
   const result = await getAppContainer().reviseContentItem.execute({
@@ -82,11 +82,11 @@ export async function schedulePostAction(
   _state: SocialActionState,
   data: FormData,
 ): Promise<SocialActionState> {
-  const { workspace } = await requireUser();
+  const access = await requireAccess("publish");
   const form = parseForm(scheduleForm, data);
   if (!form.ok) return { errors: form.error };
   const result = await getAppContainer().schedulePost.execute({
-    workspace,
+    access,
     itemId: contentItemId(idParam(id)),
     publishAt: form.value.publishAt,
   });
@@ -96,9 +96,9 @@ export async function schedulePostAction(
 }
 
 export async function unschedulePostAction(id: string): Promise<SocialActionState> {
-  const { workspace } = await requireUser();
+  const access = await requireAccess("publish");
   const result = await getAppContainer().unschedulePost.execute({
-    workspace,
+    access,
     itemId: contentItemId(idParam(id)),
   });
   if (!result.ok) return formError(result.error.message);
@@ -107,9 +107,9 @@ export async function unschedulePostAction(id: string): Promise<SocialActionStat
 }
 
 export async function publishPostAction(id: string): Promise<SocialActionState> {
-  const { workspace } = await requireUser();
+  const access = await requireAccess("publish");
   const result = await getAppContainer().publishContentItem.execute({
-    workspace,
+    access,
     itemId: contentItemId(idParam(id)),
   });
   if (!result.ok) return formError(publishFailureMessage(result.error));
@@ -119,11 +119,10 @@ export async function publishPostAction(id: string): Promise<SocialActionState> 
 
 /** Approves straight from the inbox, which then shows the next item. */
 export async function approveFromInboxAction(id: string): Promise<SocialActionState> {
-  const { user, workspace } = await requireUser();
+  const access = await requireAccess("approve");
   const result = await getAppContainer().approveContentItem.execute({
-    workspace,
+    access,
     itemId: contentItemId(idParam(id)),
-    actor: { kind: "founder", userId: user.id },
   });
   if (!result.ok) return formError(result.error.message);
   revalidatePath("/app", "layout");

@@ -1,9 +1,10 @@
 import "server-only";
-import type { Session } from "@nuvantre/domain";
+import type { Session, WorkspaceAction } from "@nuvantre/domain";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { getAppContainer } from "../../container";
+import { allowedOrNull } from "../../server/access";
 import {
   sessionCookieName,
   sessionCookieNames,
@@ -24,6 +25,27 @@ export const requireUser = cache(async () => {
   if (!result.ok) redirect("/login?expired=1");
   return result.value;
 });
+
+/** The signed-in person, or null: for public pages that change when someone is signed in. */
+export const currentUser = cache(async () => {
+  const token = await readSessionToken();
+  if (!token) return null;
+  const result = await getAppContainer().authenticate.execute(token);
+  return result.ok ? result.value : null;
+});
+
+/**
+ * The signed-in person, when their role in the current workspace allows the action. Every
+ * server action that changes anything calls this; a client viewer is sent back to the dashboard.
+ */
+export const requireAccess = async (action: WorkspaceAction) => {
+  const access = allowedOrNull(await requireUser(), action);
+  if (!access) redirect("/app?denied=1");
+  return access;
+};
+
+/** The current session's token, for actions that change the session itself. */
+export const currentSessionToken = readSessionToken;
 
 export const setSessionCookie = async (session: Session): Promise<void> => {
   const { appUrl } = getAppContainer();

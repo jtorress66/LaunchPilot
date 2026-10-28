@@ -1,6 +1,5 @@
 import {
   allocateSlots,
-  effectivePlan,
   plans,
   slotsInUse,
   startOfUtcMonth,
@@ -19,8 +18,9 @@ import type {
   ProductRepository,
   SubscriptionRepository,
   WeeklyReportRepository,
+  WorkspaceRepository,
 } from "@nuvantre/ports";
-import { loadSubscription } from "./current-plan";
+import { currentPlan, loadSubscription } from "./current-plan";
 
 /** What is going on with one product, at a glance. */
 export interface ProductCard {
@@ -55,6 +55,7 @@ export class GetDashboard {
       readonly briefs: BriefRepository;
       readonly contentItems: ContentItemRepository;
       readonly subscriptions: SubscriptionRepository;
+      readonly workspaces: WorkspaceRepository;
       readonly connections: ChannelConnectionRepository;
       readonly weeklyReports: WeeklyReportRepository;
       readonly clock: Clock;
@@ -65,7 +66,7 @@ export class GetDashboard {
     const products = await this.deps.products.listByWorkspace(workspace.id);
     const subscription = await loadSubscription(this.deps, workspace);
     const now = this.deps.clock.now();
-    const plan = plans[effectivePlan(subscription, now)];
+    const plan = plans[await currentPlan(this.deps, workspace)];
     const allocation = allocateSlots(products, plan);
     const ids = products.map((p) => p.id);
     const [byStatus, published] = await Promise.all([

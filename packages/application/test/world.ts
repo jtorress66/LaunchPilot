@@ -41,8 +41,22 @@ import {
   InMemoryWorkspaceRepository,
   SequentialIdGenerator,
   SequentialTokenGenerator,
+  aUser,
+  FakeTokenHasher,
+  InMemoryBrandingRepository,
+  InMemoryInvitationRepository,
+  InMemoryMembershipRepository,
+  InMemoryReportRecipientRepository,
+  RecordingMailer,
 } from "@nuvantre/testing";
-import { DrafterRegistry, MetricsSourceRegistry, PublisherRegistry, SignUp } from "../src";
+import type { Workspace } from "@nuvantre/domain";
+import {
+  DrafterRegistry,
+  MetricsSourceRegistry,
+  PublisherRegistry,
+  SignUp,
+  type WorkspaceAccess,
+} from "../src";
 
 /** Every port a use case may need, backed by in-memory fakes. */
 export const makeWorld = () => {
@@ -62,6 +76,12 @@ export const makeWorld = () => {
     hasher: new FakePasswordHasher(),
     users: new InMemoryUserRepository(),
     sessions: new InMemorySessionRepository(),
+    memberships: new InMemoryMembershipRepository(),
+    invitations: new InMemoryInvitationRepository(),
+    branding: new InMemoryBrandingRepository(),
+    reportRecipients: new InMemoryReportRecipientRepository(),
+    mailer: new RecordingMailer(),
+    tokenHasher: new FakeTokenHasher(),
     workspaces: new InMemoryWorkspaceRepository(),
     subscriptions: new InMemorySubscriptionRepository(),
     products: new InMemoryProductRepository(),
@@ -139,3 +159,10 @@ export const signedUp = async (world: World, email = "founder@acme.dev") => {
   if (!result.ok) throw new Error(result.error.message);
   return result.value;
 };
+
+/** The workspace owner's access, as the web passes it for a signed-in founder. */
+export const ownerAccess = (workspace: Workspace): WorkspaceAccess => ({
+  user: aUser({ id: workspace.ownerId }),
+  workspace,
+  role: "owner",
+});

@@ -26,9 +26,21 @@ export class PostgresWorkspaceRepository implements WorkspaceRepository {
       .selectFrom("workspaces")
       .selectAll()
       .where("owner_id", "=", ownerId)
+      .where("agency_id", "is", null)
       .orderBy("created_at")
       .limit(1)
       .executeTakeFirst();
     return row && workspaceMapper.fromRow(row);
+  }
+
+  async listClients(agencyId: WorkspaceId): Promise<readonly Workspace[]> {
+    const rows = await this.db
+      .selectFrom("workspaces")
+      .selectAll()
+      .where("agency_id", "=", agencyId)
+      .orderBy("created_at")
+      .orderBy("id")
+      .execute();
+    return rows.map(workspaceMapper.fromRow);
   }
 }

@@ -16,7 +16,7 @@ import { PostEditor } from "../../../../components/content/post-editor";
 import { channelName } from "../../../../components/social/channel-name";
 import { LocalTime } from "../../../../components/social/local-time";
 import { getAppContainer } from "../../../../container";
-import { requireUser } from "../../../_lib/auth";
+import { requireAccess } from "../../../_lib/auth";
 import { idParam } from "../../../_lib/params";
 
 export const metadata: Metadata = { title: "Content — Nuvantre" };
@@ -33,7 +33,7 @@ interface ContentPageProps {
 
 export default async function ContentPage({ params, searchParams }: ContentPageProps) {
   const [{ id }, { saved }] = await Promise.all([params, searchParams]);
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("draft");
   const result = await getAppContainer().getContentItem.execute({
     workspace,
     itemId: contentItemId(idParam(id)),

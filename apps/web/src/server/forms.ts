@@ -126,7 +126,32 @@ export const localeForm = z
   })
   .transform(({ language, market }) => ({ locale: `${language}-${market}` }));
 
-export const upgradeForm = z.object({ plan: z.enum(["starter", "growth"]) });
+export const upgradeForm = z.object({ plan: z.enum(["starter", "growth", "agency"]) });
+
+export const clientForm = z.object({ name: text("Enter the client's name", 100) });
+
+export const inviteForm = z.object({
+  email: text("Enter their email address", 254),
+  role: z.enum(["member", "viewer"], { error: "Choose a role" }),
+});
+
+export const switchWorkspaceForm = z.object({ workspaceId: text("Choose a workspace", 100) });
+
+export const brandingForm = z.object({
+  senderName: text("Enter the name reports come from", 60),
+  accentColor: text("Choose a colour", 7),
+  logoUrl: z.string().max(2048, "Use at most 2048 characters").default(""),
+  replyTo: text("Enter the address clients reply to", 254),
+  footer: z.string().max(200, "Use at most 200 characters").default(""),
+});
+
+export const sendReportForm = z.object({
+  recipients: text("Enter at least one address", 2000),
+  weekly: z
+    .string()
+    .optional()
+    .transform((value) => value === "on"),
+});
 
 export type FieldErrors = Partial<Record<string, string>>;
 
@@ -228,3 +253,9 @@ export const analyticsPropertiesForm = z.object({
   searchConsoleSite: optional(2048),
   ga4PropertyId: optional(40),
 });
+
+const INVITE_TOKEN = /^[A-Za-z0-9_-]{20,128}$/;
+
+/** An invitation token carried through sign-up or log-in, or null when it is not one. */
+export const parseInviteToken = (value: unknown): string | null =>
+  typeof value === "string" && INVITE_TOKEN.test(value) ? value : null;

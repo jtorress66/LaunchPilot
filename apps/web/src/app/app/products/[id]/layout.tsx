@@ -1,3 +1,4 @@
+import { can } from "@nuvantre/domain";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import Link from "next/link";
@@ -16,7 +17,7 @@ export default async function ProductLayout({
   readonly params: Promise<{ id: string }>;
 }) {
   const id = idParam((await params).id);
-  const { workspace } = await requireUser();
+  const { workspace, role } = await requireUser();
   const lineup = await getAppContainer().getProductLineup.execute(workspace);
   const listed = [
     ...lineup.active.map((p) => ({ id: p.id, name: p.name, paused: false })),
@@ -40,7 +41,7 @@ export default async function ProductLayout({
           to work on it again.
         </p>
       ) : (
-        <ProductNav current={id} products={listed} />
+        <ProductNav current={id} products={listed} reportsOnly={!can(role, "draft")} />
       )}
       {paused ? (
         <div
@@ -59,11 +60,13 @@ export default async function ProductLayout({
               Upgrade
             </Link>
           </p>
-          <MakeActiveForm
-            id={paused.id}
-            name={paused.name}
-            active={lineup.active.map((p) => ({ id: p.id, name: p.name }))}
-          />
+          {can(role, "manage_products") ? (
+            <MakeActiveForm
+              id={paused.id}
+              name={paused.name}
+              active={lineup.active.map((p) => ({ id: p.id, name: p.name }))}
+            />
+          ) : null}
         </div>
       ) : null}
       {children}

@@ -30,7 +30,7 @@ import {
   SwapActiveProduct,
   WeeklyReportBuilder,
 } from "../src";
-import { makeWorld, signedUp, type World } from "./world";
+import { makeWorld, signedUp, type World, ownerAccess } from "./world";
 
 const day = (n: number) => new Date(Date.UTC(2026, 3, n));
 
@@ -103,7 +103,7 @@ const guarded: readonly [
     "publishing now",
     async (s, p, workspace) =>
       new PublishContentItem(s.world).execute({
-        workspace,
+        access: ownerAccess(workspace),
         itemId: (await workOf(s.world, p)).item.id,
       }),
   ],
@@ -111,7 +111,7 @@ const guarded: readonly [
     "scheduling a post",
     async (s, p, workspace) =>
       new SchedulePost(s.world).execute({
-        workspace,
+        access: ownerAccess(workspace),
         itemId: (await workOf(s.world, p)).item.id,
         publishAt: day(20),
       }),
@@ -223,7 +223,8 @@ describe("the weekly jobs", () => {
       ...s.world,
       builder: new WeeklyReportBuilder(s.world),
     }).execute();
-    expect(result).toEqual({ built: 1, skipped: 1 });
+    expect(result).toMatchObject({ built: 1, skipped: 1 });
+    expect(result.reports.map((r) => r.productId)).toEqual([s.a.id]);
     expect(await s.world.weeklyReports.listByProduct(s.b.id)).toEqual([]);
   });
 

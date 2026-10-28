@@ -83,6 +83,16 @@ export interface MonitoringConfig {
   } | null;
 }
 
+/** How invitations and reports are emailed: Resend, or (development and test) the log only. */
+export type MailConfig =
+  | {
+      readonly kind: "resend";
+      readonly apiKey: string;
+      readonly from: string;
+      readonly baseUrl?: string;
+    }
+  | { readonly kind: "log" };
+
 export interface WebConfig {
   readonly databaseUrl: string;
   readonly appUrl: string;
@@ -94,6 +104,7 @@ export interface WebConfig {
   readonly blogs: BlogApisConfig;
   readonly hardening: HardeningConfig;
   readonly monitoring: MonitoringConfig;
+  readonly mail: MailConfig;
   readonly brief: { readonly drafter: BriefDrafterConfig };
   readonly seo: { readonly keywords: KeywordProviderConfig; readonly writer: ArticleWriterConfig };
   readonly social: { readonly writer: SocialWriterConfig; readonly zernio: ZernioConfig };
@@ -147,6 +158,10 @@ const shared = {
     .optional()
     .refine((value) => value === undefined || parseOverrides(value) !== null, OVERRIDES_MESSAGE),
   SENTRY_DSN: z.url("SENTRY_DSN must be a Sentry DSN URL").optional(),
+  MAILER: z.enum(["resend", "log"]).default("resend"),
+  RESEND_API_KEY: z.string().min(1).optional(),
+  MAIL_FROM: z.string().optional(),
+  RESEND_BASE_URL: z.url("RESEND_BASE_URL must be an absolute URL").optional(),
   APP_VERSION: z.string().min(1).default("0.1.0"),
   SOCIAL_WRITER: z.enum(["claude", "template"]).default("claude"),
   LAUNCH_WRITER: z.enum(["claude", "template"]).default("claude"),
@@ -215,6 +230,32 @@ const keywordsFor = (c: Env): KeywordProviderConfig | undefined => {
 };
 
 /** Validates the web app's environment once, at the edge. APP_ENV defaults to production. */
+const ADDRESS = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
+
+/** The mail settings, or why they are unusable. */
+const mailFor = (c: {
+  MAILER: "resend" | "log";
+  RESEND_API_KEY?: string | undefined;
+  MAIL_FROM?: string | undefined;
+  RESEND_BASE_URL?: string | undefined;
+  APP_ENV: "development" | "test" | "production";
+}): MailConfig | string => {
+  if ((c.MAILER === "log" || c.RESEND_BASE_URL !== undefined) && c.APP_ENV === "production") {
+    return "MAILER=log and RESEND_BASE_URL are for development and test only";
+  }
+  if (c.MAILER === "log") return { kind: "log" };
+  if (c.RESEND_API_KEY === undefined) return "RESEND_API_KEY is required to send email";
+  if (c.MAIL_FROM === undefined || !ADDRESS.test(c.MAIL_FROM)) {
+    return "MAIL_FROM must be an address on a domain verified in Resend";
+  }
+  return {
+    kind: "resend",
+    apiKey: c.RESEND_API_KEY,
+    from: c.MAIL_FROM,
+    ...(c.RESEND_BASE_URL === undefined ? {} : { baseUrl: c.RESEND_BASE_URL }),
+  };
+};
+
 export const parseWebConfig = (
   env: Readonly<Record<string, string | undefined>>,
 ): Result<WebConfig, string> => {
@@ -243,6 +284,8 @@ export const parseWebConfig = (
   if ((c.GOOGLE_CLIENT_ID === undefined) !== (c.GOOGLE_CLIENT_SECRET === undefined)) {
     return err("Set both GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET, or neither");
   }
+  const mail = mailFor(c);
+  if (typeof mail === "string") return err(mail);
   const keywords = keywordsFor(c);
   if (!keywords) {
     return err(
@@ -271,6 +314,7 @@ export const parseWebConfig = (
       trustProxy: c.TRUST_PROXY === "true",
       rateLimitOverrides: parseOverrides(c.RATE_LIMIT_OVERRIDES ?? "") ?? {},
     },
+    mail,
     monitoring: {
       sentry:
         c.SENTRY_DSN === undefined

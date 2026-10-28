@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { userId } from "../shared/ids";
-import { isActive, SESSION_LIFETIME_DAYS, startSession } from "./session";
+import { userId, workspaceId } from "../shared/ids";
+import { isActive, SESSION_LIFETIME_DAYS, startSession, useWorkspace } from "./session";
 
 const now = new Date("2026-05-01T12:00:00.000Z");
 const session = startSession({ token: "tok_1", userId: userId("user_1"), now });
@@ -12,6 +12,7 @@ describe("session", () => {
     expect(session).toEqual({
       token: "tok_1",
       userId: "user_1",
+      workspaceId: null,
       createdAt: now,
       expiresAt: days(30),
     });
@@ -24,5 +25,11 @@ describe("session", () => {
   it("is inactive from the moment it expires", () => {
     expect(isActive(session, days(30))).toBe(false);
     expect(isActive(session, days(31))).toBe(false);
+  });
+
+  it("remembers the workspace the person switched to, keeping its token and expiry", () => {
+    const switched = useWorkspace(session, workspaceId("ws_client"));
+    expect(switched).toEqual({ ...session, workspaceId: "ws_client" });
+    expect(session.workspaceId).toBeNull();
   });
 });

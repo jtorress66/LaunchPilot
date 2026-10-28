@@ -1,5 +1,6 @@
 import {
   parseLoopConfig,
+  parseMailConfig,
   parseMonitoringConfig,
   parsePublisherConfig,
   parseReportsConfig,
@@ -22,8 +23,9 @@ const config = parsePublisherConfig(process.env);
 const reportsConfig = parseReportsConfig(process.env);
 const loopConfig = parseLoopConfig(process.env);
 const monitoring = parseMonitoringConfig(process.env);
-if (!config.ok || !reportsConfig.ok || !loopConfig.ok || !monitoring.ok) {
-  const error = [config, reportsConfig, loopConfig, monitoring].flatMap((c) =>
+const mail = parseMailConfig(process.env);
+if (!config.ok || !reportsConfig.ok || !loopConfig.ok || !monitoring.ok || !mail.ok) {
+  const error = [config, reportsConfig, loopConfig, monitoring, mail].flatMap((c) =>
     c.ok ? [] : [c.error],
   )[0];
   container.log(JSON.stringify({ event: "worker.config_invalid", error }));
@@ -39,11 +41,15 @@ const errors = createErrorReporter(monitoring.value);
 // Every job runs under a Postgres advisory lock, so several workers never run one job twice.
 const jobs = createJobRuntime(config.value.connectionString, errors);
 const publishing = createPublishDue(config.value, errors);
-const reporting = createWeeklyReports(config.value, reportsConfig.value);
+const reporting = createWeeklyReports(config.value, reportsConfig.value, mail.value, errors);
 const looping = createWeeklyLoop(config.value, loopConfig.value);
 const { runtime } = jobs;
 const publishJob = createPublishDueJob({ publishDue: publishing.publishDue, runtime });
-const reportsJob = createWeeklyReportsJob({ buildDue: reporting.buildDue, runtime });
+const reportsJob = createWeeklyReportsJob({
+  buildDue: reporting.buildDue,
+  emails: reporting.emails,
+  runtime,
+});
 const loopJob = createWeeklyLoopJob({ runDue: looping.runDue, runtime });
 const purgeJob = createPurgeRateLimitsJob({ limits: jobs.limits, runtime });
 const heartbeat = createHeartbeat({

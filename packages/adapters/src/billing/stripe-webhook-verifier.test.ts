@@ -40,6 +40,41 @@ describe("StripeWebhookVerifier mapping", () => {
     },
   );
 
+  it("activates the Agency plan from a paid checkout", async () => {
+    const result = await deliver({
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          mode: "subscription",
+          payment_status: "paid",
+          customer: "cus_1",
+          subscription: "sub_1",
+          metadata: { workspace_id: "ws_1", plan: "agency" },
+        },
+      },
+    });
+    expect(result).toMatchObject({
+      ok: true,
+      value: { type: "subscription_activated", plan: "agency" },
+    });
+  });
+
+  it("never activates the client plan, which is not sold", async () => {
+    const result = await deliver({
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          mode: "subscription",
+          payment_status: "paid",
+          customer: "cus_1",
+          subscription: "sub_1",
+          metadata: { workspace_id: "ws_1", plan: "client" },
+        },
+      },
+    });
+    expect(result.ok).toBe(false);
+  });
+
   it("ignores a completed checkout that has not been paid", async () => {
     const result = await deliver({
       type: "checkout.session.completed",
@@ -66,6 +101,11 @@ describe("StripeWebhookVerifier mapping", () => {
       expect(result).toMatchObject({ ok: true, value: { type: "subscription_updated", plan } });
     },
   );
+
+  it("recognises the Agency price", async () => {
+    const result = await deliver(subscriptionUpdate("active", "nuvantre_agency_monthly"));
+    expect(result).toMatchObject({ ok: true, value: { plan: "agency" } });
+  });
 
   it("reports a price whose lookup key it does not know as a configuration problem", async () => {
     const result = await deliver(subscriptionUpdate("active", "someone_elses_price"));

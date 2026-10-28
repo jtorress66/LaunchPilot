@@ -1,9 +1,11 @@
+import { can } from "@nuvantre/domain";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PlanBadge } from "../../components/app/plan-badge";
 import { UsageMeter } from "../../components/app/usage-meter";
 import { ProductForm } from "../../components/forms/product-form";
 import { ProductCardItem } from "../../components/products/product-card";
+import { ReportsDashboard } from "../../components/agency/reports-dashboard";
 import { RestoreButton } from "../../components/products/product-actions";
 import { getAppContainer } from "../../container";
 import { requireUser } from "../_lib/auth";
@@ -11,8 +13,10 @@ import { requireUser } from "../_lib/auth";
 export const metadata: Metadata = { title: "Dashboard — Nuvantre" };
 
 export default async function DashboardPage() {
-  const { workspace } = await requireUser();
+  const { workspace, role } = await requireUser();
   const dashboard = await getAppContainer().getDashboard.execute(workspace);
+  if (!can(role, "draft"))
+    return <ReportsDashboard workspaceName={workspace.name} cards={dashboard.cards} />;
   const { plan, cards } = dashboard;
   const active = cards
     .filter((card) => card.standing === "active")

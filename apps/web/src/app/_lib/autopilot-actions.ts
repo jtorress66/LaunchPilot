@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getAppContainer } from "../../container";
 import { refusedByLimit } from "./limits";
-import { requireUser } from "./auth";
+import { requireAccess } from "./auth";
 import { idParam } from "./params";
 
 export interface AutopilotActionState {
@@ -17,7 +17,7 @@ const analyticsPath = (id: string) => `/app/products/${id}/analytics`;
 /** Bound arguments arrive from the browser, so `enabled` is checked like any input. */
 export async function setAutopilotAction(rawId: string, enabled: unknown): Promise<void> {
   const id = idParam(rawId);
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("draft");
   await getAppContainer().setAutopilot.execute({
     workspace,
     productId: productId(id),
@@ -29,7 +29,7 @@ export async function setAutopilotAction(rawId: string, enabled: unknown): Promi
 
 export async function runAutopilotNowAction(rawId: string): Promise<AutopilotActionState> {
   const id = idParam(rawId);
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("draft");
   const limited = await refusedByLimit("draft", workspace.id);
   if (limited) return { error: limited };
   const result = await getAppContainer().runAutopilotNow.execute({

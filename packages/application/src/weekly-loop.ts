@@ -309,6 +309,7 @@ export class RunAutopilotNow {
     private readonly deps: {
       readonly products: ProductRepository;
       readonly subscriptions: SubscriptionRepository;
+      readonly workspaces: WorkspaceRepository;
       readonly loop: RunWeeklyLoop;
       readonly clock: Clock;
     },
@@ -341,6 +342,7 @@ export class RunDueLoops {
     private readonly deps: {
       readonly products: ProductRepository;
       readonly subscriptions: SubscriptionRepository;
+      readonly workspaces: WorkspaceRepository;
       readonly autopilotRuns: AutopilotRunRepository;
       readonly loop: RunWeeklyLoop;
       readonly clock: Clock;
@@ -374,6 +376,7 @@ export class SetAutopilot {
     private readonly deps: {
       readonly products: ProductRepository;
       readonly subscriptions: SubscriptionRepository;
+      readonly workspaces: WorkspaceRepository;
       readonly clock: Clock;
     } & AuditDeps,
   ) {}

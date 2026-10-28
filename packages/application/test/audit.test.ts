@@ -32,7 +32,7 @@ import {
   SetAutopilot,
   SwapActiveProduct,
 } from "../src";
-import { makeWorld, PASSWORD, signedUp, type World } from "./world";
+import { makeWorld, PASSWORD, signedUp, type World, ownerAccess } from "./world";
 
 const setUp = async () => {
   const world = makeWorld();
@@ -109,9 +109,8 @@ describe("the audit trail records what the founder does", () => {
     const s = await setUp();
     await s.world.briefs.save(aBrief({ id: briefId("brief_1"), productId: s.product.id }));
     await new ApproveBrief(s.world).execute({
-      workspace: s.workspace,
+      access: ownerAccess(s.workspace),
       productId: s.product.id,
-      actor: founder(s) as never,
     });
     expect(latest(s.world)).toMatchObject({
       actor: founder(s),
@@ -121,9 +120,8 @@ describe("the audit trail records what the founder does", () => {
 
     const toApprove = await item(s, "in_review");
     await new ApproveContentItem(s.world).execute({
-      workspace: s.workspace,
+      access: ownerAccess(s.workspace),
       itemId: toApprove.id,
-      actor: founder(s) as never,
     });
     expect(latest(s.world)).toMatchObject({
       action: "content_approved",
@@ -135,13 +133,16 @@ describe("the audit trail records what the founder does", () => {
     const s = await setUp();
     s.world.xPublisher.connect(s.product.id);
     const now = await item(s, "approved");
-    await new PublishContentItem(s.world).execute({ workspace: s.workspace, itemId: now.id });
+    await new PublishContentItem(s.world).execute({
+      access: ownerAccess(s.workspace),
+      itemId: now.id,
+    });
     expect(latest(s.world)).toMatchObject({ actor: founder(s), action: "content_published" });
 
     const later = { ...(await item(s, "approved")), id: "item_later" as never };
     await s.world.contentItems.save(later);
     await new SchedulePost(s.world).execute({
-      workspace: s.workspace,
+      access: ownerAccess(s.workspace),
       itemId: later.id,
       publishAt: new Date("2030-01-01T09:00:00.000Z"),
     });
@@ -294,5 +295,11 @@ describe("GetActivity", () => {
     // The 10 remaining toggles plus creating the product.
     expect(next.entries).toHaveLength(11);
     expect(next.nextBefore).toBeNull();
+  });
+
+  it("names the people behind the entries on the page", async () => {
+    const s = await setUp();
+    const page = await new GetActivity(s.world).execute({ workspace: s.workspace });
+    expect(page.people).toEqual({ [s.user.id]: "founder@acme.dev" });
   });
 });

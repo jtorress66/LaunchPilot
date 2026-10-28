@@ -26,7 +26,7 @@ import {
   SchedulePost,
   UnschedulePost,
 } from "../src";
-import { makeWorld, signedUp, type World } from "./world";
+import { makeWorld, signedUp, type World, ownerAccess } from "./world";
 
 interface Setup {
   world: World;
@@ -55,9 +55,8 @@ const setUp = async ({ approveBrief = true } = {}): Promise<Setup> => {
   if (!brief.ok) throw new Error(brief.error.message);
   if (approveBrief) {
     await new ApproveBrief(world).execute({
-      workspace,
+      access: ownerAccess(workspace),
       productId: product.id,
-      actor: { kind: "founder", userId: user.id },
     });
   }
   return { world, workspace, user, product };
@@ -104,16 +103,19 @@ const approvedPost = async (s: Setup, channel: "x" | "linkedin" = "x") => {
   const post = items.find((i) => i.channel === channel);
   if (!post) throw new Error("no post");
   const result = await new ApproveContentItem(s.world).execute({
-    workspace: s.workspace,
+    access: ownerAccess(s.workspace),
     itemId: post.id,
-    actor: founder(s),
   });
   if (!result.ok) throw new Error(result.error.message);
   return result.value;
 };
 
 const schedule = (s: Setup, item: ContentItem, publishAt: Date) =>
-  new SchedulePost(s.world).execute({ workspace: s.workspace, itemId: item.id, publishAt });
+  new SchedulePost(s.world).execute({
+    access: ownerAccess(s.workspace),
+    itemId: item.id,
+    publishAt,
+  });
 
 const scheduledPost = async (s: Setup, channel: "x" | "linkedin" = "x") => {
   const post = await approvedPost(s, channel);
@@ -357,7 +359,7 @@ describe("SchedulePost and UnschedulePost", () => {
     const s = await setUp();
     const post = await scheduledPost(s);
     const result = await new UnschedulePost(s.world).execute({
-      workspace: s.workspace,
+      access: ownerAccess(s.workspace),
       itemId: post.id,
     });
     expect(result).toMatchObject({ ok: true, value: { status: "approved", publishAt: null } });
@@ -368,7 +370,7 @@ describe("SchedulePost and UnschedulePost", () => {
     const post = await approvedPost(s);
     const { workspace: other } = await signedUp(s.world, "other@acme.dev");
     const result = await new SchedulePost(s.world).execute({
-      workspace: other,
+      access: ownerAccess(other),
       itemId: post.id,
       publishAt: new Date(s.world.clock.now().getTime() + HOUR),
     });
@@ -390,9 +392,8 @@ describe("PublishDueContent", () => {
       [c, 5 * HOUR],
     ] as const) {
       await new ApproveContentItem(s.world).execute({
-        workspace: s.workspace,
+        access: ownerAccess(s.workspace),
         itemId: item.id,
-        actor: founder(s),
       });
       await schedule(s, item, new Date(now + offset));
     }

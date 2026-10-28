@@ -17,6 +17,7 @@ import type {
   ProductRepository,
   SubscriptionRepository,
   SiteCrawler,
+  WorkspaceRepository,
 } from "@nuvantre/ports";
 import { failure, type UseCaseError } from "./errors";
 import { loadActiveProduct } from "./active-product";
@@ -24,6 +25,7 @@ import { loadActiveProduct } from "./active-product";
 export interface GenerateBriefDeps {
   readonly products: ProductRepository;
   readonly subscriptions: SubscriptionRepository;
+  readonly workspaces: WorkspaceRepository;
   readonly briefs: BriefRepository;
   readonly crawler: SiteCrawler;
   readonly drafter: BriefDrafter;

@@ -25,6 +25,7 @@ import type {
   ProductRepository,
   SubscriptionRepository,
   TaskRepository,
+  WorkspaceRepository,
 } from "@nuvantre/ports";
 import { loadApprovedBrief } from "./approved-brief";
 import { failure, type UseCaseError } from "./errors";
@@ -57,6 +58,7 @@ export class PlanSeoContent {
     private readonly deps: {
       readonly products: ProductRepository;
       readonly subscriptions: SubscriptionRepository;
+      readonly workspaces: WorkspaceRepository;
       readonly briefs: BriefRepository;
       readonly campaigns: CampaignRepository;
       readonly tasks: TaskRepository;

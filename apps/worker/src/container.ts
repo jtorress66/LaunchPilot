@@ -7,6 +7,7 @@ import {
   PublishDueContent,
   PublisherRegistry,
   WeeklyReportBuilder,
+  SendWeeklyReportEmails,
 } from "@nuvantre/application";
 import {
   ReviewerAgent,
@@ -63,6 +64,8 @@ import {
   UuidIdGenerator,
   type GoogleOptions,
   SeedKeywordProvider,
+  LogMailer,
+  ResendMailer,
 } from "@nuvantre/adapters";
 import type {
   BlogCredentials,
@@ -70,6 +73,7 @@ import type {
   ErrorReporter,
   MetricsSource,
   TokenCipher,
+  Mailer,
 } from "@nuvantre/ports";
 import type {
   AnalystConfig,
@@ -81,6 +85,7 @@ import type {
   ReportsConfig,
   StripeSetupConfig,
   ZernioConfig,
+  MailConfig,
 } from "./config";
 import type { EvalConfig } from "./eval/brief-eval";
 import { MeteredLlmClient } from "./eval/metered-llm-client";
@@ -226,6 +231,7 @@ export const createPublishDue = (config: PublisherConfig, errors: ErrorReporter)
       contentItems: repositories.contentItems,
       products: repositories.products,
       subscriptions: repositories.subscriptions,
+      workspaces: repositories.workspaces,
       tasks: repositories.tasks,
       publishers,
       clock: container.clock,
@@ -301,8 +307,26 @@ const metricsSources = (
   return new MetricsSourceRegistry(sources);
 };
 
-/** The weekly report job over Postgres, with the real analytics sources and analyst. */
-export const createWeeklyReports = (publisher: PublisherConfig, reports: ReportsConfig) => {
+/** Resend from the verified address, or (development and test) a log line per email. */
+export const mailerFor = (config: MailConfig): Mailer =>
+  config.kind === "resend"
+    ? new ResendMailer({
+        apiKey: config.apiKey,
+        from: config.from,
+        ...(config.baseUrl === undefined ? {} : { baseUrl: config.baseUrl }),
+      })
+    : new LogMailer(container.log);
+
+/**
+ * The weekly report job over Postgres, with the real analytics sources and analyst, and the
+ * emails that send each new report to its product's weekly list.
+ */
+export const createWeeklyReports = (
+  publisher: PublisherConfig,
+  reports: ReportsConfig,
+  mail: MailConfig,
+  errors: ErrorReporter,
+) => {
   const db = createDatabase(publisher.connectionString);
   const repositories = createPostgresRepositories(db);
   const cipher = new AesGcmTokenCipher(publisher.tokenEncryptionKey);
@@ -319,9 +343,21 @@ export const createWeeklyReports = (publisher: PublisherConfig, reports: Reports
     buildDue: new BuildDueReports({
       products: repositories.products,
       subscriptions: repositories.subscriptions,
+      workspaces: repositories.workspaces,
       analyticsConnections: repositories.analyticsConnections,
       weeklyReports: repositories.weeklyReports,
       builder,
+      clock: container.clock,
+    }),
+    emails: new SendWeeklyReportEmails({
+      products: repositories.products,
+      workspaces: repositories.workspaces,
+      reportRecipients: repositories.reportRecipients,
+      branding: repositories.branding,
+      mailer: mailerFor(mail),
+      audit: new PostgresAuditTrail(db),
+      errors,
+      ids: new UuidIdGenerator(),
       clock: container.clock,
     }),
     close: () => db.destroy(),

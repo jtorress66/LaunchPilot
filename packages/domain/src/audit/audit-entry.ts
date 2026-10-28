@@ -18,13 +18,29 @@ export const auditActions = [
   "plan_changed",
   "autopilot_enabled",
   "autopilot_disabled",
+  "client_added",
+  "member_invited",
+  "member_joined",
+  "member_removed",
+  "branding_updated",
+  "report_sent",
 ] as const;
 export type AuditAction = (typeof auditActions)[number];
 
 export type AuditActor = Actor | { readonly kind: "system" };
 
 export interface AuditSubject {
-  readonly kind: "account" | "product" | "brief" | "content" | "connection" | "plan";
+  readonly kind:
+    | "account"
+    | "product"
+    | "brief"
+    | "content"
+    | "connection"
+    | "plan"
+    | "workspace"
+    | "member"
+    | "branding"
+    | "report";
   readonly id: string;
   /** A short name for the item (its title or site), never its content or a secret. */
   readonly label: string;

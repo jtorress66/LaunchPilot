@@ -2,7 +2,7 @@ import { planIds, plans } from "@nuvantre/domain";
 import type { Metadata } from "next";
 import { getAppContainer } from "../../../container";
 import { cancelLocalPlanAction, upgradeAction } from "../../_lib/actions";
-import { requireUser } from "../../_lib/auth";
+import { requireAccess } from "../../_lib/auth";
 
 export const metadata: Metadata = { title: "Billing — Nuvantre" };
 
@@ -30,10 +30,22 @@ export default async function BillingPage({
 }: {
   readonly searchParams: Promise<{ checkout?: string }>;
 }) {
-  const { workspace } = await requireUser();
+  const { workspace } = await requireAccess("manage_billing");
   const { checkout } = await searchParams;
   const dashboard = await getAppContainer().getDashboard.execute(workspace);
   const notice = checkout ? notices[checkout] : undefined;
+  if (workspace.agencyId !== null) {
+    return (
+      <div className="space-y-2">
+        <h1 className="text-2xl font-bold tracking-tight">Plans and billing</h1>
+        <p className="text-sm text-slate-600 dark:text-slate-400">
+          {workspace.name} is a client workspace: it runs on the{" "}
+          <strong>{dashboard.plan.name}</strong> plan, paid for by your agency. Billing is managed
+          in the agency&apos;s workspace.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -58,50 +70,56 @@ export default async function BillingPage({
           {notice.text}
         </p>
       ) : null}
-      <ul className="grid gap-6 md:grid-cols-3">
-        {planIds.map((id) => {
-          const plan = plans[id];
-          const current = id === dashboard.plan.id;
-          return (
-            <li
-              key={id}
-              aria-label={`${plan.name} plan`}
-              className={`flex flex-col rounded-2xl border bg-white p-6 dark:bg-slate-900 ${current ? "border-brand-500 ring-2 ring-brand-500/30" : "border-slate-200 dark:border-slate-800"}`}
-            >
-              <h2 className="text-lg font-semibold">{plan.name}</h2>
-              <p className="mt-2">
-                <span className="text-3xl font-bold">${plan.priceMonthlyUsd}</span>
-                <span className="text-sm text-slate-500">/month</span>
-              </p>
-              <ul className="mt-4 flex-1 space-y-2 text-sm text-slate-600 dark:text-slate-400">
-                <li>
-                  {plan.limits.products === 1 ? "1 product" : `${plan.limits.products} products`}
-                </li>
-                <li>{plan.limits.contentItemsPerMonth} content items per month</li>
-                <li>Founder approval before anything publishes</li>
-              </ul>
-              {current ? (
-                <p className="mt-6 rounded-lg bg-slate-100 px-4 py-2.5 text-center text-sm font-semibold dark:bg-slate-800">
-                  Current plan
+      <ul className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {planIds
+          // The client plan is never sold: an agency's plan covers its clients.
+          .filter((id) => id !== "client")
+          .map((id) => {
+            const plan = plans[id];
+            const current = id === dashboard.plan.id;
+            return (
+              <li
+                key={id}
+                aria-label={`${plan.name} plan`}
+                className={`flex flex-col rounded-2xl border bg-white p-6 dark:bg-slate-900 ${current ? "border-brand-500 ring-2 ring-brand-500/30" : "border-slate-200 dark:border-slate-800"}`}
+              >
+                <h2 className="text-lg font-semibold">{plan.name}</h2>
+                <p className="mt-2">
+                  <span className="text-3xl font-bold">${plan.priceMonthlyUsd}</span>
+                  <span className="text-sm text-slate-500">/month</span>
                 </p>
-              ) : plan.priceMonthlyUsd > 0 ? (
-                <form action={upgradeAction} className="mt-6">
-                  <input type="hidden" name="plan" value={id} />
-                  <button
-                    type="submit"
-                    className="w-full rounded-lg bg-brand-600 px-4 py-2.5 font-semibold text-white hover:bg-brand-700"
-                  >
-                    Upgrade to {plan.name}
-                  </button>
-                </form>
-              ) : (
-                <p className="mt-6 text-center text-sm text-slate-500">
-                  Included with every account
-                </p>
-              )}
-            </li>
-          );
-        })}
+                <ul className="mt-4 flex-1 space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                  <li>
+                    {plan.limits.products === 1 ? "1 product" : `${plan.limits.products} products`}
+                  </li>
+                  <li>{plan.limits.contentItemsPerMonth} content items per month</li>
+                  {plan.limits.clients > 0 ? (
+                    <li>{plan.limits.clients} client workspaces with branded weekly reports</li>
+                  ) : null}
+                  <li>Founder approval before anything publishes</li>
+                </ul>
+                {current ? (
+                  <p className="mt-6 rounded-lg bg-slate-100 px-4 py-2.5 text-center text-sm font-semibold dark:bg-slate-800">
+                    Current plan
+                  </p>
+                ) : plan.priceMonthlyUsd > 0 ? (
+                  <form action={upgradeAction} className="mt-6">
+                    <input type="hidden" name="plan" value={id} />
+                    <button
+                      type="submit"
+                      className="w-full rounded-lg bg-brand-600 px-4 py-2.5 font-semibold text-white hover:bg-brand-700"
+                    >
+                      Upgrade to {plan.name}
+                    </button>
+                  </form>
+                ) : (
+                  <p className="mt-6 text-center text-sm text-slate-500">
+                    Included with every account
+                  </p>
+                )}
+              </li>
+            );
+          })}
       </ul>
     </div>
   );

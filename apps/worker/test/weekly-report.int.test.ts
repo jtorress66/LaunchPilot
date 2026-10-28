@@ -14,6 +14,7 @@ import {
   aProduct,
   aUser,
   aWorkspace,
+  FakeErrorReporter,
 } from "@nuvantre/testing";
 import { http, HttpResponse, type JsonBodyType } from "msw";
 import { setupServer } from "msw/node";
@@ -61,6 +62,10 @@ const byWeek = (startDate: string, w42: JsonBodyType, w41: JsonBodyType) =>
   HttpResponse.json(startDate === "2026-10-12" ? w42 : w41);
 
 const server = setupServer(
+  http.post("https://api.resend.com/emails", async ({ request }) => {
+    emails.push((await request.json()) as Record<string, unknown>);
+    return HttpResponse.json({ id: `email_${String(emails.length)}` });
+  }),
   http.post("https://oauth2.googleapis.com/token", async ({ request }) => {
     const form = new URLSearchParams(await request.text());
     return form.get("refresh_token") === REFRESH
@@ -104,7 +109,15 @@ const server = setupServer(
 const db = createDatabase(inject("databaseUrl"));
 const repos = createPostgresRepositories(db);
 const cipher = new AesGcmTokenCipher(KEY);
-const weekly = createWeeklyReports(publisher, reports);
+const errors = new FakeErrorReporter();
+const weekly = createWeeklyReports(
+  publisher,
+  reports,
+  { kind: "resend", apiKey: "re_recorded_key", from: "reports@mail.nuvantre.app" },
+  errors,
+);
+/** What the Resend stand-in received. */
+const emails: Record<string, unknown>[] = [];
 
 beforeAll(async () => {
   server.listen({ onUnhandledRequest: "error" });
@@ -209,5 +222,31 @@ describe("weekly report from recorded API data", () => {
     const again = await weekly.builder.build(product, W42);
     expect(again.id).toBe(first?.id);
     expect(await repos.weeklyReports.listByProduct(product.id)).toHaveLength(1);
+  });
+
+  it("emails a new report to its product's weekly list, and nobody else", async () => {
+    const product = aProduct();
+    const report = await repos.weeklyReports.findByProductAndWeek(product.id, "2026-W42");
+    if (!report) throw new Error("no report");
+    await repos.reportRecipients.save({
+      productId: product.id,
+      emails: ["client@acme.test" as never],
+      weekly: true,
+    });
+    expect(await weekly.emails.execute([report])).toEqual({ sent: 1, failed: 0 });
+    expect(emails).toHaveLength(1);
+    expect(emails[0]).toMatchObject({
+      to: ["client@acme.test"],
+      subject: `${product.name} — weekly report, 2026-W42`,
+    });
+
+    await repos.reportRecipients.save({
+      productId: product.id,
+      emails: ["client@acme.test" as never],
+      weekly: false,
+    });
+    expect(await weekly.emails.execute([report])).toEqual({ sent: 0, failed: 0 });
+    expect(emails).toHaveLength(1);
+    expect(errors.reports).toEqual([]);
   });
 });
