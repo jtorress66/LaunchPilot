@@ -40,6 +40,41 @@ describe("StripeWebhookVerifier mapping", () => {
     },
   );
 
+  it("activates the Agency plan from a paid checkout", async () => {
+    const result = await deliver({
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          mode: "subscription",
+          payment_status: "paid",
+          customer: "cus_1",
+          subscription: "sub_1",
+          metadata: { workspace_id: "ws_1", plan: "agency" },
+        },
+      },
+    });
+    expect(result).toMatchObject({
+      ok: true,
+      value: { type: "subscription_activated", plan: "agency" },
+    });
+  });
+
+  it("never activates the client plan, which is not sold", async () => {
+    const result = await deliver({
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          mode: "subscription",
+          payment_status: "paid",
+          customer: "cus_1",
+          subscription: "sub_1",
+          metadata: { workspace_id: "ws_1", plan: "client" },
+        },
+      },
+    });
+    expect(result.ok).toBe(false);
+  });
+
   it("ignores a completed checkout that has not been paid", async () => {
     const result = await deliver({
       type: "checkout.session.completed",

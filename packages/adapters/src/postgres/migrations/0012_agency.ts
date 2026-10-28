@@ -2,6 +2,11 @@ import { sql, type Kysely } from "kysely";
 
 /** Agencies: client workspaces, memberships with roles, invitations and branded report email. */
 export async function up(db: Kysely<unknown>): Promise<void> {
+  // The Agency plan is sold; the client plan is worked out from the agency and never stored.
+  await sql`ALTER TABLE subscriptions DROP CONSTRAINT subscriptions_plan_check`.execute(db);
+  await sql`ALTER TABLE subscriptions ADD CONSTRAINT subscriptions_plan_check
+    CHECK (plan in ('free', 'starter', 'growth', 'agency'))`.execute(db);
+
   await db.schema
     .alterTable("workspaces")
     .addColumn("agency_id", "text", (col) => col.references("workspaces.id").onDelete("cascade"))
@@ -87,4 +92,8 @@ export async function down(db: Kysely<unknown>): Promise<void> {
   // Client workspaces only exist with agencies; they go with the column.
   await sql`DELETE FROM workspaces WHERE agency_id IS NOT NULL`.execute(db);
   await db.schema.alterTable("workspaces").dropColumn("agency_id").execute();
+  await sql`UPDATE subscriptions SET plan = 'growth' WHERE plan = 'agency'`.execute(db);
+  await sql`ALTER TABLE subscriptions DROP CONSTRAINT subscriptions_plan_check`.execute(db);
+  await sql`ALTER TABLE subscriptions ADD CONSTRAINT subscriptions_plan_check
+    CHECK (plan in ('free', 'starter', 'growth'))`.execute(db);
 }

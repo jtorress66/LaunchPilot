@@ -61,6 +61,24 @@ describe("accounts in Postgres", () => {
     await expect(db.insertInto("subscriptions").values(row).execute()).rejects.toThrow(message);
   });
 
+  it("stores an Agency subscription, but never the client plan, which is not sold", async () => {
+    const agency = {
+      ...subscriptionMapper.toRow(
+        aSubscription({ workspaceId: workspaceId("ws_1"), plan: "agency" }),
+      ),
+    };
+    await expect(db.insertInto("subscriptions").values(agency).execute()).resolves.toBeDefined();
+    const client = {
+      ...subscriptionMapper.toRow(
+        aSubscription({ workspaceId: workspaceId("ws_2"), plan: "growth" }),
+      ),
+      plan: "client",
+    };
+    await expect(db.insertInto("subscriptions").values(client).execute()).rejects.toThrow(
+      /subscriptions_plan_check/,
+    );
+  });
+
   it("finds a user by email regardless of the case it is looked up with", async () => {
     const repo = new PostgresUserRepository(db);
     const user = await repo.findById(userId("user_founder"));
