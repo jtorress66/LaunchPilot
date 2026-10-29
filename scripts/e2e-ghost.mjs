@@ -28,6 +28,22 @@ const call = async (url, path, { method = "GET", body, cookie } = {}) => {
   return response;
 };
 
+// Ghost answers the login before it has saved the session, so the very next request can be refused
+// (403 "Unable to determine the authenticated user"). Wait until the session is recognised.
+const waitForSession = async (url, cookie) => {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    const me = await fetch(`${url}/ghost/api/admin/users/me/`, {
+      headers: { origin: url, "accept-version": "v5.0", cookie },
+    });
+    if (me.ok) return;
+    if (me.status !== 403) {
+      throw new Error(`Ghost GET users/me/ failed: ${me.status} ${await me.text()}`);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  throw new Error("Ghost never recognised the owner's session");
+};
+
 export const startGhost = async () => {
   const ghost = await new GenericContainer("ghost:5-alpine")
     .withEnvironment({
@@ -54,6 +70,7 @@ export const startGhost = async () => {
     body: { username: OWNER.email, password: OWNER.password },
   });
   const cookie = session.headers.get("set-cookie")?.split(";")[0] ?? "";
+  await waitForSession(url, cookie);
   const created = await call(url, "integrations/?include=api_keys", {
     method: "POST",
     cookie,
