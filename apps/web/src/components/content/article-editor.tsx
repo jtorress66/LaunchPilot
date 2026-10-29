@@ -5,6 +5,7 @@ import { useActionState, useState } from "react";
 import {
   approveArticleAction,
   publishArticleAction,
+  rejectArticleAction,
   saveArticleAction,
   type ContentActionState,
 } from "../../app/_lib/content-actions";
@@ -32,6 +33,9 @@ const EDITABLE: readonly ContentItemStatus[] = [
   "failed",
 ];
 
+/** Scheduled and published articles must be unscheduled or are already live. */
+const REJECTABLE: readonly ContentItemStatus[] = ["draft", "in_review", "approved"];
+
 export function ArticleEditor({ itemId, title, body, seo, status, justSaved }: ArticleEditorProps) {
   const [saveState, save] = useActionState<ContentActionState, FormData>(
     saveArticleAction.bind(null, itemId),
@@ -43,6 +47,10 @@ export function ArticleEditor({ itemId, title, body, seo, status, justSaved }: A
   );
   const [publishState, publish] = useActionState<ContentActionState>(
     publishArticleAction.bind(null, itemId),
+    {},
+  );
+  const [rejectState, reject] = useActionState<ContentActionState, FormData>(
+    rejectArticleAction.bind(null, itemId),
     {},
   );
   const [dirty, setDirty] = useState(false);
@@ -103,27 +111,62 @@ export function ArticleEditor({ itemId, title, body, seo, status, justSaved }: A
         </form>
       ) : null}
 
-      <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
-        <h2 className="font-semibold">Approve and publish</h2>
-        {dirty ? <p className="text-sm text-slate-500">Save your changes first.</p> : null}
-        <FormError message={approveState.errors?.form ?? publishState.errors?.form} />
-        <div className="flex flex-wrap gap-3">
-          <form action={approve}>
-            <ActionButton disabled={dirty || status !== "in_review"} tone="approve">
-              Approve article
-            </ActionButton>
-          </form>
-          <form action={publish}>
-            <ActionButton disabled={dirty || status !== "approved"} tone="publish">
-              Publish to blog
-            </ActionButton>
-          </form>
-        </div>
-        <p className="text-xs text-slate-500">
-          Nothing is published until you approve it. Publishing posts the article to your connected
-          blog.
-        </p>
-      </section>
+      {status === "rejected" ? (
+        <section className="space-y-2 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+          <h2 className="font-semibold">Rejected</h2>
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            This article will not be published. Edit and save it to send it back for your approval,
+            or draft a new one from the SEO plan.
+          </p>
+        </section>
+      ) : (
+        <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+          <h2 className="font-semibold">Approve and publish</h2>
+          {dirty ? <p className="text-sm text-slate-500">Save your changes first.</p> : null}
+          <FormError message={approveState.errors?.form ?? publishState.errors?.form} />
+          <div className="flex flex-wrap gap-3">
+            <form action={approve}>
+              <ActionButton disabled={dirty || status !== "in_review"} tone="approve">
+                Approve article
+              </ActionButton>
+            </form>
+            <form action={publish}>
+              <ActionButton disabled={dirty || status !== "approved"} tone="publish">
+                Publish to blog
+              </ActionButton>
+            </form>
+          </div>
+          <p className="text-xs text-slate-500">
+            Nothing is published until you approve it. Publishing posts the article to your
+            connected blog.
+          </p>
+          {REJECTABLE.includes(status) ? (
+            <details className="border-t border-slate-200 pt-3 dark:border-slate-800">
+              <summary className="cursor-pointer text-sm font-semibold text-red-700 dark:text-red-400">
+                Reject this article
+              </summary>
+              <form action={reject} className="mt-3 space-y-3" noValidate>
+                <FormError message={rejectState.errors?.form} />
+                <TextAreaField
+                  label="Reason (optional)"
+                  defaultValue=""
+                  name="reason"
+                  rows={2}
+                  hint="Only you see this. A rejected article is never published."
+                  error={rejectState.errors?.reason}
+                />
+                <button
+                  type="submit"
+                  disabled={dirty}
+                  className="inline-flex items-center justify-center rounded-lg border border-red-300 px-4 py-2.5 font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/40"
+                >
+                  Reject article
+                </button>
+              </form>
+            </details>
+          ) : null}
+        </section>
+      )}
     </div>
   );
 }

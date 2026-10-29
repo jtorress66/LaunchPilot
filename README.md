@@ -208,6 +208,11 @@ Once the brief is approved, the product's **SEO** page runs the loop:
    the excerpt as the meta description; Yoast and Rank Math's own meta fields need their REST
    extensions, so they are not set. A failed attempt leaves the article approved, so it can simply
    be retried.
+6. **Reject.** Instead of approving, the founder (owner or member, never a client viewer) can
+   reject a draft, an article waiting for approval, or an approved article that is not yet
+   scheduled, with an optional reason. A rejected article is never published; its plan row offers
+   **Draft again**, which writes a new article for the keyword (counted like any draft). Rejections
+   appear in Activity.
 
 **DataForSEO account:** sign up at dataforseo.com and copy the API login and password from the
 dashboard (API Access). Set `DATAFORSEO_LOGIN` and `DATAFORSEO_PASSWORD`. Each plan costs about one
@@ -570,6 +575,7 @@ draft → in_review → approved → scheduled → published
           │  └→ rejected        │  ↑ unschedule   └→ failed → retry → scheduled
           └→ draft (changes requested)
 edit (from approved / scheduled / rejected / failed) → draft, clearing approval
+reject (from draft / in_review / approved) → rejected, clearing approval
 ```
 
 - Only a founder can approve; agents can draft, review and request changes.

@@ -218,6 +218,11 @@ export const liveForm = z.object({ listingUrl: text("Paste the address of your l
 
 export const rejectForm = z.object({ reason: text("Say why it was rejected", 500) });
 
+/** Rejecting an article: the reason is optional. */
+export const articleRejectForm = z.object({
+  reason: z.string().trim().max(500, "Use at most 500 characters").default(""),
+});
+
 export interface DirectoryFilter {
   readonly kind?: "launch_platform" | "directory" | "community";
   readonly pricing?: "free" | "freemium" | "paid";

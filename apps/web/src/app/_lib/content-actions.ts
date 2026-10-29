@@ -4,7 +4,7 @@ import { contentItemId, type WorkspaceAction } from "@nuvantre/domain";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getAppContainer } from "../../container";
-import { articleForm, parseForm, type FieldErrors } from "../../server/forms";
+import { articleForm, articleRejectForm, parseForm, type FieldErrors } from "../../server/forms";
 import { requireAccess } from "./auth";
 import { idParam } from "./params";
 
@@ -41,6 +41,24 @@ export async function approveArticleAction(id: string): Promise<ContentActionSta
   const { access, itemId } = await target(id, "approve");
   const result = await getAppContainer().approveContentItem.execute({ access, itemId });
   if (!result.ok) return formError(result.error.message);
+  redirect(contentPath(id));
+}
+
+export async function rejectArticleAction(
+  id: string,
+  _state: ContentActionState,
+  data: FormData,
+): Promise<ContentActionState> {
+  const { access, itemId } = await target(id, "approve");
+  const form = parseForm(articleRejectForm, data);
+  if (!form.ok) return { errors: form.error };
+  const result = await getAppContainer().rejectContentItem.execute({
+    access,
+    itemId,
+    reason: form.value.reason,
+  });
+  if (!result.ok) return formError(result.error.message);
+  revalidatePath("/app");
   redirect(contentPath(id));
 }
 

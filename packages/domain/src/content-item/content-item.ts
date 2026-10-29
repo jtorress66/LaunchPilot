@@ -84,7 +84,7 @@ interface Context {
 }
 
 const machine = defineTransitions<ContentItemStatus, EventType>({
-  draft: { submit: "in_review", edit: "draft", archive: "archived" },
+  draft: { submit: "in_review", edit: "draft", reject: "rejected", archive: "archived" },
   in_review: {
     requestChanges: "draft",
     edit: "draft",
@@ -96,6 +96,7 @@ const machine = defineTransitions<ContentItemStatus, EventType>({
     schedule: "scheduled",
     markPublished: "published",
     edit: "draft",
+    reject: "rejected",
     archive: "archived",
   },
   scheduled: {
@@ -169,9 +170,11 @@ const handlers: { readonly [K in EventType]: Handler<K> } = {
     event.actor.kind === "founder"
       ? ok({ approval: { by: event.actor.userId, at: now } })
       : err(domainError("approval_requires_founder", "Only the founder can approve content")),
+  // A rejected item can never be published, so any earlier approval is withdrawn.
   reject: (_item, event, { now }) =>
     map(note(event.reason, "Rejection reason"), (reason) => ({
       rejection: { by: event.actor, reason, at: now },
+      approval: null,
     })),
   // Any edit invalidates approval, schedule and earlier outcomes: the new revision must be reviewed.
   edit: (item, event) =>

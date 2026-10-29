@@ -28,7 +28,7 @@ export function KeywordPlanTable({ tasks }: { readonly tasks: readonly PlannedTa
             )}
           </div>
           {item ? (
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <ContentStatusBadge status={item.status} />
               <Link
                 href={`/app/content/${item.id}`}
@@ -36,6 +36,15 @@ export function KeywordPlanTable({ tasks }: { readonly tasks: readonly PlannedTa
               >
                 Open article
               </Link>
+              {item.status === "rejected" ? (
+                <div className="w-44">
+                  <DraftArticleButton
+                    taskId={task.id}
+                    keyword={task.seo?.keyword ?? task.title}
+                    label="Draft again"
+                  />
+                </div>
+              ) : null}
             </div>
           ) : (
             <div className="w-40">

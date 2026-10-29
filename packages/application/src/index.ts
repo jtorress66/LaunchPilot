@@ -18,6 +18,7 @@ export * from "./plan-seo-content";
 export * from "./draft-seo-article";
 export * from "./revise-content-item";
 export * from "./approve-content-item";
+export * from "./reject-content-item";
 export * from "./publish-content-item";
 export * from "./get-seo-overview";
 export * from "./connect-social";

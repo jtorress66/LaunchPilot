@@ -28,6 +28,13 @@ describe("describeActivity", () => {
     });
   });
 
+  it("says which article the founder rejected", () => {
+    expect(describeActivity(entry({ action: "content_rejected" }))).toEqual({
+      sentence: "You rejected “Ship faster”",
+      href: "/app/content/ci_1",
+    });
+  });
+
   it("names Nuvantre for scheduled work and an agent by its role", () => {
     expect(
       describeActivity(entry({ actor: { kind: "system" }, action: "content_published" })).sentence,
