@@ -1,8 +1,10 @@
 import { err, ok, slugify, type Result } from "@nuvantre/domain";
 import type { ContentDrafter, Draft, DraftError, DraftRequest } from "@nuvantre/ports";
+import { fit } from "../text/fit";
 import { shortenExcerpt } from "./search-metadata";
 
 const RELATED = 3;
+const TITLE_MAX = 200;
 
 const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
@@ -49,7 +51,7 @@ export class TemplateArticleWriter implements ContentDrafter {
     ];
     return Promise.resolve(
       ok({
-        title: `${capitalise(topic)}: a practical guide for ${brief.audience}`,
+        title: fit(`${capitalise(topic)}: a practical guide for ${brief.audience}`, TITLE_MAX),
         body: sections.join("\n\n"),
         citedFacts: [...brief.facts],
         seo: {

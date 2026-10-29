@@ -5,18 +5,8 @@ import type {
   LaunchKitDrafter,
   LaunchKitRequest,
 } from "@nuvantre/ports";
+import { fit } from "../text/fit";
 import { SHOW_HN_TITLE_MAX } from "./prompt";
-
-const ELLIPSIS = "…";
-
-/** Shortens `text` to `max` characters at a word boundary. */
-const fit = (text: string, max: number): string => {
-  const clean = text.trim();
-  if (clean.length <= max) return clean;
-  const cut = clean.slice(0, max - ELLIPSIS.length);
-  const atWord = cut.slice(0, cut.lastIndexOf(" ")).trimEnd();
-  return `${atWord || cut}${ELLIPSIS}`;
-};
 
 const MAX_FEATURES = 6;
 

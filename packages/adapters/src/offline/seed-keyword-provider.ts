@@ -1,14 +1,17 @@
 import { err, ok, type Result } from "@nuvantre/domain";
 import type { KeywordError, KeywordIdea, KeywordProvider, KeywordQuery } from "@nuvantre/ports";
 
-/** Phrase patterns with made-up but stable metrics, so plans look realistic offline. */
+/**
+ * Phrase patterns with made-up but stable metrics, so plans look realistic offline.
+ * They assume nothing about the audience, and the founder's own phrase scores best.
+ */
 const patterns: readonly [(seed: string) => string, number, number][] = [
   [(s) => s, 100, 30],
-  [(s) => `what is ${s}`, 90, 25],
-  [(s) => `${s} for small business`, 80, 20],
-  [(s) => `best ${s} tools`, 70, 35],
-  [(s) => `how to choose ${s}`, 60, 15],
-  [(s) => `${s} checklist`, 50, 10],
+  [(s) => `what is ${s}`, 90, 35],
+  [(s) => `${s} guide`, 80, 30],
+  [(s) => `${s} examples`, 70, 30],
+  [(s) => `how to choose ${s}`, 60, 25],
+  [(s) => `${s} checklist`, 50, 20],
 ];
 
 /**

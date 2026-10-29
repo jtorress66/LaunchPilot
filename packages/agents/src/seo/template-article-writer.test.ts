@@ -42,6 +42,15 @@ describe("TemplateArticleWriter", () => {
     );
   });
 
+  it("shortens the title at a word boundary when the brief's audience is long", async () => {
+    const audience = `Teachers and tutors ${"who plan lessons for mixed classes every week ".repeat(6)}`;
+    const { title } = await draft({ ...request, brief: { ...aBriefContent(), audience } });
+    expect(title.length).toBeLessThanOrEqual(200);
+    expect(title).toMatch(
+      /^Cookieless analytics: a practical guide for Teachers and tutors .*\S…$/,
+    );
+  });
+
   it("writes a Markdown article with an intro, several sections and a call to action", async () => {
     const { body } = await draft();
     expect(body.match(/^## /gm)?.length).toBeGreaterThanOrEqual(3);
