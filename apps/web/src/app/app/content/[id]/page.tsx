@@ -98,6 +98,15 @@ export default async function ContentPage({ params, searchParams }: ContentPageP
         </p>
       ) : null}
 
+      {item.status === "rejected" && item.rejection ? (
+        <p
+          role="status"
+          className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+        >
+          Rejection reason: {item.rejection.reason}
+        </p>
+      ) : null}
+
       {community ? (
         <CommunityPostEditor
           key={item.version}

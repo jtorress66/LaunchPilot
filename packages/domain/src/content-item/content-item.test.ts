@@ -72,7 +72,8 @@ const allowed: Record<
   ContentItemStatus,
   Partial<Record<ContentItemEvent["type"], ContentItemStatus>>
 > = {
-  draft: { submit: "in_review", edit: "draft", archive: "archived" },
+  // The founder may throw away a draft, or an approved article not yet scheduled.
+  draft: { submit: "in_review", edit: "draft", reject: "rejected", archive: "archived" },
   in_review: {
     requestChanges: "draft",
     // The founder may edit a draft that is waiting for their review.
@@ -85,6 +86,7 @@ const allowed: Record<
     schedule: "scheduled",
     markPublished: "published",
     edit: "draft",
+    reject: "rejected",
     archive: "archived",
   },
   scheduled: {
@@ -229,6 +231,13 @@ describe("ContentItem state machine", () => {
 
     it("records who rejected the item and why", () => {
       const item = apply(draft(), events.submit, events.reject);
+      expect(item.rejection).toEqual({ by: founder, reason: "Off-brand", at: t0 });
+    });
+
+    it("withdraws the approval when an approved item is rejected", () => {
+      const item = apply(draft(), ...pathTo.approved, events.reject);
+      expect(item.status).toBe("rejected");
+      expect(item.approval).toBeNull();
       expect(item.rejection).toEqual({ by: founder, reason: "Off-brand", at: t0 });
     });
 

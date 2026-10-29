@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   articleForm,
+  articleRejectForm,
   launchKitForm,
   liveForm,
   localeForm,
@@ -325,6 +326,18 @@ describe("launch forms", () => {
     expect(parseForm(rejectForm, form({ reason: "" }))).toEqual({
       ok: false,
       error: { reason: "Say why it was rejected" },
+    });
+  });
+
+  it("takes an optional reason, of at most 500 characters, to reject an article", () => {
+    expect(parseForm(articleRejectForm, form({ reason: " Off topic " }))).toEqual({
+      ok: true,
+      value: { reason: "Off topic" },
+    });
+    expect(parseForm(articleRejectForm, form({}))).toEqual({ ok: true, value: { reason: "" } });
+    expect(parseForm(articleRejectForm, form({ reason: "x".repeat(501) }))).toEqual({
+      ok: false,
+      error: { reason: "Use at most 500 characters" },
     });
   });
 

@@ -8,14 +8,16 @@ import { SubmitButton } from "../forms/submit-button";
 export function DraftArticleButton({
   taskId,
   keyword,
+  label = "Draft article",
 }: {
   readonly taskId: string;
   readonly keyword: string;
+  readonly label?: string;
 }) {
   const [state, action] = useActionState<SeoActionState>(draftArticleAction.bind(null, taskId), {});
   return (
     <form action={action} className="space-y-2" aria-label={`Draft the article for ${keyword}`}>
-      <SubmitButton pending="Writing…">Draft article</SubmitButton>
+      <SubmitButton pending="Writing…">{label}</SubmitButton>
       <FormError message={state.errors?.form} />
     </form>
   );

@@ -10,6 +10,7 @@ export const auditActions = [
   "product_activated",
   "brief_approved",
   "content_approved",
+  "content_rejected",
   "content_published",
   "post_scheduled",
   "blog_connected",

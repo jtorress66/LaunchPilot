@@ -17,6 +17,7 @@ const whatHappened: Record<AuditAction, (label: string) => string> = {
   product_activated: (label) => `made ${label} active`,
   brief_approved: (label) => `approved the Product Brief for ${label}`,
   content_approved: (label) => `approved ${quoted(label)}`,
+  content_rejected: (label) => `rejected ${quoted(label)}`,
   content_published: (label) => `published ${quoted(label)}`,
   post_scheduled: (label) => `scheduled ${quoted(label)}`,
   blog_connected: (label) => `connected the blog ${label}`,
